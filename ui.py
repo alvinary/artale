@@ -27,12 +27,12 @@ def tree_from_relations(predicates, relation_order):
     node_index = {}
     return nodes
 
-def make_node_label(node):
-    return pyglet.text.Label(node.text,
+def make_node_label(text, x_pos, y_pos):
+    return pyglet.text.Label(text,
                              font_name="Arial",
                              font_size=14,
-                             x=node.x,
-                             y=node.y)
+                             x=x_pos,
+                             y=y_pos)
 
 class Node:
     
