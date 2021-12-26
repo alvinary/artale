@@ -82,14 +82,20 @@ class Node:
             return 1
 
     def count_left(self):
+        # While parent is not None... (collect left of parent)
         if self.parent is None:
             return 0
         else:
+            upper = self.parent
+            block = self
             on_left = []
-            for i in self.parent.children:
-                if i == self:
-                    break
-                on_left.append(i)
+            while not (upper is None):
+                for i in upper.children:
+                    if i == block:
+                        break
+                    on_left.append(i)
+                block = upper
+                upper = block.parent
 
             return sum([l.count_leaves() for l in on_left])
 
