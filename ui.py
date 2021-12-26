@@ -122,6 +122,3 @@ class Node:
                 tip_x, tip_y
 
 
-
-
-
