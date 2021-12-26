@@ -36,17 +36,17 @@ def make_node_label(text, x_pos, y_pos):
 
 class Node:
     
-    def __init__(self, text, children=[], parent=None):
+    def __init__(self, text, children=[], parent=None, x=0, y=0):
         
         self.text = text
         
         self.children = children # these children are not labeled!
         self.parent = parent
         
-        self.x = 0
-        self.y = 0
+        self.x = x
+        self.y = y
 
-        self.label = make_node_label(self)
+        self.label = make_node_label(self.text, self.x, self.y)
         self.vertex_sprite = None
         self.edge_sprites = []
 
