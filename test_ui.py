@@ -34,3 +34,10 @@ def shallow_inspect():
     for c in a.children:
         print(c.text)
         print(len(c.children))
+
+def test_count_left_and_depth():
+    test_tree = make_test_tree_a()
+    e = test_tree.children[1].children[1]
+    print("Expected number of leaves to the left of node e: 2")
+    print(f"Found... {e.count_left()} leaves!")
+    assert e.count_left() == 2 and e.depth() == 2
