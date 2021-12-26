@@ -28,11 +28,15 @@ def tree_from_relations(predicates, relation_order):
     return nodes
 
 def make_node_label(text, x_pos, y_pos):
+    '''Given a 'text' string and two integers (x_pos and y_pos), return
+    a pyglet text label whose text is 'text', placed at (x_pos, y_pos) 2d
+    coordinates.'''
     return pyglet.text.Label(text,
                              font_name="Arial",
                              font_size=14,
                              x=x_pos,
-                             y=y_pos)
+                             y=y_pos,
+                             batch=node_batch)
 
 class Node:
     
