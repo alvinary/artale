@@ -29,7 +29,7 @@ def tree_from_relations(predicates, relation_order):
 
 def make_node_label(node):
     return pyglet.text.Label(node.text,
-                             font_name="",
+                             font_name="Arial",
                              font_size=14,
                              x=node.x,
                              y=node.y)
