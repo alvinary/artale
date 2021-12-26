@@ -40,12 +40,13 @@ def make_node_label(text, x_pos, y_pos):
 
 class Node:
     
-    def __init__(self, text, children=[], parent=None, x=0, y=0):
+    def __init__(self, text, children=[], tags=set(), parent=None, x=0, y=0):
         
         self.text = text
         
         self.children = list(children) # these children are not labeled!
         self.parent = parent
+        self.tags = set(tags)
         
         self.x = x
         self.y = y
