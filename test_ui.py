@@ -1,5 +1,5 @@
-import pytest
-from ui import Node
+#import pytest
+from ui import Node, NODE_HEIGHT, NODE_WIDTH
 
 def make_test_tree_a():
     root = Node("a")
@@ -41,3 +41,17 @@ def test_count_left_and_depth():
     print("Expected number of leaves to the left of node e: 2")
     print(f"Found... {e.count_left()} leaves!")
     assert e.count_left() == 2 and e.depth() == 2
+
+def test_collect():
+    assert len(make_test_tree_a().collect()) == 5
+
+def test_arrange():
+    test_tree = make_test_tree_a()
+    test_tree.arrange()
+    for n in test_tree.collect():
+        print(f"label: {n.text}, depth: {n.depth()}, x: {n.x}, y: {n.y}")
+        assert n.depth() * NODE_HEIGHT == n.y
+        assert n.count_left() * NODE_WIDTH <= n.x
+        assert (n.count_left() + 1) * NODE_WIDTH >= n.x
+
+test_arrange()
