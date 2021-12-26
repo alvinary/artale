@@ -44,7 +44,7 @@ class Node:
         
         self.text = text
         
-        self.children = children # these children are not labeled!
+        self.children = list(children) # these children are not labeled!
         self.parent = parent
         
         self.x = x
