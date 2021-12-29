@@ -50,6 +50,9 @@ def make_node_box(text, x_pos, y_pos):
                             20, 
                             color=(230, 55, 48), batch=node_box_batch)
 
+def make_node_edge(x_pos, y_pos, _x_pos, _y_pos):
+    return pyglet.shapes.Line(x_pos, y_pos, _x_pos, _y_pos, width=1, batch=edge_batch, color=(255,255,255))
+
 
 class Node:
     
@@ -66,7 +69,11 @@ class Node:
 
         self.label = make_node_label(self.text, self.x, self.y)
         self.vertex_box = make_node_box(self.text, self.x, self.y)
-        self.edge = make_node_edge(self.x, self.y, parent.x, parent.y)
+
+        if not (parent is None):
+            self.edge = make_node_edge(self.x, self.y, parent.x, parent.y)
+        else:
+            self.edge = None
 
     def depth(self):
         '''Return the distance from self to the root of the tree'''
@@ -138,12 +145,28 @@ class Node:
                 n.x = min_node_x + (max_node_x - min_node_x) // 2
                 n.y = n.depth() * NODE_HEIGHT
 
+    def update_edges(self):
+        for n in self.collect():
+            if not (n.parent is None) and n.edge is None:
+                n.edge = make_node_edge(n.x, n.y, n.parent.x, n.parent.y)
+
     def update_graphics(self):
+        self.update_node_positions()
+        self.update_edge_positions()
+
+    def update_node_positions(self):
         self.vertex_box.x = self.x * 5
         self.vertex_box.y = TREE_BOX_Y - self.y * 5
         self.label.x = self.x * 5
         self.label.y = TREE_BOX_Y - self.y * 5
-        self.edge.
+    
+    def update_edge_positions(self):
+        for n in self.collect():
+            if n.parent:
+                n.edge.x = n.x * 5 + n.vertex_box.width // 2
+                n.edge.y = TREE_BOX_Y - n.y * 5 + n.vertex_box.height // 2
+                n.edge.x2 = n.parent.x * 5 + n.vertex_box.width // 2
+                n.edge.y2 = TREE_BOX_Y - n.parent.y * 5 + n.vertex_box.height // 2
 
     def draw(self):
         self.arrange()
@@ -154,6 +177,7 @@ class Node:
 @window.event()
 def on_draw():
     window.clear()
+    edge_batch.draw()
     node_box_batch.draw()
     node_batch.draw()
 
@@ -168,6 +192,7 @@ filberto.add_child(delberto)
 delberto.add_child(bilberto)
 delberto.add_child(omengo)
 
+filberto.update_edges()
 filberto.draw()
 
 pyglet.app.run()
