@@ -2,10 +2,16 @@ import pyglet
 
 NODE_WIDTH = 30
 NODE_HEIGHT = 20
+TREE_BOX_X = 300
+TREE_BOX_Y = 600
+CHAR_WIDTH = 10
+CHAR_HEIGHT = 14
+NODE_MARGIN = 5
 
 window = pyglet.window.Window(700, 700)
 
 edge_batch = pyglet.graphics.Batch()
+node_box_batch = pyglet.graphics.Batch()
 node_batch = pyglet.graphics.Batch()
 
 def tree_from_relations(predicates, relation_order):
@@ -38,6 +44,13 @@ def make_node_label(text, x_pos, y_pos):
                              y=y_pos,
                              batch=node_batch)
 
+
+def make_node_box(text, x_pos, y_pos):
+    return pyglet.shapes.Rectangle(x_pos, y_pos, 20,
+                            20, 
+                            color=(230, 55, 48), batch=node_box_batch)
+
+
 class Node:
     
     def __init__(self, text, children=[], tags=set(), parent=None, x=0, y=0):
@@ -48,12 +61,12 @@ class Node:
         self.parent = parent
         self.tags = set(tags)
         
-        self.x = x
-        self.y = y
+        self.x = int(x)
+        self.y = int(y)
 
         self.label = make_node_label(self.text, self.x, self.y)
-        self.vertex_sprite = None
-        self.edge_sprites = []
+        self.vertex_box = make_node_box(self.text, self.x, self.y)
+        self.edge_lines = []
 
     def depth(self):
         '''Return the distance from self to the root of the tree'''
@@ -125,11 +138,35 @@ class Node:
                 n.x = min_node_x + (max_node_x - min_node_x) // 2
                 n.y = n.depth() * NODE_HEIGHT
 
+    def update_graphics(self):
+        self.vertex_box.x = self.x * 5
+        self.vertex_box.y = TREE_BOX_Y - self.y * 5
+        self.label.x = self.x * 5
+        self.label.y = TREE_BOX_Y - self.y * 5
+
     def draw(self):
+        self.arrange()
         all_nodes = self.root().collect()
         for n in all_nodes:
-            if not n.is_leaf():
-                end_x, end_y
-                tip_x, tip_y
+            n.update_graphics()
 
+@window.event()
+def on_draw():
+    window.clear()
+    node_box_batch.draw()
+    node_batch.draw()
 
+filberto = Node("F")
+gerberto = Node("G")
+delberto = Node("D")
+bilberto = Node("B")
+omengo = Node("O")
+
+filberto.add_child(gerberto)
+filberto.add_child(delberto)
+delberto.add_child(bilberto)
+delberto.add_child(omengo)
+
+filberto.draw()
+
+pyglet.app.run()
