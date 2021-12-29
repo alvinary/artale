@@ -66,7 +66,7 @@ class Node:
 
         self.label = make_node_label(self.text, self.x, self.y)
         self.vertex_box = make_node_box(self.text, self.x, self.y)
-        self.edge_lines = []
+        self.edge = make_node_edge(self.x, self.y, parent.x, parent.y)
 
     def depth(self):
         '''Return the distance from self to the root of the tree'''
@@ -143,6 +143,7 @@ class Node:
         self.vertex_box.y = TREE_BOX_Y - self.y * 5
         self.label.x = self.x * 5
         self.label.y = TREE_BOX_Y - self.y * 5
+        self.edge.
 
     def draw(self):
         self.arrange()
