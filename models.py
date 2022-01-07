@@ -116,17 +116,13 @@ class HornSolver:
 
         return image
 
-    def evaluate_functions(self, clauses):
+    def evaluate_functions(self, clause):
 
-        function_free_clauses = []
-
-        for clause in clauses:
-            new_clause = copy(clause)
-            new_clause.head = self.evaluate(new_clause.head)
-            new_clause.body = [self.evaluate(atom) for atom in new_clause.body)
-            function_free_clauses.append(new_clause)
+        function_free_clause = copy(clause)
+        function_free_clause.head = self.evaluate(new_clause.head)
+        function_free_clause.body = [self.evaluate(atom) for atom in new_clause.body)
             
-        return function_free_clauses
+        return function_free_clause
 
     def update_maps(self, clauses):
         
