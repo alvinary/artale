@@ -2,6 +2,7 @@ from collections import defaultdict
 from typing import List, Dict, Set
 from itertools import product
 from dataclasses import dataclass
+from copy import copy
 
 from pysat.solvers import Glucose3
 
@@ -64,7 +65,9 @@ class Rule:
 
 
 class HornSolver:
+
     def __init__(self):
+
         self.sorts = index()
         self.rules = []
         self.literals = set()
@@ -76,6 +79,7 @@ class HornSolver:
         self.name_counter = 0
 
     def reset_maps(self):
+
         self.literal_map = {}
         self.reverse_literal_map = {}
         self.value_map = {}
@@ -97,17 +101,43 @@ class HornSolver:
                 for cnf_clause in cnf_clauses:
                     self.solver.add_clause(cnf_clause)
 
+    def is_functional(self, term_string):
+        return "." in term_string
+        
+    def evaluate(self, term_string):
+        
+        parts = term_string.split(".")
+        domain = parts.pop(0)
+        image = domain
+
+        while parts:
+            image = self.value_map[domain, parts.pop(0)]
+            domain = image
+
+        return image
+
     def evaluate_functions(self, clauses):
-        pass
+
+        function_free_clauses = []
+
+        for clause in clauses:
+            new_clause = copy(clause)
+            new_clause.head = self.evaluate(new_clause.head)
+            new_clause.body = [self.evaluate(atom) for atom in new_clause.body)
+            function_free_clauses.append(new_clause)
+            
+        return function_free_clauses
 
     def update_maps(self, clauses):
         
         all_symbols = set()
+
         for c in clauses:
             all_symbols.add(c.head)
             all_symbols |= set(c.body)
         
         new_symbols = {s for s in all_symbols if s not in self.literal_map}
+
         for s in new_symbols:
             self.name_counter += 1
             self.literal_map[s] = self.name_counter
