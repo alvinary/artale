@@ -43,7 +43,6 @@ class Rule:
 
         string_heads = [r.get_string_encoding() for r in heads]
         string_body = [r.get_string_encoding() for r in body]
-
         if string_heads:
             return [Clause(h, string_body) for h in string_heads]
 
@@ -120,7 +119,7 @@ class HornSolver:
 
         function_free_clause = copy(clause)
         function_free_clause.head = self.evaluate(new_clause.head)
-        function_free_clause.body = [self.evaluate(atom) for atom in new_clause.body)
+        function_free_clause.body = [self.evaluate(atom) for atom in new_clause.body]
             
         return function_free_clause
 
