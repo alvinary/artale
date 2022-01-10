@@ -29,7 +29,7 @@ atoms : atom
       | atom "," WS atoms
       | atom "," NEWLINE atoms
 
-atom : token "(" terms ")"
+atom : term "(" terms ")"
 
 terms : term
       | (term "," WS)+ term
