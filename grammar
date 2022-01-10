@@ -8,19 +8,12 @@
 // more elegant recursive formulations to avoid nesting
 // and simplify handling parser output.
 
-start : NEWLINE* sorts blank rules NEWLINE*
-
-blank: NEWLINE*
-
-sorts : sort | sort sorts
+start : NEWLINE* (sort NEWLINE*)+ (rule NEWLINE*)+
 
 sort : "sort" WS token WS INT NEWLINE
      | "sort" WS token WS "add" token_sequence NEWLINE
 
 token_sequence : token | (token "," WS)+ token
-
-rules : rule
-      | rule blank rules
 
 rule : atoms WS "=>" WS atoms
      | atoms WS "=>" NEWLINE atoms
