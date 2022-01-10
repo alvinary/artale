@@ -1,0 +1,47 @@
+// This grammar parses programs under the assumption
+// that trailing whitespaces have been removed, and
+// sequences of two or more whitespaces have been
+// substituted by a single whitespace, so input strings
+// must be preprocessed before being handed to the parser.
+
+// Flat, simple rules where preferred over equivalent but
+// more elegant recursive formulations to avoid nesting
+// and simplify handling parser output.
+
+start : NEWLINE* sorts blank rules NEWLINE*
+
+blank: NEWLINE*
+
+sorts : sort | sort sorts
+
+sort : "sort" WS token WS INT NEWLINE
+     | "sort" WS token WS "add" token_sequence NEWLINE
+
+token_sequence : token | (token "," WS)+ token
+
+rules : rule
+      | rule blank rules
+
+rule : atoms WS "=>" WS atoms
+     | atoms WS "=>" NEWLINE atoms
+
+atoms : atom
+      | atom "," WS atoms
+      | atom "," NEWLINE atoms
+
+atom : token "(" terms ")"
+
+terms : term
+      | (term "," WS)+ term
+
+term : token
+     | (token ".")+ token
+
+token : WORD
+
+sorted_token : WORD ":" WORD
+
+%import common.WORD
+%import common.WS
+%import common.NEWLINE
+%import common.INT
