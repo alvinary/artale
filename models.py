@@ -28,7 +28,6 @@ class Rule:
     body: List[Relation]
     sorts: List[str]
     variables: List[str]
-    sorts: List[str]
 
     bindings: Dict[str, str]
 
