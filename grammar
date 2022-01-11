@@ -30,7 +30,7 @@ terms : term
 term : token
      | (token ".")+ token
 
-token : WORD
+token : (WORD WS*)+
 
 sorted_token : WORD ":" WORD
 
