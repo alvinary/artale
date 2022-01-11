@@ -61,16 +61,4 @@ class Parser:
         sorts = [s for s in statements if get_preterminal(s) == "sort"]
         rules = [s for s in statements if get_preterminal(s) == "rule"]
 
-    def declutter_tree(self, tree):
-
-        if isinstance(tree, Tree):
-            if get_preterminal(tree) == "sort":
-                return 
-        
-        if isinstance(tree, Token):
-            pass
-
-    def get_rules(self, program):
-
-        return "Je"
         
