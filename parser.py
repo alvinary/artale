@@ -9,12 +9,6 @@ with open("grammar") as grammar_file:
 def get_preterminal(lark_tree):
     return lark_tree.data[0:]
 
-def get_rules(program_tree):
-    pass
-
-def get_sort_declarations(program_tree):
-    pass
-
 def get_head(rule_tree):
     pass
 
@@ -24,7 +18,10 @@ def get_body(rule_tree):
 def get_atoms(atoms_tree):
     pass
 
-def get_leaves(lark_tree):
+def get_terms(atom_tree):
+    pass
+
+def get_tokens(term_tree):
     pass
 
 class Parser:
