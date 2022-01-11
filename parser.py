@@ -10,10 +10,13 @@ def get_preterminal(lark_tree):
     return lark_tree.data[0:]
 
 def get_head(rule_tree):
-    pass
+    atomic_children = [c for c  in rule_tree.children if not isinstance(c, Token)]
+    return atomic_children[1]
 
 def get_body(rule_tree):
-    pass
+    atomic_children = [c for c  in rule_tree.children if not isinstance(c, Token)]
+    return atomic_children[0]
+
 
 def get_atoms(atoms_tree):
     pass
