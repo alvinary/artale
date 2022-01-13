@@ -13,19 +13,16 @@ start : NEWLINE* (sort NEWLINE*)+ (rule NEWLINE*)+
 sort : "sort" WS token WS INT NEWLINE
      | "sort" WS token WS "add" token_sequence NEWLINE
 
-token_sequence : token | (token "," WS)+ token
+token_sequence : token | (token "," WS)* token
 
 rule : atoms WS "=>" WS atoms
      | atoms WS "=>" NEWLINE atoms
 
 atoms : atom
-      | atom "," WS atoms
-      | atom "," NEWLINE atoms
+      | (atom "," WS)* atom
+      | (atom "," NEWLINE)* atom
 
-atom : term "(" terms ")"
-
-terms : term
-      | (term "," WS)+ term
+atom : term "(" (term "," WS)* term ")"
 
 term : token
      | (token ".")+ token
