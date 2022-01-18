@@ -98,10 +98,8 @@ class Parser:
             body_atoms = get_atoms(get_body(rule))
             body = [[".".join(get_tokens(t)) for t in get_terms(a)] for a in body_atoms]
             head = [[".".join(get_tokens(t)) for t in get_terms(a)] for a in head_atoms]
-            variables = []
-            sorts = []
-            #variables = get_variables(body + head)
-            #sorts = get_sorts(body + head)
+            variables = get_variables(body + head)
+            sorts = get_sorts(body + head)
             rule_parts.append((body, head, variables, sorts))
 
         return sorts_parts, rule_parts
