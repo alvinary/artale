@@ -31,6 +31,12 @@ def get_tokens(term_tree):
     print("tokens: \n", term_tree.pretty())
     return [c.children[0][0:] for c in term_tree.children if not isinstance(c, Token)]
 
+def get_variables(term_lists):
+    return {" ".join(l).split(":") for l in term_lists if ":" in l}
+
+def get_sorts(term_lists):
+    return [pair[1] for pair in get_variables(term_lists)]
+
 
 class Parser:
 
@@ -101,4 +107,3 @@ class Parser:
         return sorts_parts, rule_parts
 
 
-        
