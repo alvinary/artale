@@ -11,7 +11,7 @@
 start : NEWLINE* (sort NEWLINE*)+ (rule NEWLINE*)+
 
 sort : "sort" WS token WS INT NEWLINE
-     | "sort" WS token WS "add" (token "," WS)* token NEWLINE
+     | "sort" WS token WS "add" WS (token "," WS)* token NEWLINE
 
 rule : atoms WS "=>" WS atoms
      | atoms WS "=>" NEWLINE atoms
