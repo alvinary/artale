@@ -29,8 +29,6 @@ term : token
 
 token : (WORD WS*)+
 
-colon : ":"
-
 WORD: LETTER+ | ":"
 
 %import common.LETTER
