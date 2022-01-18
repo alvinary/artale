@@ -31,6 +31,46 @@ happy(pony) => happy(pony.lover)
 
 '''
 
+# Test line breaks, spaces in terms, and functions
+# in terms with spaces, and simple terms (such as "False")
+
+program_with_line_breaks = '''
+
+sort pony 1
+sort island 666
+sort exit 1
+
+at.not(exit, all) => False
+
+at(pony, island),
+at.not(exit, island) =>
+check off (pony, island)
+
+at(pony, island),
+at(exit, island) =>
+escaped(pony)
+
+can move (pony, island),
+choose (pony, island) =>
+at (pony.next, island)
+
+can move.not (pony  , island ), choose (pony, island ) => False 
+
+'''
+
+sorted_program = '''
+sort pony 10
+sort gift add jewelry, clothing, flowers or stones, books, art, food, sweets
+
+gives (some pony : pony, other pony : pony, thing : gift),
+likes (other pony, thing),
+birthday (other pony) =>
+glad (other pony)
+
+'''
+
+# all accessible islands were already visited (go back) 
+
 def test_preprocessing_a():
     raw_program = '''
         sort pony 5
@@ -65,5 +105,5 @@ def test_parse():
     jorge = Parser().parser.parse(sample_program)
     manuel = Parser().parser.parse(Parser().preprocess(complex_terms_program))
     parse = Parser().parse(complex_terms_program)
-
+    rogelio = Parser().parser.parse(sorted_program)
 
