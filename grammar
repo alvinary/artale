@@ -29,9 +29,11 @@ term : token
 
 token : (WORD WS*)+
 
-sorted_token : WORD ":" WORD
+colon : ":"
 
-%import common.WORD
+WORD: LETTER+ | ":"
+
+%import common.LETTER
 %import common.WS
 %import common.NEWLINE
 %import common.INT
