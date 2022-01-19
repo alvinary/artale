@@ -24,10 +24,8 @@ def get_terms(atom_tree):
     return [c for c in atom_tree.children if isinstance(c, Tree)]
 
 def get_tokens(term_tree):
-    print(f"term tree: {term_tree.pretty()}")
     tokens = []
     for i, c in enumerate([t for t in term_tree.children if isinstance(t, Tree)]):
-         print(f"c: {c.pretty()}")
          if i != 0:
              tokens.append(".")
          tokens = tokens + ([_c.strip() for _c in c.children if isinstance(_c, Token)])
