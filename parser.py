@@ -10,29 +10,29 @@ def get_preterminal(lark_tree):
     return lark_tree.data[0:]
 
 def get_head(rule_tree):
-    print("head: \n", rule_tree.pretty())
     atomic_children = [c for c in rule_tree.children if not isinstance(c, Token)]
     return atomic_children[1]
 
 def get_body(rule_tree):
-    print("body: \n", rule_tree.pretty())
     atomic_children = [c for c in rule_tree.children if not isinstance(c, Token)]
     return atomic_children[0]
 
 def get_atoms(atoms_tree):
-    print("atoms: \n", atoms_tree.pretty())
     return [c for c in atoms_tree.children if isinstance(c, Tree)]
 
 def get_terms(atom_tree):
-    print("terms: \n", atom_tree.pretty())
     return [c for c in atom_tree.children if isinstance(c, Tree)]
 
 def get_tokens(term_tree):
-    print("tokens: \n", term_tree.pretty())
-    return [c.children[0][0:] for c in term_tree.children if not isinstance(c, Token)]
+    return [c.strip() for c in term_tree.children[0].children if isinstance(c, Token)]
 
 def get_variables(term_lists):
-    return {" ".join(l).split(":") for l in term_lists if ":" in l}
+    variables = set()
+    for terms in term_lists:
+        new_variables = {tuple([s.strip() for s in t.split(":")]) for t in terms if ":" in t}
+        variables |= new_variables
+    print(variables)
+    return variables
 
 def get_sorts(term_lists):
     return [pair[1] for pair in get_variables(term_lists)]
@@ -96,8 +96,8 @@ class Parser:
         for rule in rules:
             head_atoms = get_atoms(get_head(rule))
             body_atoms = get_atoms(get_body(rule))
-            body = [[".".join(get_tokens(t)) for t in get_terms(a)] for a in body_atoms]
-            head = [[".".join(get_tokens(t)) for t in get_terms(a)] for a in head_atoms]
+            body = [[" ".join(get_tokens(t)).strip() for t in get_terms(a)] for a in body_atoms]
+            head = [[" ".join(get_tokens(t)).strip() for t in get_terms(a)] for a in head_atoms]
             variables = get_variables(body + head)
             sorts = get_sorts(body + head)
             rule_parts.append((body, head, variables, sorts))
