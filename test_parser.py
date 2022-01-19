@@ -67,6 +67,8 @@ likes (other pony, thing),
 birthday (other pony) =>
 glad (other pony)
 
+gives (some pony : pony, some pony . sibling, thing : gift) =>
+glad (some pony . sibling)
 '''
 
 # all accessible islands were already visited (go back) 
@@ -104,7 +106,6 @@ bridge(a, b), bridge(b, c) => access(a, c)
 def test_parse():
     jorge = Parser().parser.parse(sample_program)
     manuel = Parser().parser.parse(Parser().preprocess(complex_terms_program))
-    parse = Parser().parse(program_with_line_breaks)
     rogelio = Parser().parse(sorted_program)[1]
     for r in rogelio:
         print(f"head {r[0]} \nbody {r[1]}\nvariables {r[2]}\nsorts {r[3]}", "")
