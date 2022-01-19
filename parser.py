@@ -36,7 +36,6 @@ def get_variables(term_lists):
     for terms in term_lists:
         new_variables = {tuple([s.strip() for s in t.split(":")]) for t in terms if ":" in t}
         variables |= new_variables
-    print(variables)
     return variables
 
 def get_sorts(term_lists):
