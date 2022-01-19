@@ -104,6 +104,13 @@ bridge(a, b), bridge(b, c) => access(a, c)
 def test_parse():
     jorge = Parser().parser.parse(sample_program)
     manuel = Parser().parser.parse(Parser().preprocess(complex_terms_program))
-    parse = Parser().parse(complex_terms_program)
-    rogelio = Parser().parser.parse(sorted_program)
+    parse = Parser().parse(program_with_line_breaks)
+    rogelio = Parser().parse(sorted_program)[1]
+    for r in rogelio:
+        print(f"head {r[0]} \nbody {r[1]}\nvariables {r[2]}\nsorts {r[3]}", "")
+
+
+if __name__ == "__main__":
+    test_parse()
+
 
