@@ -24,7 +24,14 @@ def get_terms(atom_tree):
     return [c for c in atom_tree.children if isinstance(c, Tree)]
 
 def get_tokens(term_tree):
-    return [c.strip() for c in term_tree.children[0].children if isinstance(c, Token)]
+    print(f"term tree: {term_tree.pretty()}")
+    tokens = []
+    for i, c in enumerate([t for t in term_tree.children if isinstance(t, Tree)]):
+         print(f"c: {c.pretty()}")
+         if i != 0:
+             tokens.append(".")
+         tokens = tokens + ([_c.strip() for _c in c.children if isinstance(_c, Token)])
+    return tokens
 
 def get_variables(term_lists):
     variables = set()
@@ -89,8 +96,7 @@ class Parser:
             if True:
                 pass
 
-        sorts_parts = []
-            
+        sorts_parts = []    
 
         rule_parts = []
         for rule in rules:
