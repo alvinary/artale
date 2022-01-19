@@ -104,7 +104,7 @@ class HornSolver:
         
     def evaluate(self, term_string):
         
-        parts = term_string.split(".")
+        parts = [t.strip for t in term_string.split(".")]
         domain = parts.pop(0)
         image = domain
 
