@@ -6,6 +6,22 @@ with open("grammar") as grammar_file:
     for line in grammar_file:
         grammar = grammar + line
 
+def normalize(term_string):
+
+    while "  " in term_string:
+        term_string = term_string.replace("  ", " ")
+
+    return clear_sorts(term_string).strip()
+
+def clear_sorts(term_string):
+
+    if ":" in term_string:
+        colon_index = term_string.index(":")
+        return term_string[:colon_index].strip()
+
+    else:
+        return term_string
+
 def get_preterminal(lark_tree):
     return lark_tree.data[0:]
 
@@ -36,10 +52,10 @@ def get_variables(term_lists):
     for terms in term_lists:
         new_variables = {tuple([s.strip() for s in t.split(":")]) for t in terms if ":" in t}
         variables |= new_variables
-    return variables
+    return {(normalize(v), normalize(s)) for v, s in variables}
 
 def get_sorts(term_lists):
-    return [pair[1] for pair in get_variables(term_lists)]
+    return [s for v, s in get_variables(term_lists)]
 
 
 class Parser:
@@ -97,13 +113,26 @@ class Parser:
 
         rule_parts = []
         for rule in rules:
+            
             head_atoms = get_atoms(get_head(rule))
             body_atoms = get_atoms(get_body(rule))
+            
             body = [[" ".join(get_tokens(t)).strip() for t in get_terms(a)] for a in body_atoms]
             head = [[" ".join(get_tokens(t)).strip() for t in get_terms(a)] for a in head_atoms]
+            
             variables = get_variables(body + head)
             sorts = get_sorts(body + head)
+
+            body = [[normalize(s) for s in a] for a in body]
+            head = [[normalize(s) for s in a] for a in head]
+
             rule_parts.append((body, head, variables, sorts))
+
+        for r in rule_parts:
+            for h in r[1]:
+                print(h)
+            for b in r[0]:
+                print(b)
 
         return sorts_parts, rule_parts
 
