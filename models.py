@@ -42,11 +42,9 @@ class Rule:
         heads = [self.bind_variables(r) for r in self.heads]
         body = [self.bind_variables(r) for r in self.body]
 
-        print(heads)
-        print(body)
-
         string_heads = [r.get_string_encoding() for r in heads]
         string_body = [r.get_string_encoding() for r in body]
+
         if string_heads:
             return [Clause(h, string_body) for h in string_heads]
 
@@ -61,13 +59,17 @@ class Rule:
         return Relation([self.replace(s) for s in relation.parts])
 
     def replace(self, symbol):
+        
         if "." not in symbol:
+            
             if symbol in self.bindings:
                 return self.bindings[symbol]
+            
             else:
-                print(f"symbol {symbol} not in {self.bindings.keys()}")
                 return symbol
+        
         if "." in symbol:
+        
             symbol_parts = [p.strip() for p in symbol.split(".")]
             return ".".join([self.replace(s) for s in symbol_parts])
 
@@ -95,20 +97,10 @@ class HornSolver:
     def unfold_instance(self):
         
         for rule in self.rules:
-
-            print(rule.body)
-            print(rule.sorts)
             
             for assignment in product(*[self.sorts[s] for s in rule.sorts]):
-                
-                print(assignment)
 
                 clauses = rule.get_clauses(assignment)
-                
-                for c in clauses:
-                    print("clause:")
-                    print(f"   head: {c.head}")
-                    print(f"   body: {', '.join([b for b in c.body])}")
 
                 pure_clauses = [self.evaluate_functions(c) for c in clauses]
                 
