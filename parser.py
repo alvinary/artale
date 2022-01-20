@@ -128,12 +128,6 @@ class Parser:
 
             rule_parts.append((body, head, variables, sorts))
 
-        for r in rule_parts:
-            for h in r[1]:
-                print(h)
-            for b in r[0]:
-                print(b)
-
         return sorts_parts, rule_parts
 
 
