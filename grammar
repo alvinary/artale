@@ -8,13 +8,15 @@
 // more elegant recursive formulations to avoid nesting
 // and simplify handling parser output.
 
-start : NEWLINE* (sort NEWLINE*)+ (rule NEWLINE*)+
+start : NEWLINE* (sort NEWLINE*)+ ((rule | assertion) NEWLINE*)+
 
 sort : "sort" WS token WS INT NEWLINE
      | "sort" WS token WS "add" WS (token "," WS)* token NEWLINE
 
 rule : atoms (WS | NEWLINE) "=>" (WS | NEWLINE) atoms
      | atoms (WS | NEWLINE) "=>" (WS | NEWLINE) "False"
+
+assertion : atoms
 
 atoms : atom
       | (atom "," (WS | NEWLINE))* atom
