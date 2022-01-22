@@ -27,7 +27,10 @@ def get_preterminal(lark_tree):
 
 def get_head(rule_tree):
     atomic_children = [c for c in rule_tree.children if not isinstance(c, Token)]
-    return atomic_children[1]
+    if len(atomic_children) >= 2:
+        return atomic_children[1]
+    else:
+        return None
 
 def get_body(rule_tree):
     atomic_children = [c for c in rule_tree.children if not isinstance(c, Token)]
@@ -94,6 +97,7 @@ class Parser:
         statements = [s for s in parsed_program.children if isinstance(s, Tree)]
         sorts = [s for s in statements if get_preterminal(s) == "sort"]
         rules = [s for s in statements if get_preterminal(s) == "rule"]
+        assertions = [s for s in statements if get_preterminal(s) == "assertion"]
 
         # Fillings are sort declarations of the form 'sort name nat',
         # intended for users to define a sort populated by uniform constants
@@ -109,12 +113,18 @@ class Parser:
             if True:
                 pass
 
-        sorts_parts = []    
-
+        sorts_parts = []
         rule_parts = []
+
         for rule in rules:
+
+            head = get_head(rule)
             
-            head_atoms = get_atoms(get_head(rule))
+            if not head:
+                head_atoms = []
+            else:
+                head_atoms = get_atoms(get_head(rule))
+            
             body_atoms = get_atoms(get_body(rule))
             
             body = [[" ".join(get_tokens(t)).strip() for t in get_terms(a)] for a in body_atoms]
@@ -127,6 +137,15 @@ class Parser:
             head = [[normalize(s) for s in a] for a in head]
 
             rule_parts.append((body, head, variables, sorts))
+
+        for assertion in assertions:
+            
+            head_atoms = get_atoms(get_body(assertion))
+
+            head = [[" ".join(get_tokens(t)).strip() for t in get_terms(a)] for a in head_atoms]
+            head = [[normalize(s) for s in a] for a in head]
+
+            rule_parts.append(([], head, [], []))
 
         return sorts_parts, rule_parts
 
