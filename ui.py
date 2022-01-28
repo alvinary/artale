@@ -173,6 +173,13 @@ class Node:
         for n in all_nodes:
             n.update_graphics()
 
+    def destroy(self):
+        if self.edge:
+            del self.edge
+        del self.label
+        del self.vertex_box
+        del self
+
 @window.event()
 def on_draw():
     window.clear()
@@ -206,7 +213,6 @@ trees = [t.strip() for t in trees.split("\n\n\n")]
 
 tree_data = [{s.strip() for s in t.split("\n")} for t in trees]
 
-
 def read_tree(tree_predicates, prefix):
 
     names = {}
@@ -234,12 +240,10 @@ def read_tree(tree_predicates, prefix):
 
     node_names = [names[k] for k in names]
 
-    print(node_names)
-    print(relations)
-
     return node_names, relations
+
     
-treeto_nodes, treeto_relations = read_tree(tree_data[3], "data")
+treeto_nodes, treeto_relations = read_tree(tree_data[-2], "data")
 
 
 nodes_map = {}
@@ -251,7 +255,6 @@ treeto = {nodes_map[k].root().text for k in nodes_map}
 treeto = [nodes_map[k] for k in treeto]
 
 for triple in treeto_relations:
-    print(triple)
     r, a, b = triple
     nodes_map[b].parent = nodes_map[a]
     nodes_map[b].tags = {r}
@@ -261,5 +264,49 @@ for triple in treeto_relations:
 for t in treeto:
     t.update_edges()
     t.draw()
+
+
+index = 0
+
+def button_press(dt, ds):
+    global index
+    global nodes_map
+    global node_batch
+    
+    index += 1
+
+    if index >= len(tree_data):
+        index = 0
+
+    for k in list(nodes_map.keys()):
+        nodes_map[k].destroy()
+
+    node_batch = pyglet.graphics.Batch()
+        
+    treeto_nodes, treeto_relations = read_tree(tree_data[index], "data")
+    nodes_map = {}
+
+    for n in treeto_nodes:
+        nodes_map[n] = Node(n)
+
+    treeto = {nodes_map[k].root().text for k in nodes_map}
+    treeto = [nodes_map[k] for k in treeto]
+
+    for triple in treeto_relations:
+        r, a, b = triple
+        nodes_map[b].parent = nodes_map[a]
+        nodes_map[b].tags = {r}
+        nodes_map[a].children.append(nodes_map[b])
+
+    treeto = {nodes_map[k].root().text for k in nodes_map}
+    treeto = [nodes_map[k] for k in treeto]
+    
+    for i in treeto:
+        i.update_edges()
+        i.draw()
+        on_draw()
+    
+    
+pyglet.clock.schedule(button_press, 5.00)
 
 pyglet.app.run()
