@@ -1,14 +1,14 @@
 import pyglet
 
-NODE_WIDTH = 30
-NODE_HEIGHT = 20
+NODE_WIDTH = 15
+NODE_HEIGHT = 10
 TREE_BOX_X = 300
-TREE_BOX_Y = 600
+TREE_BOX_Y = 800
 CHAR_WIDTH = 10
 CHAR_HEIGHT = 14
 NODE_MARGIN = 5
 
-window = pyglet.window.Window(700, 700)
+window = pyglet.window.Window(1200, 900)
 
 edge_batch = pyglet.graphics.Batch()
 node_box_batch = pyglet.graphics.Batch()
@@ -139,7 +139,6 @@ class Node:
                 n.x = n.count_left() * NODE_WIDTH
                 n.y = n.depth() * NODE_HEIGHT
             else:
-                #AHHHH AMOOO
                 min_node_x = min([c.count_left() for c in n.children]) * NODE_WIDTH
                 max_node_x = max([c.count_left() for c in n.children]) * NODE_WIDTH
                 n.x = min_node_x + (max_node_x - min_node_x) // 2
@@ -162,7 +161,7 @@ class Node:
     
     def update_edge_positions(self):
         for n in self.collect():
-            if n.parent:
+            if not (n.edge is None):
                 n.edge.x = n.x * 5 + n.vertex_box.width // 2
                 n.edge.y = TREE_BOX_Y - n.y * 5 + n.vertex_box.height // 2
                 n.edge.x2 = n.parent.x * 5 + n.vertex_box.width // 2
@@ -181,6 +180,7 @@ def on_draw():
     node_box_batch.draw()
     node_batch.draw()
 
+'''
 filberto = Node("F")
 gerberto = Node("G")
 delberto = Node("D")
@@ -194,5 +194,72 @@ delberto.add_child(omengo)
 
 filberto.update_edges()
 filberto.draw()
+'''
+
+trees = ""
+
+with open("trees") as le_file:
+    for line in le_file:
+        trees = trees + line
+
+trees = [t.strip() for t in trees.split("\n\n\n")]
+
+tree_data = [{s.strip() for s in t.split("\n")} for t in trees]
+
+
+def read_tree(tree_predicates, prefix):
+
+    names = {}
+    nodes = set()
+    relations = set()
+
+    counter = 0
+
+    for _tree_predicate in tree_predicates:
+        if len(_tree_predicate) > 4:
+            predicate, term = _tree_predicate.split(" ")
+            if "blank" not in predicate:
+                nodes.add(term)
+
+    for n in nodes:
+        counter += 1
+        names[n] = prefix + str(counter)
+
+    for node in nodes:
+        chunked_node = node.split(".")
+        if len(chunked_node) > 1:
+            chunk = chunked_node.pop(-1)
+            chunked_node = ".".join(chunked_node)
+            relations.add((chunk, names[chunked_node], names[node]))
+
+    node_names = [names[k] for k in names]
+
+    print(node_names)
+    print(relations)
+
+    return node_names, relations
+    
+treeto_nodes, treeto_relations = read_tree(tree_data[3], "data")
+
+
+nodes_map = {}
+
+for n in treeto_nodes:
+    nodes_map[n] = Node(n)
+
+treeto = {nodes_map[k].root().text for k in nodes_map}
+treeto = [nodes_map[k] for k in treeto]
+
+for triple in treeto_relations:
+    print(triple)
+    r, a, b = triple
+    nodes_map[b].parent = nodes_map[a]
+    nodes_map[b].tags = {r}
+    nodes_map[a].children.append(nodes_map[b])
+
+
+for t in treeto:
+    t.update_edges()
+    t.draw()
 
 pyglet.app.run()
