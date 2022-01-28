@@ -8,6 +8,9 @@ with open("grammar") as grammar_file:
 
 
 def normalize(term_string):
+    '''Remove all excess whitespace from a string encoding a term and remove
+    its sort, if present (e.g. 'my   sample term   : some sort') maps
+    to 'my sample term').'''
 
     while "  " in term_string:
         term_string = term_string.replace("  ", " ")
@@ -16,6 +19,8 @@ def normalize(term_string):
 
 
 def clear_sorts(term_string):
+    '''Remove a term's sort from its string encoding (e.g. 'some pony : pony'
+    maps to 'some pony').'''
 
     if ":" in term_string:
         colon_index = term_string.index(":")
@@ -26,10 +31,20 @@ def clear_sorts(term_string):
 
 
 def get_preterminal(lark_tree):
+    '''Given a Lark Tree object, return the name of the corresponding 
+    preterminal symbol in the grammar as a string (e.g. if a parse 
+    was derived from the rule many_as -> a _many_as, return the string 
+    'many_as').'''
     return lark_tree.data[0:]
 
 
 def get_head(rule_tree):
+    '''Given a Lark Tree object matching the preterminal 'rule', return
+    the Lark object matching its head, and return None if the rule does
+    not have any positive literal/atom (e.g. a parse of the rule 
+    'p(x), q(x, y) => r(x)' maps to the parse of 'r(x)', and 'r(x) => False'
+    maps to None).'''
+
     atomic_children = [
         c for c in rule_tree.children if not isinstance(c, Token)
     ]
@@ -40,6 +55,10 @@ def get_head(rule_tree):
 
 
 def get_body(rule_tree):
+    '''Given a Lark Tree object matching the preterminal 'rule', return
+    the Lark object matching its body (e.g. a parse of the rule 
+    'p(x, y), q(y, x) => r(x, y)' maps to the parse of 'p(x, y), q(y, x)').'''
+    
     atomic_children = [
         c for c in rule_tree.children if not isinstance(c, Token)
     ]
@@ -47,14 +66,26 @@ def get_body(rule_tree):
 
 
 def get_atoms(atoms_tree):
+    '''Return all atoms in the parse of a programs segment matching
+    the 'atoms' preterminal (i.e. all of its children that are not
+    terminals/tokens, which should be newlines or whitespaces).
+    For instance, 'p(x, y), q(x), r(y)' maps to the parses of
+    each of its atoms ('p(x, y)', 'q(x)' and 'r(y)').'''
     return [c for c in atoms_tree.children if isinstance(c, Tree)]
 
 
 def get_terms(atom_tree):
+    '''Return a list containing all parse trees matching a term
+    given an atom tree (this function is identical to get_atoms(), but
+    was defined and named differently to favor clarity by making
+    the purpose of each call explicit).'''
     return [c for c in atom_tree.children if isinstance(c, Tree)]
 
 
 def get_tokens(term_tree):
+    '''Given the parse tree of a term, return a string encoding that
+    term (e.g. a term resulting from parsing 'a.f.g' maps directly to
+    'a.f.g').'''
     tokens = []
     for i, c in enumerate(
         [t for t in term_tree.children if isinstance(t, Tree)]):
@@ -66,6 +97,19 @@ def get_tokens(term_tree):
 
 
 def get_variables(term_lists):
+    '''Given a list of terms encoded as strings, return a set
+    of (variable name, variable sort) pairs. All variables 
+    mentioned in terms from the input list are included.
+
+    If a term has function applications, the part considered
+    to be a variable is the first, so 'a.f.g : A' results
+    in the name 'a' being taken as a variable drawn from sort
+    A.
+    Only terms where the sort membership symbol ':' is included
+    are considered variables. All other terms are treated as
+    constants.
+    If two different sorts are assigned to the same variable symbol
+    -as in p(a: A, a: B)-, behavior is undefined.'''
     variables = set()
     for terms in term_lists:
         new_variables = {
@@ -77,6 +121,8 @@ def get_variables(term_lists):
 
 
 def get_sorts(term_lists):
+    '''Return a list containing all distinct sort names included
+    in sort membership declarations in terms from the input list. '''
     return [s for v, s in get_variables(term_lists)]
 
 
@@ -87,6 +133,10 @@ class Parser:
         self.parser = Lark(grammar)
 
     def preprocess(self, program):
+        '''Preprocess an input program to match the preconditions of the parser (by
+        removing duplicated whitespace and whitespace before newlines, and adding
+        whitespace after or before some punctuation symbols -',', '(' and ')'-, and
+        making sure instances of the '=>' symbol are surrounded by whitespace). '''
 
         program = program.replace("=>", " => ")
         program = program.replace(",", ", ")
@@ -111,6 +161,19 @@ class Parser:
         return "\n".join(parts)
 
     def parse(self, program):
+        '''Given a program, return a pair '(sorts_part, rules_part)`, provided parsing succeeds.
+        'rules_part' is a list of tuples containing the data necessary to create a Rule object
+        in the 'models' module, which is
+ 
+       * The body of a rule and its head, both represented as lists
+        of atoms, which are lists of strings where each string encodes a term,
+
+       * The list of variables in the rule, with their sorts, and
+
+       * The second component of each element on the previous list.
+
+       Sorts are not yet implemented.'''
+
         program = self.preprocess(program)
         parsed_program = self.parser.parse(program)
         statements = [
@@ -178,3 +241,15 @@ class Parser:
             rule_parts.append(([], head, variables, sorts))
 
         return sorts_parts, rule_parts
+
+    def check(program):
+        '''Return True if a program is recognized by the parser's grammar, False
+        otherwise.'''
+        # Should check if the program is valid semantically too!
+        # - No variable is declared as being a member of two separate sorts 
+        
+        try:
+            pass
+
+        except:
+            pass
