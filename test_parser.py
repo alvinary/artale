@@ -73,6 +73,31 @@ glad (some pony . sibling)
 
 # all accessible islands were already visited (go back) 
 
+comments = '''-- This is a comment at the very beginning --
+sort pony 10
+-- This is a comment between sorts, without a newline in between --
+
+sort gift add jewelry, clothing, flowers or stones, books, art, food, sweets
+
+-- These are incomplete declarations for an odd spec
+about ponies. Mind you, this comment and the comment before
+include punctuation, and in addition to that, this one two newlines --
+gives (some pony : pony, other pony : pony, thing : gift),
+likes (other pony, thing),
+birthday (other pony) =>
+glad (other pony)
+
+-- Ok, one more comment --
+
+gives (some pony : pony, some pony . sibling, thing : gift) =>
+glad (some pony . sibling)
+
+-- Aaand two comments at the end
+--
+
+-- hehe --
+'''
+
 def test_preprocessing_a():
     raw_program = '''
         sort pony 5
@@ -104,10 +129,15 @@ bridge(a, b), bridge(b, c) => access(a, c)
     assert parser.preprocess(raw_program) == target_program
 
 def test_parse():
-    jorge = Parser().parser.parse(sample_program)
-    manuel = Parser().parser.parse(Parser().preprocess(complex_terms_program))
-    rogelio = Parser().parse(sorted_program)[1]
-    for r in rogelio:
+    parser = Parser()
+
+    jorge = parser.parse(sample_program)
+    manuel = parser.parse(complex_terms_program)
+    rogelio = parser.parse(sorted_program)
+    egberto = parser.parse(complex_terms_program)
+    jonacio = parser.parse(comments)
+
+    for r in rogelio[1]:
         print(f"head {r[0]} \nbody {r[1]}\nvariables {r[2]}\nsorts {r[3]}", "")
 
 

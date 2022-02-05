@@ -8,7 +8,9 @@
 // more elegant recursive formulations to avoid nesting
 // and simplify handling parser output.
 
-start : NEWLINE* (sort NEWLINE*)+ ((rule | assertion) NEWLINE*)+
+start : NEWLINE* ((sort | comment) NEWLINE*)+ ((rule | assertion | comment) NEWLINE*)+ NEWLINE*
+
+comment : "--" (LETTER | WS | NEWLINE | INT | "," | ":" | ".")* "--" NEWLINE
 
 sort : "sort" WS token WS INT NEWLINE
      | "sort" WS token WS "add" WS (token "," WS)* token NEWLINE
