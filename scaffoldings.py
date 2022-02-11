@@ -4,7 +4,7 @@ def tree(sort_name, relations, size, prefix=""):
     tree_constants = set()
     tree_relation = set()
     
-    root = sort_name
+    root = prefix + sort_name
 
     rows = [[root]]
     tree_constants.add(root)
@@ -38,4 +38,30 @@ def bounded_state_world(constants, constant_sorts, n):
             else:
                 previous_constant = c + ".{i - 1}"
                 function_map[previous_constant] = fresh_constant
-            
+
+def leveled_relation(sort_name, base_size, window_size):
+
+    new_constants = set()
+    new_relations = set()
+
+    levels = []
+
+    current_level = [f"{sort_name}{i}" for i in range(base_size)]
+
+    new_constants |= set(current_level)
+
+    levels.append(current_level)
+
+    while len(levels[-1]) > 1:
+        current_level = []
+        for i in range(len(levels[-1]) - window_size):
+            new_component = "{sort_name}{i}:{i+window_size}"
+            current_level.append(new_component)
+            new_constants.add(new_component)
+            window_start, window_finish = i, i + window_size
+            component_parts = levels[-1][window_start : window_finish]
+            for part in component_parts:
+                relations.add((level_relation, new_component, part))
+
+    return new_constants, new_relations
+
