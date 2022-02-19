@@ -1,0 +1,35 @@
+sort node 20
+
+phrase(node)
+blank(null)
+
+blank(n : node), full(n.head) => False
+blank(n : node), full(n.modifier) => False
+
+blank(n : node) => blank(n.head)
+blank(n : node) => blank(n.modifier)
+
+phrase(n : node), blank(n.head) => False
+phrase(n : node), blank(n.modifier) => False
+
+leaf(n : node) => blank(n.head)
+leaf(n : node) => blank(n.modifier)
+
+phrase(n : node) => full(n.head)
+phrase(n : node) => full(n.modifier)
+
+phrase(n : node) => full(n)
+leaf(n : node) => full(n)
+
+blank(n : node), full(n) => False
+phrase(n : node), leaf(n) => False
+phrase(n : node), blank(n) => False
+leaf(n : node), blank(n) => False
+
+name(t: type), sentence(t) => False
+adjunct(t: type), complement(t) => False
+
+phrase(n : node), complement(n.type), cat : category (n.head.type.output) => cat (n.type)
+phrase(n : node), cat : category (n.modifier.type.output)  => cat (n.type)
+
+

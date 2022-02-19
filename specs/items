@@ -1,0 +1,33 @@
+start : (NEWLINE* item NEWLINE*)+
+
+item : form " : " type
+
+form : letter+
+
+type : category number " " property (", " property)*
+     | "(" type ")"
+     | type rightarrow type
+     | type rightpipe type
+
+arrow : " -> "
+      | " -> " NEWLINE
+
+pipe : " |> "
+     | " |> " NEWLINE
+
+category : "S"
+         | "N"
+
+property : word
+         | word (" . " word)+
+         | word " <: " word
+         | word " :> " word
+
+number : INT+
+
+word : letter (letter | WS)+ letter
+
+%import common.LETTER
+%import common.INT
+%import common.WS
+%import common.NEWLINE
