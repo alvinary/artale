@@ -205,7 +205,7 @@ filberto.draw()
 
 trees = ""
 
-with open("trees") as le_file:
+with open("./specs/trees") as le_file:
     for line in le_file:
         trees = trees + line
 
@@ -307,6 +307,6 @@ def button_press(dt, ds):
         on_draw()
     
     
-pyglet.clock.schedule(button_press, 5.00)
+pyglet.clock.schedule(button_press, 1.00)
 
 pyglet.app.run()

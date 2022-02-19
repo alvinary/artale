@@ -3,7 +3,7 @@ import models
 from scaffoldings import tree as tree
 
 program = ""
-with open("theory") as le_file:
+with open("./specs/theory") as le_file:
     for line in le_file:
         program = f"{program}{line}\n"
 
