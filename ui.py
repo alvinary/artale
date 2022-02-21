@@ -196,7 +196,7 @@ with open("./specs/trees") as le_file:
 
 trees = [t.strip() for t in trees.split("\n\n\n")]
 
-tree_data = [{s.strip() for s in t.split("\n")} for t in trees]
+tree_data = list({frozenset({s.strip() for s in t.split("\n")}) for t in trees})
 
 def read_tree(tree_predicates, prefix):
 
