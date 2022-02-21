@@ -70,10 +70,11 @@ class Node:
         self.label = make_node_label(self.text, self.x, self.y)
         self.vertex_box = make_node_box(self.text, self.x, self.y)
 
-        if not (parent is None):
-            self.edge = make_node_edge(self.x, self.y, parent.x, parent.y)
-        else:
-            self.edge = None
+        self.edge = None
+
+        if not (self.parent is None):
+            self.edge = make_node_edge(self.x, self.y, self.parent.x, self.parent.y)
+
 
     def depth(self):
         '''Return the distance from self to the root of the tree'''
@@ -187,22 +188,6 @@ def on_draw():
     node_box_batch.draw()
     node_batch.draw()
 
-'''
-filberto = Node("F")
-gerberto = Node("G")
-delberto = Node("D")
-bilberto = Node("B")
-omengo = Node("O")
-
-filberto.add_child(gerberto)
-filberto.add_child(delberto)
-delberto.add_child(bilberto)
-delberto.add_child(omengo)
-
-filberto.update_edges()
-filberto.draw()
-'''
-
 trees = ""
 
 with open("./specs/trees") as le_file:
@@ -242,71 +227,69 @@ def read_tree(tree_predicates, prefix):
 
     return node_names, relations
 
-    
-treeto_nodes, treeto_relations = read_tree(tree_data[-2], "data")
 
+class TreeViewer:
 
-nodes_map = {}
+    def __init__(self):
 
-for n in treeto_nodes:
-    nodes_map[n] = Node(n)
+        self.index = 0
+        self.nodes_map = {}
+        self.tree = []
 
-treeto = {nodes_map[k].root().text for k in nodes_map}
-treeto = [nodes_map[k] for k in treeto]
-
-for triple in treeto_relations:
-    r, a, b = triple
-    nodes_map[b].parent = nodes_map[a]
-    nodes_map[b].tags = {r}
-    nodes_map[a].children.append(nodes_map[b])
-
-
-for t in treeto:
-    t.update_edges()
-    t.draw()
-
-
-index = 0
-
-def button_press(dt, ds):
-    global index
-    global nodes_map
-    global node_batch
-    
-    index += 1
-
-    if index >= len(tree_data):
-        index = 0
-
-    for k in list(nodes_map.keys()):
-        nodes_map[k].destroy()
-
-    node_batch = pyglet.graphics.Batch()
+        self.tree_nodes, self.tree_relations = read_tree(tree_data[-2], "data")
         
-    treeto_nodes, treeto_relations = read_tree(tree_data[index], "data")
-    nodes_map = {}
+        self.update_tree_view()
 
-    for n in treeto_nodes:
-        nodes_map[n] = Node(n)
+    def on_key_press(self, symbol, modifiers):
 
-    treeto = {nodes_map[k].root().text for k in nodes_map}
-    treeto = [nodes_map[k] for k in treeto]
+        if symbol == pyglet.window.key.RIGHT:
+            self.index += 1
+            if self.index >= len(tree_data):
+                self.index = 0
+                
+        if symbol == pyglet.window.key.LEFT:
+            self.index -= 1
+            if self.index < 0:
+                self.index = len(tree_data) - 1
 
-    for triple in treeto_relations:
-        r, a, b = triple
-        nodes_map[b].parent = nodes_map[a]
-        nodes_map[b].tags = {r}
-        nodes_map[a].children.append(nodes_map[b])
+        for k in list(self.nodes_map.keys()):
+            self.nodes_map[k].destroy()
 
-    treeto = {nodes_map[k].root().text for k in nodes_map}
-    treeto = [nodes_map[k] for k in treeto]
+        self.tree_nodes, self.tree_relations = read_tree(tree_data[self.index], "data")
+        self.nodes_map = {}
+
+        self.update_tree_view()
+
+    def update_tree_view(self):
     
-    for i in treeto:
-        i.update_edges()
-        i.draw()
-        on_draw()
+        global node_batch
     
-    
-pyglet.clock.schedule(button_press, 1.00)
+        node_batch = pyglet.graphics.Batch()
+
+        for n in self.tree_nodes:
+            self.nodes_map[n] = Node(n)
+
+        self.tree = {self.nodes_map[k].root().text for k in self.nodes_map}
+        self.tree = [self.nodes_map[k] for k in self.tree]
+
+        for triple in self.tree_relations:
+            r, a, b = triple
+            self.nodes_map[b].parent = self.nodes_map[a]
+            self.nodes_map[b].tags = {r}
+            self.nodes_map[a].children.append(self.nodes_map[b])
+
+        self.tree = {self.nodes_map[k].root().text for k in self.nodes_map}
+        self.tree = [self.nodes_map[k] for k in self.tree]
+
+        for t in self.tree:
+            t.update_edges()
+            t.draw()
+            window.clear()
+            edge_batch.draw()
+            node_box_batch.draw()
+            node_batch.draw()
+
+viewer = TreeViewer()
+window.push_handlers(viewer)
 
 pyglet.app.run()
