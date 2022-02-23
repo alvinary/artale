@@ -1,7 +1,7 @@
 import pytest
 from parser import Parser
 from models import Relation, Rule, HornSolver
-from test_parser import sorted_program as program
+from test_parser import complete as program
 
 sorts_part, rules_part = Parser().parse(program)
 
@@ -32,24 +32,45 @@ def clear_sorts(term_string):
     else:
         return term_string
 
-
-for rule in rules_part:
-
-    body, head, variables, sorts = rule
-
-    models_module_rule = Rule([Relation([term for term in atom]) for atom in head],
-                              [Relation([term for term in atom]) for atom in body],
-                              [v for v, s in variables], {}, [], {})
-
-    rules.append(models_module_rule)
-
-
 def test_string_encoding():
     relation_a = Relation(["weaves", "spider", "spiderweb"])
     relation_b = Relation(["weaves", "spider . mother", "spiderweb"])
     assert relation_a.get_string_encoding() == "weaves--spider--spiderweb"
     assert relation_b.get_string_encoding() == "weaves--spider . mother--spiderweb"
 
-def test_bind_variables():
-    pass
-    
+def test_unfolding():
+
+    rules = []
+
+    for rule in rules_part:
+
+        body, head, variables, sorts, flags = rule
+
+        models_module_rule = Rule([Relation([term for term in atom]) for atom in head],
+                                  [Relation([term for term in atom]) for atom in body],
+                                  [v for v, s in variables], sorts, {}, flags)
+
+        rules.append(models_module_rule)
+
+    solver = HornSolver()
+    solver.rules = rules
+
+    solver.sorts["pony"] = [f"pony{i}" for i in range(10)]
+    solver.sorts["island"] = [f"pony{i}" for i in range(10)]
+
+    solver.unfold_instance()
+
+    models = []
+
+    for m in range(1, 101):
+        res = solver.solver.solve([m])
+        if res:
+            models.append(solver.solver.get_model())
+
+    for m in models:
+        for a in m:
+            if a > 0 and a in solver.reverse_literal_map:
+                print(solver.reverse_literal_map[a])
+    print("\n"*2)
+
+
