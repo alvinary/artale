@@ -114,6 +114,34 @@ deeply loathes (p : pony, q : pony) =>
 deeply loathes (q, p)
 '''
 
+complete = '''--- A fairly complete program, useful for testing model unfolding --
+
+-- There are ten ponies and ten islands --
+
+sort pony 10
+sort island 10
+
+-- No pony can be nowhere, and no pony can be somehwere and nowhere simultaneously --
+
+somewhere(p : pony) v nowhere (p)
+somehwere(p), nowhere(p) => False
+
+at(p : pony, i : island) => somewhere(p)
+nowhere(p : pony), at(p, i: island) => False
+
+-- Ponies who hate each other can't be at the same island --
+
+loathes (p: pony, q: pony),
+loathes(q, p), at(p, i: island),
+at(q, i) => False
+
+-- Hatred is symmetrical for ponnies --
+
+loathes (p : pony, q: pony) =>
+loathes (q, p)
+
+'''
+
 def test_preprocessing_a():
     raw_program = '''
         sort pony 5
