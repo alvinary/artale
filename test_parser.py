@@ -114,7 +114,7 @@ deeply loathes (p : pony, q : pony) =>
 deeply loathes (q, p)
 '''
 
-complete = '''--- A fairly complete program, useful for testing model unfolding --
+complete = '''-- A fairly complete program, useful for testing model unfolding --
 
 -- There are ten ponies and ten islands --
 
