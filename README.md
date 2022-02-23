@@ -9,7 +9,8 @@ name assumption), so I can use a SAT solver for model checking.
 - The class in charge of finding models satisfying the specification given in a program is in `models.py` 
 - The class in charge of parsing programs is in `parser.py`
 - A class for displaying relations as trees can be found in `ui.py`
-- The `./specs` folder contains some example programs and the grammar of the input language
+- The `./specs` folder contains some example programs
+- The `grammar` file specifies the grammar of the input language
 
 ### Dependencies
 The scripts in this repository depend on [Pyglet](http://pyglet.org), [Lark](https://github.com/lark-parser/lark)
