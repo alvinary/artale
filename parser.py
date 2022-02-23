@@ -1,5 +1,9 @@
 from lark import Lark, Tree, Token
 
+IS_DISJUNCTION = "vee"
+IS_ASSERTION = "wedge"
+IS_CLAUSE = "arrow"
+
 grammar = ""
 
 with open("grammar") as grammar_file:
@@ -184,6 +188,9 @@ class Parser:
         assertions = [
             s for s in statements if get_preterminal(s) == "assertion"
         ]
+        disjunctions = [
+            s for s in statements if get_preterminal(s) == "disjunction"
+        ]
 
         # Fillings are sort declarations of the form 'sort name nat',
         # intended for users to define a sort populated by uniform constants
@@ -224,7 +231,7 @@ class Parser:
             body = [[normalize(s) for s in a] for a in body]
             head = [[normalize(s) for s in a] for a in head]
 
-            rule_parts.append((body, head, variables, sorts))
+            rule_parts.append((body, head, variables, sorts, {IS_CLAUSE}))
 
         for assertion in assertions:
 
@@ -238,8 +245,22 @@ class Parser:
 
             head = [[normalize(s) for s in a] for a in head]
 
-            rule_parts.append(([], head, variables, sorts))
+            rule_parts.append(([], head, variables, sorts, {IS_ASSERTION}))
 
+        for disjunction in disjunctions:
+
+            disjunction_atoms = get_atoms(get_body(disjunction))
+
+            body = [[" ".join(get_tokens(t)).strip() for t in get_terms(a)]
+                    for a in head_atoms]
+
+            variables = get_variables(body)
+            sorts = get_variables(body)
+
+            body = [[normalize(s) for s in a] for a in body]
+
+            rule_parts.append((body, [], variables, sorts, {IS_DISJUNCTION}))
+        
         return sorts_parts, rule_parts
 
     def check(program):
@@ -253,3 +274,5 @@ class Parser:
 
         except:
             pass
+
+
