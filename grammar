@@ -8,7 +8,7 @@
 // more elegant recursive formulations to avoid nesting
 // and simplify handling parser output.
 
-start : NEWLINE* ((sort | comment) NEWLINE*)+ ((rule | assertion | comment) NEWLINE*)+ NEWLINE*
+start : NEWLINE* ((sort | comment) NEWLINE*)+ ((rule | assertion | comment | disjunction) NEWLINE*)+ NEWLINE*
 
 comment : "--" (LETTER | WS | NEWLINE | INT | "," | ":" | ".")* "--" NEWLINE
 
@@ -19,6 +19,8 @@ rule : atoms (WS | NEWLINE) "=>" (WS | NEWLINE) atoms
      | atoms (WS | NEWLINE) "=>" (WS | NEWLINE) "False"
 
 assertion : atoms
+
+disjunction : atom (WS|NEWLINE)+ "v" (WS | NEWLINE)+ atom ((WS | NEWLINE)+ "v" (WS | NEWLINE)+ atom)*
 
 atoms : atom
       | (atom "," (WS | NEWLINE))* atom

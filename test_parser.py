@@ -98,6 +98,22 @@ glad (some pony . sibling)
 -- hehe --
 '''
 
+disjunctions = '''-- This program contains disjunctions --
+sort pony 4
+
+tall (p : pony) v short(p)
+
+cool (p : pony) v
+cute (p) v
+stern (p)
+
+orderly (p : pony), messy(q : pony) =>
+deeply loathes (p, q)
+
+deeply loathes (p : pony, q : pony) =>
+deeply loathes (q, p)
+'''
+
 def test_preprocessing_a():
     raw_program = '''
         sort pony 5
@@ -136,6 +152,7 @@ def test_parse():
     rogelio = parser.parse(sorted_program)
     egberto = parser.parse(complex_terms_program)
     jonacio = parser.parse(comments)
+    anucio = parser.parse(disjunctions)
 
     for r in rogelio[1]:
         print(f"head {r[0]} \nbody {r[1]}\nvariables {r[2]}\nsorts {r[3]}", "")
