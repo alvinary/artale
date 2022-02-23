@@ -10,7 +10,7 @@
 
 start : NEWLINE* ((sort | comment) NEWLINE*)+ ((rule | assertion | comment | disjunction) NEWLINE*)+ NEWLINE*
 
-comment : "--" (LETTER | WS | NEWLINE | INT | "," | ":" | ".")* "--" NEWLINE
+comment : "--" (LETTER | WS | NEWLINE | INT | "," | ":" | "." | "(" | ")" | "'")* "--" NEWLINE
 
 sort : "sort" WS token WS INT NEWLINE
      | "sort" WS token WS "add" WS (token "," WS)* token NEWLINE
@@ -20,7 +20,9 @@ rule : atoms (WS | NEWLINE) "=>" (WS | NEWLINE) atoms
 
 assertion : atoms
 
-disjunction : atom (WS|NEWLINE)+ "v" (WS | NEWLINE)+ atom ((WS | NEWLINE)+ "v" (WS | NEWLINE)+ atom)*
+disjunction : atom (WS|NEWLINE)+ vee (WS | NEWLINE)+ atom ((WS | NEWLINE)+ vee (WS | NEWLINE)+ atom)*
+
+vee : "v"
 
 atoms : atom
       | (atom "," (WS | NEWLINE))* atom
