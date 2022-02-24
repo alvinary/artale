@@ -40,7 +40,7 @@ class Rule:
         
         self.rebind(self, assignment)
 
-        disjuncts = [self.bind_variables(d) for d in self.heads]
+        disjuncts = [self.bind_variables(d) for d in self.body]
 
         string_disjuncts = [d.get_string_encoding() for d in disjuncts]
 
@@ -118,13 +118,31 @@ class HornSolver:
                 self.update_maps(pure_clauses)
 
                 if IS_DISJUNCTION in rule.flags:
+                    print(pure_clauses)
                     cnf_clauses = [self.disjunction_dimacs(c) for c in pure_clauses]
+                    print(" ".join([str(intec) for intec in cnf_clauses]))
 
                 else:
                     cnf_clauses = [self.dimacs(c) for c in pure_clauses]
 
                 for cnf_clause in cnf_clauses:
                     self.solver.add_clause(cnf_clause)
+
+    def una_equality(self):
+        for s in self.sorts:
+            for c1 in self.sorts[s]:
+                for c2 in self.sorts[s]:
+                    equality = f"eq {c1} {c2}"
+                    if c1 != c2:
+                        pure_clause = Clause(f"neq {c1} {c2}", [])
+                        pure_clauses = [pure_clause]
+                        self.update_maps(pure_clauses)
+                        self.solver.add_clause(self.dimacs(pure_clause))
+                    elif c1 == c2 and equality not in self.literal_map:
+                        pure_clause = Clause(equality, [])
+                        pure_clauses = [pure_clause]
+                        self.update_maps(pure_clauses)
+                        self.solver.add_clause(self.dimacs(pure_clause))
 
     def is_functional(self, term_string):
         return "." in term_string

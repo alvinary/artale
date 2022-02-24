@@ -46,9 +46,14 @@ def test_unfolding():
 
         body, head, variables, sorts, flags = rule
 
+        print(body)
+        print(variables)
+        print(sorts)
+        print(flags)
+
         models_module_rule = Rule([Relation([term for term in atom]) for atom in head],
                                   [Relation([term for term in atom]) for atom in body],
-                                  [v for v, s in variables], sorts, {}, flags)
+                                  [s for v, s in variables], [v for v, s in variables], {}, flags)
 
         rules.append(models_module_rule)
 
@@ -56,7 +61,7 @@ def test_unfolding():
     solver.rules = rules
 
     solver.sorts["pony"] = [f"pony{i}" for i in range(10)]
-    solver.sorts["island"] = [f"pony{i}" for i in range(10)]
+    solver.sorts["island"] = [f"island{i}" for i in range(10)]
 
     solver.unfold_instance()
 
@@ -73,4 +78,36 @@ def test_unfolding():
                 print(solver.reverse_literal_map[a])
     print("\n"*2)
 
+def test_una_equality():
+    rules = []
+    
+    solver = HornSolver()
+
+    solver.sorts["pony"] = [f"p{i}" for i in range(4)]
+
+    solver.una_equality()
+
+    models = []
+
+    res = solver.solver.solve()
+    if res:
+        model = solver.solver.get_model()
+
+    readable_model = set()
+    for p in model:
+        readable_model.add(solver.reverse_literal_map[p])
+
+    print(readable_model)
+
+    cond = ("eq p0 p0" in readable_model
+            and "eq p1 p1" in readable_model
+            and "neq p1 p0" in readable_model
+            and "neq p0 p1" in readable_model
+            and "neq p3 p0" in readable_model)
+
+    assert cond
+
+if __name__ == "__main__":
+    test_unfolding()
+    test_una_equality()
 
