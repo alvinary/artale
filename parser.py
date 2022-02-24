@@ -68,6 +68,11 @@ def get_body(rule_tree):
     ]
     return atomic_children[0]
 
+def get_disjuncts(rule_tree):
+    disjuncts = [
+        c for c in rule_tree.children if not isinstance(c, Token)
+    ]
+    return [d for d in disjuncts if get_preterminal(d) == "atom"]
 
 def get_atoms(atoms_tree):
     '''Return all atoms in the parse of a programs segment matching
@@ -115,14 +120,16 @@ def get_variables(term_lists):
     If two different sorts are assigned to the same variable symbol
     -as in p(a: A, a: B)-, behavior is undefined.'''
     variables = set()
+
     for terms in term_lists:
         new_variables = {
             tuple([s.strip() for s in t.split(":")])
             for t in terms if ":" in t
         }
         variables |= new_variables
-    return {(normalize(v), normalize(s)) for v, s in variables}
 
+    variables = {(normalize(v), normalize(s)) for v, s in variables}
+    return sorted(list(variables))
 
 def get_sorts(term_lists):
     '''Return a list containing all distinct sort names included
@@ -249,10 +256,10 @@ class Parser:
 
         for disjunction in disjunctions:
 
-            disjunction_atoms = get_atoms(get_body(disjunction))
+            disjunction_atoms = get_disjuncts(disjunction)
 
             body = [[" ".join(get_tokens(t)).strip() for t in get_terms(a)]
-                    for a in head_atoms]
+                    for a in disjunction_atoms]
 
             variables = get_variables(body)
             sorts = get_variables(body)
