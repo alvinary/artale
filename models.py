@@ -132,9 +132,9 @@ class HornSolver:
         for s in self.sorts:
             for c1 in self.sorts[s]:
                 for c2 in self.sorts[s]:
-                    equality = f"eq {c1} {c2}"
+                    equality = f"{c1} = {c2}"
                     if c1 != c2:
-                        pure_clause = Clause(f"neq {c1} {c2}", [])
+                        pure_clause = Clause(f"{c1} != {c2}", [])
                         pure_clauses = [pure_clause]
                         self.update_maps(pure_clauses)
                         self.solver.add_clause(self.dimacs(pure_clause))

@@ -101,10 +101,10 @@ glad (some pony . sibling)
 disjunctions = '''-- This program contains disjunctions --
 sort pony 4
 
-tall (p : pony) v short(p)
+tall (p : pony) | short(p)
 
-cool (p : pony) v
-cute (p) v
+cool (p : pony) |
+cute (p) |
 stern (p)
 
 orderly (p : pony), messy(q : pony) =>
@@ -112,6 +112,19 @@ deeply loathes (p, q)
 
 deeply loathes (p : pony, q : pony) =>
 deeply loathes (q, p)
+'''
+
+comparisons = '''-- Test equality operator with functions --
+sort pony 10
+
+-- Every pony knows the name of their pet --
+
+p:pony = q: pony => knows(p, p.pet.name)
+
+-- No pet has two owners (by pony law) --
+
+p.pet:pony = q.pet:pony, p != q => False
+
 '''
 
 complete = '''-- A fairly complete program, useful for testing model unfolding --
@@ -123,18 +136,25 @@ sort island 10
 
 -- No pony can be nowhere, and no pony can be somehwere and nowhere simultaneously --
 
-somewhere(p : pony) v nowhere (p : pony)
-somewhere(p : pony), nowhere(p : pony) => False
+somewhere(p : pony) | nowhere (p)
+
+somewhere(p : pony), nowhere(p) => False
 
 at(p : pony, i : island) => somewhere(p)
-nowhere(p : pony), at(p : pony, i: island) => False
+
+nowhere(p : pony), at(p, i: island) => False
+
 nowhere(p : pony) => False
+
+-- No pony can be at two places at the same time --
+
+at(p: pony, i : island), at(p, j : island), i != j => False
 
 -- Ponies who hate each other can't be at the same island --
 
 loathes (p : pony, q : pony),
-loathes(q : pony, p : pony), at(p : pony, i : island),
-at(q : island, i : island) => False
+loathes(q, p), at(p, i : island),
+at(q, i) => False
 
 -- Hatred is symmetrical for ponnies --
 
@@ -181,9 +201,14 @@ def test_parse():
     egberto = parser.parse(complex_terms_program)
     jonacio = parser.parse(comments)
     anucio = parser.parse(disjunctions)
+    joelo = (parser.parser.parse(complete)).pretty()
+    gerbacio = parser.parse(comparisons)
+    ambulo = parser.parser.parse(complete).pretty()
 
     for r in rogelio[1]:
         print(f"head {r[0]} \nbody {r[1]}\nvariables {r[2]}\nsorts {r[3]}", "")
+
+    print(ambulo)
 
 
 if __name__ == "__main__":

@@ -20,21 +20,22 @@ rule : atoms (WS | NEWLINE) "=>" (WS | NEWLINE) atoms
 
 assertion : atoms
 
-disjunction : atom (WS|NEWLINE)+ vee (WS | NEWLINE)+ atom ((WS | NEWLINE)+ vee (WS | NEWLINE)+ atom)*
+disjunction : atom ((WS | NEWLINE) vee (WS | NEWLINE) atom)+
 
-vee : "v"
+vee : "|"
 
 atoms : atom
       | (atom "," (WS | NEWLINE))* atom
 
 atom : term "(" (term "," WS)* term ")"
+     | term WS term WS term
 
 term : token
      | (token WS* "." WS*)+ token
 
 token : (WORD WS*)+
 
-WORD: LETTER+ | ":"
+WORD: LETTER+ | ":" | "=" | "!="
 
 %import common.LETTER
 %import common.WS
