@@ -123,22 +123,22 @@ sort island 10
 
 -- No pony can be nowhere, and no pony can be somehwere and nowhere simultaneously --
 
-somewhere(p : pony) v nowhere (p)
-somehwere(p), nowhere(p) => False
+somewhere(p : pony) v nowhere (p : pony)
+somewhere(p : pony), nowhere(p : pony) => False
 
 at(p : pony, i : island) => somewhere(p)
-nowhere(p : pony), at(p, i: island) => False
+nowhere(p : pony), at(p : pony, i: island) => False
+nowhere(p : pony) => False
 
 -- Ponies who hate each other can't be at the same island --
 
-loathes (p: pony, q: pony),
-loathes(q, p), at(p, i: island),
-at(q, i) => False
+loathes (p : pony, q : pony),
+loathes(q : pony, p : pony), at(p : pony, i : island),
+at(q : island, i : island) => False
 
 -- Hatred is symmetrical for ponnies --
 
-loathes (p : pony, q: pony) =>
-loathes (q, p)
+loathes (p : pony, q : pony) => loathes (q : pony, p : pony)
 
 '''
 
