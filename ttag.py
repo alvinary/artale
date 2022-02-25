@@ -3,7 +3,7 @@ from collections import defaultdict
 import pyglet
 from pyglet.gl import glTexParameteri, GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_NEAREST
 
-SCROLL_SCALING = 10
+SCROLL_SCALING = 40
 TILE_SIDE = 64
 SCROLLABLE_PANEL_TOP = 400
 TAG_SEPARATOR = 8
@@ -43,7 +43,7 @@ cool_purple = (58, 58, 165)
 cool_coral = (192, 64, 64)
 cool_white = (248, 231, 231)
 
-window = pyglet.window.Window()
+window = pyglet.window.Window(1920, 1080)
 
 background_batch = pyglet.graphics.Batch()
 foreground_batch = pyglet.graphics.Batch()
@@ -53,7 +53,7 @@ color_batch = pyglet.graphics.Batch()
 
 index = lambda: defaultdict(lambda : set())
 
-tileset_resource = pyglet.image.load("./images/cave.png")
+tileset_resource = pyglet.image.load("./images/61816.png")
 
 class TileTagger:
     def __init__(self):
@@ -254,8 +254,8 @@ class TagPanel:
 
 @window.event
 def on_draw():
-    #glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST) 
-    #glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST) 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
     
     window.clear()
     background_batch.draw()
