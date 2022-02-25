@@ -83,6 +83,14 @@ class TileTagger:
                 
         if symbol == pyglet.window.key.TAB:
             self.dump_string()
+            
+        if symbol == pyglet.window.key.LEFT:
+            self.scroll_shift_x += 6 * TILE_SIDE
+            self.tilemap.x += 6 * TILE_SIDE
+        
+        if symbol == pyglet.window.key.RIGHT:
+            self.scroll_shift_x -= 6 * TILE_SIDE
+            self.tilemap.x -= 6 * TILE_SIDE
         
     def on_mouse_press(self, x, y, button, modifiers):
         
