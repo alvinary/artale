@@ -32,4 +32,3 @@ Use pip to install it, or check the PySat's homepage to look for additional inst
 pip install python-sat[pblib,aiger]
 ```
 
-### Examples
