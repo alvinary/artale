@@ -4,7 +4,7 @@ import pyglet
 from pyglet.gl import glTexParameteri, GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_NEAREST
 
 SCROLL_SCALING = 40
-TILE_SIDE = 64
+TILE_SIDE = 48
 SCROLLABLE_PANEL_TOP = 400
 TAG_SEPARATOR = 8
 TAG_HEIGHT = 16
@@ -68,8 +68,10 @@ class TileTagger:
         self.scroll_shift_y = 0
         self.scroll_shift_x = 0
         
-        self.tilemap.scale_x = 4
-        self.tilemap.scale_y = 4
+        self.tilemap.scale_x = 3
+        self.tilemap.scale_y = 3
+        
+        self.drag = False
     
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
         self.tilemap.y = self.tilemap.y - int(scroll_y * SCROLL_SCALING)
@@ -111,12 +113,21 @@ class TileTagger:
 
             self.label = ShortTextInput(self, ">", x, y)
             window.push_handlers(self.label)
+            
+        if button == pyglet.window.mouse.RIGHT:
+            self.drag = not self.drag
 
     def on_mouse_motion(self, x, y, dx, dy):
         self.tile_x = (x - self.scroll_shift_x) // TILE_SIDE
         self.tile_y = (y - self.scroll_shift_y) // TILE_SIDE
         self.mouse_x = x
         self.mouse_y = y
+        
+        if self.drag:
+            self.scroll_shift_y += dy
+            self.scroll_shift_x += dx
+            self.tilemap.x += dx
+            self.tilemap.y += dy
     
     def on_key_release(self, symbol, modifiers):
         if symbol == pyglet.window.key.LSHIFT and self.panel:
@@ -141,7 +152,12 @@ class TileTagger:
         for k in self.property_index:
             print(f"{k[0]}, {k[1]}: {', '.join(self.property_index[k])}")
         print("")
-
+        
+    def load_string(self, text):
+        for line in text.split("\n"):
+            coordinates = tuple(line.split(":")[0].strip().split(", "))
+            properties = {p.strip() for p in line.split(":")[1].split(",")}
+            self.property_index[coordinates] |= properties
 
 class ShortTextInput:
     
