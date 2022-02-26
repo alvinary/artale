@@ -26,7 +26,7 @@ pip install lark
 PySAT relies on external SAT solvers, and can be installed directly on Ubuntu, but I'm not sure about other distributions
 and operating systems.
 
-Use pip to install it, or check the PySat's homepage to look for additional installation instructions if something fails.
+Use pip to install it, or check the PySat homepage to look for additional installation instructions if something fails.
 
 ```
 pip install python-sat[pblib,aiger]
