@@ -51,7 +51,7 @@ very likely will not affect the time required to solve a problem instance, as mo
 on a SAT solver for general propositional formulae, and modern solvers are know to perform well on
 "industrial" instances -i.e. SAT instances taken from 'natural' domains in which some underlying
 structure makes instances easy, sometimes even despite high values in common complexity
-parameters such as treewidth, as surveyed, for instance, in ).
+parameters such as treewidth, as surveyed, for instance, in [this other article](https://www.microsoft.com/en-us/research/publication/treewidth-in-industrial-sat-benchmarks/)).
 
 In order to reduce the size of the embeddings, you can distribute constants into several sorts (sets of separate constants, which in
 this setting are entirely equivalent to using monadic predicates as guards limiting quantification), so predicate embeddings only
