@@ -1,7 +1,0 @@
-
--- 8 rules, each for each carry, left and right value --
-
-sum(s), one(s.left, i: integer), one(s.right, i) => zero(s, i), one(s.carry, i.next)
-sum(s), zero(s.left, i: integer), zero(s.right, i) => zero(s, i)
-sum(s), zero(s.left, i: integer), one(s.right, i) => 
-
