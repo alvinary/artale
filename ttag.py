@@ -9,35 +9,10 @@ SCROLLABLE_PANEL_TOP = 400
 TAG_SEPARATOR = 8
 TAG_HEIGHT = 16
 
-alphabet = {}
-alphabet['a'] = pyglet.window.key.A
-alphabet['b'] = pyglet.window.key.B
-alphabet['c'] = pyglet.window.key.C
-alphabet['d'] = pyglet.window.key.D
-alphabet['e'] = pyglet.window.key.E
-alphabet['f'] = pyglet.window.key.F
-alphabet['g'] = pyglet.window.key.G
-alphabet['h'] = pyglet.window.key.H
-alphabet['i'] = pyglet.window.key.I
-alphabet['j'] = pyglet.window.key.J
-alphabet['k'] = pyglet.window.key.K
-alphabet['l'] = pyglet.window.key.L
-alphabet['m'] = pyglet.window.key.M
-alphabet['n'] = pyglet.window.key.N
-alphabet['o'] = pyglet.window.key.O
-alphabet['p'] = pyglet.window.key.P
-alphabet['q'] = pyglet.window.key.Q
-alphabet['r'] = pyglet.window.key.R
-alphabet['s'] = pyglet.window.key.S
-alphabet['t'] = pyglet.window.key.T
-alphabet['u'] = pyglet.window.key.U
-alphabet['v'] = pyglet.window.key.V
-alphabet['w'] = pyglet.window.key.W
-alphabet['x'] = pyglet.window.key.X
-alphabet['y'] = pyglet.window.key.Y
-alphabet['z'] = pyglet.window.key.Z
+letters = [l.upper() for l in "a b c d e f g h i j k l m n o p q r s t u v w x y z".split()]
 
-letters = [alphabet[i] for i in "a b c d e f g h i j k l m n o p q r s t u v w x y z".split()]
+def as_ascii(s):
+    return pyglet.window.key.symbol_string(s)
 
 cool_purple = (58, 58, 165)
 cool_coral = (192, 64, 64)
@@ -192,7 +167,7 @@ class ShortTextInput:
             self.label_item.delete()
             self.label_item = None
 
-        elif symbol in letters and "MOD_SHIFT" in pyglet.window.key.modifiers_string(modifiers):
+        elif as_ascii(symbol) in letters and "MOD_SHIFT" in pyglet.window.key.modifiers_string(modifiers):
             if self.text == ">":
                 self.text = pyglet.window.key.symbol_string(symbol)
             else:
@@ -200,7 +175,7 @@ class ShortTextInput:
                 self.label_item.delete()
                 self.update_label()
 
-        elif symbol in letters:
+        elif as_ascii(symbol) in letters:
             if self.text == ">":
                 self.text = pyglet.window.key.symbol_string(symbol).lower()
             else:
