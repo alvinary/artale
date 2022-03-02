@@ -4,9 +4,10 @@ I use these scripts to embed logic programs limited to the Horn fragment of
 many-sorted first order logic into propositional logic, and add
 hard-coded auxiliary clauses to manage constraints that are either beyond
 first order logic or make limited use of functions (relying on the unique
-name assumption), so I can use a SAT solver for model checking.
+name assumption), so I can use a SAT solver to find models that meet the constraints
+specified on a program or perform bounded model checking.
 
-- The class in charge of finding models satisfying the specification given in a program is in `models.py` 
+- The class in charge of finding models satisfying a specification is in `models.py` 
 - The class in charge of parsing programs is in `parser.py`
 - A class for displaying relations as trees can be found in `ui.py`
 - The `./specs` folder contains some example programs
