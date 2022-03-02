@@ -221,6 +221,11 @@ class ShortTextInput:
             self.label_item.delete()
             self.update_label()
 
+        elif symbol == pyglet.window.key.COLON:
+            self.text = self.text + ":"
+            self.label_item.delete()
+            self.update_label()
+
         else:
             pass
 
