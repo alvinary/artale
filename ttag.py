@@ -176,8 +176,11 @@ class ShortTextInput:
     def on_key_press(self, symbol, modifiers):
 
         if symbol == pyglet.window.key.ENTER:
+        
+            new_tags = set([s.strip() for s in self.text.split(",")])
+
             self.tagger.property_index[self.tile_x,
-                                       self.tile_y].add(self.label_item.text)
+                                           self.tile_y] |= new_tags
             self.label_item.delete()
             self.label_item = None
 
@@ -223,6 +226,11 @@ class ShortTextInput:
 
         elif symbol == pyglet.window.key.COLON:
             self.text = self.text + ":"
+            self.label_item.delete()
+            self.update_label()
+
+        elif symbol == pyglet.window.key.COMMA:
+            self.text = self.text + ","
             self.label_item.delete()
             self.update_label()
 
