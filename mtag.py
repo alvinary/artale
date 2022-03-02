@@ -1,31 +1,57 @@
-# for logic constant in tiles:
-#    for category name in categories:
-#        if (category, constant) in relations:
-#            map[tile.x, tile.y] = atlas[cat.x, cat.y]
-# podes tener eso listo en un diccionario
-
-# so:
-# Atlas[x, y] debería ser el sprite
-
 from collections import defaultdict
 
-import pyglet
+from models import HornSolver
+from parser import Parser
 
-# Define the side of a tile in pixels, as tiles are stored in a png, 
-# jpeg or bitmap image, and define the factor by which tiles will
-# be scaled when displayed
+import pyglet
+from pyglet.gl import glTexParameteri, GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_NEAREST
+from pyglet.window.key import PARENLEFT, PARENRIGHT, COLON, LESS, EQUAL, GREATER, PERIOD, COMMA
+
+special_keys = {
+    PARENLEFT : "(",
+    PARENRIGHT : ")",
+    COLON : ":",
+    LESS : "<",
+    EQUAL : "=",
+    GREATER : ">",
+    PERIOD : ".",
+    COMMA : ","
+}
+
+# TODO: move these to a 'constants.py' file
+SCROLL_SCALING = 40
+TILE_SIDE = 48
+SCROLLABLE_PANEL_TOP = 400
+TAG_SEPARATOR = 8
+TAG_HEIGHT = 16
+
 TILE_SIZE = 16
 SCALING_FACTOR = 2
 
-# Define the width and height of the window
-WINDOW_WIDTH = 1420
-WINDOW_HEIGHT = 810
+WINDOW_WIDTH = 1520
+WINDOW_HEIGHT = 980
 
-# Define the (x, y) corner (x from the left of the window to the right,
-# y from bottom to top) of the rectangular region of the window where 
-# maps will be drawn
 MAP_REGION_X = 10
 MAP_REGION_Y = 10
+
+EDITOR_X = 900
+EDITOR_Y = 900
+
+EDITOR_WIDTH = 540
+EDITOR_HEIGHT = 900
+
+PADDING = 80
+
+letters = [
+    l.upper()
+    for l in "a b c d e f g h i j k l m n o p q r s t u v w x y z = > < ( ) . : ,".split()
+]
+
+
+def as_ascii(s):
+    if s in special_keys.keys():
+        return special_keys[s]
+    return pyglet.window.key.symbol_string(s)
 
 # Define two separate batches (one for the map region, one 
 # for the rest of UI elements)
@@ -68,6 +94,31 @@ class MapTagger:
 
         self.update_atlas_reference(tilespec)
         self.set_up()
+        
+        self.theory = ""
+        
+        self.solver = HornSolver()
+        
+        self.editor = ProgramEditor(self, "Jeje (x) => verga(x)")
+        
+        self.on_editor = True
+        
+        self.models = []
+        
+        self.model_index = 0
+        
+        window.push_handlers(self.editor)
+        window.push_handlers(self)
+
+    def on_key_press(self, symbol, modifiers):
+        
+        if symbol == pyglet.window.key.LEFT and not self.on_editor:
+            self.model_index -= 1
+            self.model_index = max(0, self.model_index)
+                
+        elif symbol == pyglet.window.key.RIGHT and not self.on_editor:
+            self.model_index += 1
+            self.model_index = min(len(self.models), self.model_index)
     
     def update_atlas_reference(self, specs_path):
         '''Open the text file at specs_path (each line should consist of
@@ -136,7 +187,132 @@ class MapTagger:
         for r in map_description:
             x, y, cat = r
             self.current_map[x, y] = cat
+            
+    def update_models(self):
+    
+        self.models = []
+        
+        rules = []
+        
+        sorts_part, rules_part = Parser().parse(program)
 
+        for rule in rules_part:
+
+            body, head, variables, sorts, flags = rule
+
+            print(body)
+            print(variables)
+            print(sorts)
+            print(flags)
+
+            models_module_rule = Rule([Relation([term for term in atom]) for atom in head],
+                                      [Relation([term for term in atom]) for atom in body],
+                                      [s for v, s in variables], [v for v, s in variables], {}, flags)
+
+            rules.append(models_module_rule)
+
+        self.solver = HornSolver()
+        self.solver.rules = rules
+
+        self.solver.sorts["tile"] = [f"pony{i}" for i in range(10)]
+        self.solver.sorts["map"] = [f"island{i}" for i in range(10)]
+
+        self.solver.unfold_instance()
+        self.solver.una_equality()
+
+        for m in range(1, 101):
+            res = self.solver.solver.solve([m])
+            if res:
+                self.models.append(solver.solver.get_model())
+
+
+    def model_atoms():
+        atoms = set()
+        if self.models:
+            for a in self.models[self.model_index]:
+                if a > 0 and a in self.solver.reverse_literal_map:
+                    atoms.add(self.solver.reverse_literal_map[a])
+        return atoms
+        
+    def on_mouse_press(self, x, y, button, modifiers):
+
+        if button == pyglet.window.mouse.LEFT and x >= self.editor.layout.x: # TODO: declunkify
+            self.on_editor = not self.on_editor # TODO: change to something better
+            print(self.on_editor)
+
+class ProgramEditor:
+
+    def __init__(self, tagger, text):
+        self.tagger = tagger
+        self.text = text
+        self.x = EDITOR_X
+        self.y = EDITOR_Y
+        self.index = max(0, len(self.text))
+        
+        self.document = pyglet.text.document.UnformattedDocument(self.text)
+        self.document.set_style(0, len(self.document.text),
+            dict(color=(255, 255, 255, 255), font_name="Go Mono", font_size=14)
+        )
+        
+        self.layout = pyglet.text.layout.ScrollableTextLayout(
+            self.document, EDITOR_WIDTH, EDITOR_HEIGHT, multiline=True, batch=ui_batch
+        )
+        
+        self.layout.x = WINDOW_WIDTH - (EDITOR_WIDTH + PADDING)
+        self.layout.y = WINDOW_HEIGHT - (EDITOR_HEIGHT + PADDING // 2)
+                                            
+    def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
+        if self.tagger.on_editor:
+            self.layout.view_y -= int(scroll_y * SCROLL_SCALING)
+
+    def on_key_press(self, symbol, modifiers):
+    
+        if self.tagger.on_editor:
+    
+            current_symbol = ""
+            index_update = 0
+
+            if symbol == pyglet.window.key.ENTER:
+                current_symbol = "\u2028"
+                index_update = 1
+
+            elif as_ascii(
+                    symbol
+            ) in letters and "MOD_SHIFT" in pyglet.window.key.modifiers_string(
+                    modifiers):
+                current_symbol = as_ascii(symbol).upper()
+                index_update = 1
+
+            elif as_ascii(symbol) in letters:
+                current_symbol = as_ascii(symbol).lower()
+                index_update = 1
+
+            elif symbol == pyglet.window.key.BACKSPACE and len(self.text) > 0:
+                cut_index = max(0, self.index - 1)
+                self.text = self.text[:cut_index] + self.text[cut_index+1:]
+                index_update = 0
+
+            elif symbol == pyglet.window.key.SPACE:
+                current_symbol = ' '
+                index_update = 1
+                
+            elif symbol == pyglet.window.key.LEFT:
+                current_symbol = ""
+                index_update = -1
+                
+            elif symbol == pyglet.window.key.RIGHT:
+                current_symbol = ""
+                index_update = 1
+                
+            self.text = self.text[:self.index] + current_symbol + self.text[self.index:]
+            self.index += index_update
+            self.index = max(0, self.index)
+            self.index = min(len(self.text), self.index)
+            
+            print(self.index)
+
+            self.tagger.program = self.text
+            self.document.text = self.text
 
 sample_map = [
     (1, 1, "deep water"), (1, 2, "deep water"), (1, 3, "deep water"), 
@@ -150,7 +326,11 @@ tagger.draw_map()
 
 @window.event
 def on_draw():
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
+
     window.clear()
     map_batch.draw()
+    ui_batch.draw()
 
 pyglet.app.run()
