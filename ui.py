@@ -1,12 +1,6 @@
 import pyglet
 
-NODE_WIDTH = 15
-NODE_HEIGHT = 10
-TREE_BOX_X = 300
-TREE_BOX_Y = 800
-CHAR_WIDTH = 10
-CHAR_HEIGHT = 14
-NODE_MARGIN = 5
+from constants import *
 
 window = pyglet.window.Window(1200, 900)
 
