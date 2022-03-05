@@ -1,7 +1,9 @@
 from collections import defaultdict
 
-from models import HornSolver
+from models import HornSolver, Rule, Relation
 from parser import Parser
+from scaffoldings import tree
+from constants import *
 
 import pyglet
 from pyglet.gl import glTexParameteri, GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_NEAREST
@@ -19,99 +21,8 @@ special_keys = {
 }
 
 # TODO: move these to a 'constants.py' file
-SCROLL_SCALING = 40
-TILE_SIDE = 48
-SCROLLABLE_PANEL_TOP = 400
-TAG_SEPARATOR = 8
-TAG_HEIGHT = 16
 
-TILE_SIZE = 16
-SCALING_FACTOR = 2
-
-WINDOW_WIDTH = 1520
-WINDOW_HEIGHT = 980
-
-MAP_REGION_X = 10
-MAP_REGION_Y = 10
-
-EDITOR_X = 900
-EDITOR_Y = 900
-
-EDITOR_WIDTH = 540
-EDITOR_HEIGHT = 900
-
-PADDING = 80
-
-SAMPLE_PROGRAM = '''-- Press click anywhere to switch to and from the program editor to the map tagger --
-
--- All map components are either leaves or nodes (preterminals) --
-
-leaf(c : component) v node(c : component)
-leaf(c : component), node(c : component) =>
-False
-
--- No tile is assigned to a preterminal --
-
-node(c: component), assign(t: tile, c) => False
-
--- No map component (in particular, no leaf) is assigned two different tiles --
-
-assign(t: tile, c: component),
-matches(s: tile, c),
-t != s =>
-False
-
--- No tile is assigned to two different map components --
-
-assign(t: tile, c: component),
-assign(t, d: component),
-d != c =>
-False
-
--- Map components are either 'virtual' components (used to keep trees binary),
-   or 'actual' components. All leaves are 'actual' components --
-
-leaf(c: component), virtual(c) => False
-virtual(c : component) v actual(c : component)
-
--- Virtual components are 'reigned' by the first actual node 'above' them
-   ('the first node above' being 'the first actual node found by following
-   branches/edges upwards') -- 
-
-actual(c : component), virtual(c.left) => regent(c, c.left)
-
-actual(c : component), virtual(c.right) => regent(c, c.right)
-
-virtual(c : component),
-virtual(c.left),
-regent(d: component, c) =>
-regent(d, c.left)
-
-virtual(c : component),
-virtual(c.right),
-regent(d: component, c) =>
-regent(d, c.right)
-
--- Virtual components inherit all their relations to
-   their parent components, so that the first actual
-   node dominating n virtual nodes gets all their
-   relations and 'receives' the properties it should --
-
-rel : relation (c.left : component, d : component),
-virtual(c.left) =>
-rel(c, d)
-
-rel : relation (c.right : component, d : component),
-virtual(c.right) =>
-rel(c, d)
-
--- Constraints apply to real nodes only! --
--- (Or should there be actual and real relations? neh, actual and real nodes) --
-
--- The way there rules were stated, nothing prevents a map
-   from having a property without meeting any of its requirements --
-
-'''
+SAMPLE_PROGRAM = TEMPLATE
 
 letters = [
     l.upper()
@@ -170,6 +81,8 @@ class MapTagger:
         
         self.solver = HornSolver()
         
+        self.program = ""
+
         self.editor = ProgramEditor(self, SAMPLE_PROGRAM)
         
         self.on_editor = True
@@ -190,6 +103,12 @@ class MapTagger:
         elif symbol == pyglet.window.key.RIGHT and not self.on_editor:
             self.model_index += 1
             self.model_index = min(len(self.models), self.model_index)
+
+        elif symbol == pyglet.window.key.ENTER and self.on_editor:
+            if self.models == []:
+                self.update_models()
+            else:
+                self.solver.show_model(self.models[self.model_index])
     
     def update_atlas_reference(self, specs_path):
         '''Open the text file at specs_path (each line should consist of
@@ -286,10 +205,8 @@ class MapTagger:
 
         self.solver = HornSolver()
         self.solver.rules = rules
-
-        self.solver.sorts["tile"] = [f"pony{i}" for i in range(10)]
-        self.solver.sorts["map"] = [f"island{i}" for i in range(10)]
-
+        
+        self.unfold_trees(5, 5)
         self.solver.unfold_instance()
         self.solver.una_equality()
 
@@ -298,6 +215,30 @@ class MapTagger:
             if res:
                 self.models.append(solver.solver.get_model())
 
+    def unfold_trees(self, width, height):
+
+        tree_constants, tree_relation = tree("node", ["left", "right"], width * height)
+
+        for c in tree_constants:
+            solver.sorts["component"].append(c)
+
+        checked = set()
+
+        for r in tree_relation:
+            f, a, b = r
+            solver.value_map[a, f] = b
+            checked.add(a)
+
+        for e in tree_constants - checked:
+            solver.value_map[e, "left"] = "null"
+            solver.value_map[e, "right"] = "null"
+
+        solver.value_map["null", "left"] = "null"
+        solver.value_map["null", "right"] = "null"
+
+        solver.sorts["component"].append("null")
+
+        self.solver.sorts["tile"] = [f"tile<{i},{j}>)" for i in range(width) for j in range(height)]
 
     def model_atoms():
         atoms = set()
