@@ -190,7 +190,7 @@ class MapTagger:
             
     def update_models(self):
 
-        sself.program = self.program.replace(" ", "\n")
+        self.program = self.program.replace(" ", "\n")
     
         self.models = []
         
@@ -310,14 +310,10 @@ class ProgramEditor:
             self.index += index_update
             self.index = max(0, self.index)
             self.index = min(len(self.text), self.index)
-            
-            print(self.index)
 
             self.tagger.program = self.text
             self.document.text = self.text
 
-            print("")
-            print(self.tagger.program)
 
 sample_map = [
     (1, 1, "deep water"), (1, 2, "deep water"), (1, 3, "deep water"), 
