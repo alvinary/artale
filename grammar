@@ -22,7 +22,7 @@ assertion : atoms
 
 disjunction : atom ((WS | NEWLINE) vee (WS | NEWLINE) atom)+
 
-vee : "|"
+vee : "v"
 
 atoms : atom
       | (atom "," (WS | NEWLINE))* atom
