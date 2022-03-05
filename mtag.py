@@ -189,12 +189,14 @@ class MapTagger:
             self.current_map[x, y] = cat
             
     def update_models(self):
+
+        sself.program = self.program.replace(" ", "\n")
     
         self.models = []
         
         rules = []
         
-        sorts_part, rules_part = Parser().parse(program)
+        sorts_part, rules_part = Parser().parse(self.program)
 
         for rule in rules_part:
 
@@ -313,6 +315,9 @@ class ProgramEditor:
 
             self.tagger.program = self.text
             self.document.text = self.text
+
+            print("")
+            print(self.tagger.program)
 
 sample_map = [
     (1, 1, "deep water"), (1, 2, "deep water"), (1, 3, "deep water"), 
