@@ -42,6 +42,77 @@ EDITOR_HEIGHT = 900
 
 PADDING = 80
 
+SAMPLE_PROGRAM = '''-- Press click anywhere to switch to and from the program editor to the map tagger --
+
+-- All map components are either leaves or nodes (preterminals) --
+
+leaf(c : component) v node(c : component)
+leaf(c : component), node(c : component) =>
+False
+
+-- No tile is assigned to a preterminal --
+
+node(c: component), assign(t: tile, c) => False
+
+-- No map component (in particular, no leaf) is assigned two different tiles --
+
+assign(t: tile, c: component),
+matches(s: tile, c),
+t != s =>
+False
+
+-- No tile is assigned to two different map components --
+
+assign(t: tile, c: component),
+assign(t, d: component),
+d != c =>
+False
+
+-- Map components are either 'virtual' components (used to keep trees binary),
+   or 'actual' components. All leaves are 'actual' components --
+
+leaf(c: component), virtual(c) => False
+virtual(c : component) v actual(c : component)
+
+-- Virtual components are 'reigned' by the first actual node 'above' them
+   ('the first node above' being 'the first actual node found by following
+   branches/edges upwards') -- 
+
+actual(c : component), virtual(c.left) => regent(c, c.left)
+
+actual(c : component), virtual(c.right) => regent(c, c.right)
+
+virtual(c : component),
+virtual(c.left),
+regent(d: component, c) =>
+regent(d, c.left)
+
+virtual(c : component),
+virtual(c.right),
+regent(d: component, c) =>
+regent(d, c.right)
+
+-- Virtual components inherit all their relations to
+   their parent components, so that the first actual
+   node dominating n virtual nodes gets all their
+   relations and 'receives' the properties it should --
+
+rel : relation (c.left : component, d : component),
+virtual(c.left) =>
+rel(c, d)
+
+rel : relation (c.right : component, d : component),
+virtual(c.right) =>
+rel(c, d)
+
+-- Constraints apply to real nodes only! --
+-- (Or should there be actual and real relations? neh, actual and real nodes) --
+
+-- The way there rules were stated, nothing prevents a map
+   from having a property without meeting any of its requirements --
+
+'''
+
 letters = [
     l.upper()
     for l in "a b c d e f g h i j k l m n o p q r s t u v w x y z = > < ( ) . : ,".split()
@@ -99,7 +170,7 @@ class MapTagger:
         
         self.solver = HornSolver()
         
-        self.editor = ProgramEditor(self, "Jeje (x) => verga(x)")
+        self.editor = ProgramEditor(self, SAMPLE_PROGRAM)
         
         self.on_editor = True
         
@@ -265,7 +336,7 @@ class ProgramEditor:
                                             
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
         if self.tagger.on_editor:
-            self.layout.view_y -= int(scroll_y * SCROLL_SCALING)
+            self.layout.view_y += int(scroll_y * SCROLL_SCALING)
 
     def on_key_press(self, symbol, modifiers):
     
