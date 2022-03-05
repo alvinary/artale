@@ -10,7 +10,7 @@
 
 start : NEWLINE* ((sort | comment) NEWLINE*)+ ((rule | assertion | comment | disjunction) NEWLINE*)+ NEWLINE*
 
-comment : "--" (LETTER | WS | NEWLINE | INT | "," | ":" | "." | "(" | ")" | "'")* "--" NEWLINE
+comment : "--" (LETTER | WS | NEWLINE | INT | "/" | "," | ":" | "." | "(" | ")" | "'")* "--" NEWLINE
 
 sort : "sort" WS token WS INT NEWLINE
      | "sort" WS token WS "add" WS (token "," WS)* token NEWLINE
