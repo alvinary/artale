@@ -64,6 +64,7 @@ def test_unfolding():
     solver.sorts["island"] = [f"island{i}" for i in range(10)]
 
     solver.unfold_instance()
+    solver.una_equality()
 
     models = []
 
@@ -99,11 +100,11 @@ def test_una_equality():
 
     print(readable_model)
 
-    cond = ("eq p0 p0" in readable_model
-            and "eq p1 p1" in readable_model
-            and "neq p1 p0" in readable_model
-            and "neq p0 p1" in readable_model
-            and "neq p3 p0" in readable_model)
+    cond = ("p0 = p0" in readable_model
+            and "p1 = p1" in readable_model
+            and "p1 != p0" in readable_model
+            and "p0 != p1" in readable_model
+            and "p3 != p0" in readable_model)
 
     assert cond
 
