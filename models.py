@@ -12,13 +12,6 @@ IS_DISJUNCTION = "vee"
 def index():
     return defaultdict(lambda: [])
 
-def segments(items, k):
-    no_chunks = len(items) // k - 1
-    ranges = [(i * k, (i+1) * k) for i in range(no_chunks)]
-    if ranges[-1][1] < len(items) - 1:
-        ranges.append((no_chunks + 1) * k, len(items))
-    return [items[begin, end] for begin, end in ranges]
-
 @dataclass
 class Relation:
     parts: List[str]
@@ -124,9 +117,7 @@ class HornSolver:
                 self.update_maps(pure_clauses)
 
                 if IS_DISJUNCTION in rule.flags:
-                    print(pure_clauses)
                     cnf_clauses = [self.disjunction_dimacs(c) for c in pure_clauses]
-                    print(" ".join([str(intec) for intec in cnf_clauses]))
 
                 else:
                     cnf_clauses = [self.dimacs(c) for c in pure_clauses]
@@ -217,6 +208,14 @@ class HornSolver:
             self.reverse_literal_map[self.name_counter] = s
 
     def show_model(self, model):
-        atoms = [self.reverse_literal_map[atom] for atom in model if atom > 0]
-        chunks = [", ".join(segment) for segment in segments(atoms, 8)]
-        return "\n".join(chunks)
+        readable_model = ""
+        counter = 1
+        atoms = [self.reverse_literal_map[a] for a in model if a > 0]
+        atoms = [a for a in atoms if "=" not in a]
+        for atom in atoms:
+            readable_model = f"{readable_model}, {atom}"
+            counter += 1
+            counter = counter % 9
+            if counter == 0:
+                readable_model = readable_model + "\n"
+        print(readable_model)
