@@ -20,8 +20,6 @@ special_keys = {
     COMMA : ","
 }
 
-# TODO: move these to a 'constants.py' file
-
 SAMPLE_PROGRAM = TEMPLATE
 
 letters = [
