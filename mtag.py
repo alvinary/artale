@@ -1,4 +1,5 @@
 from collections import defaultdict
+from math import log
 
 from models import HornSolver, Rule, Relation
 from parser import Parser
@@ -20,7 +21,32 @@ special_keys = {
     COMMA : ","
 }
 
-SAMPLE_PROGRAM = TEMPLATE
+sample = '''
+sort component 40
+sort tile 60
+
+leaf(c : component), node(c : component) => False
+
+leaf(c : component) v node(c : component)
+
+node(c: component), assign(t: tile, c) => False
+
+leaf(c: component), virtual(c) => False
+
+virtual(c : component) v actual(c : component)
+
+actual(c : component), virtual(c.l) => regent(c, c.l)
+
+actual(c : component), virtual(c.r) => regent(c, c.r)
+
+virtual(c : component), virtual(c.l), regent(d: component, c) => regent(d, c.l)
+
+virtual(c : component), virtual(c.r), regent(d: component, c) => regent(d, c.r)
+
+rel: relation (c.l : component, d : component), virtual(c.l) => rel(c, d)
+
+rel: relation (c.r : component, d : component), virtual(c.r) => rel(c, d)
+'''
 
 letters = [
     l.upper()
@@ -79,11 +105,11 @@ class MapTagger:
         
         self.solver = HornSolver()
         
-        self.program = ""
+        self.program = sample
 
-        self.editor = ProgramEditor(self, SAMPLE_PROGRAM)
+        self.editor = ProgramEditor(self, sample)
         
-        self.on_editor = True
+        self.on_editor = False
         
         self.models = []
         
@@ -97,16 +123,18 @@ class MapTagger:
         if symbol == pyglet.window.key.LEFT and not self.on_editor:
             self.model_index -= 1
             self.model_index = max(0, self.model_index)
+            if self.models:
+                self.solver.show_model(self.models[self.model_index])
                 
         elif symbol == pyglet.window.key.RIGHT and not self.on_editor:
             self.model_index += 1
             self.model_index = min(len(self.models), self.model_index)
+            print(self.model_index)
+            self.solver.show_model(self.models[self.model_index])
 
         elif symbol == pyglet.window.key.ENTER and self.on_editor:
             if self.models == []:
                 self.update_models()
-            else:
-                self.solver.show_model(self.models[self.model_index])
     
     def update_atlas_reference(self, specs_path):
         '''Open the text file at specs_path (each line should consist of
@@ -190,11 +218,6 @@ class MapTagger:
 
             body, head, variables, sorts, flags = rule
 
-            print(body)
-            print(variables)
-            print(sorts)
-            print(flags)
-
             models_module_rule = Rule([Relation([term for term in atom]) for atom in head],
                                       [Relation([term for term in atom]) for atom in body],
                                       [s for v, s in variables], [v for v, s in variables], {}, flags)
@@ -204,37 +227,44 @@ class MapTagger:
         self.solver = HornSolver()
         self.solver.rules = rules
         
-        self.unfold_trees(5, 5)
+        self.unfold_trees(10, 10)
         self.solver.unfold_instance()
+
+        distinct_atoms = {atom for atom in self.solver.literal_map.keys()}
+
         self.solver.una_equality()
 
         for m in range(1, 101):
             res = self.solver.solver.solve([m])
             if res:
-                self.models.append(solver.solver.get_model())
+                self.models.append(self.solver.solver.get_model())
+                
+        print(len(self.models))
 
     def unfold_trees(self, width, height):
 
-        tree_constants, tree_relation = tree("node", ["left", "right"], width * height)
+        tree_depth = int(log(width * height, 2)) + 1
+
+        tree_constants, tree_relation = tree("component", ["l", "r"], tree_depth)
 
         for c in tree_constants:
-            solver.sorts["component"].append(c)
+            self.solver.sorts["component"].append(c)
 
         checked = set()
 
         for r in tree_relation:
             f, a, b = r
-            solver.value_map[a, f] = b
+            self.solver.value_map[a, f] = b
             checked.add(a)
 
         for e in tree_constants - checked:
-            solver.value_map[e, "left"] = "null"
-            solver.value_map[e, "right"] = "null"
+            self.solver.value_map[e, "l"] = "null"
+            self.solver.value_map[e, "r"] = "null"
 
-        solver.value_map["null", "left"] = "null"
-        solver.value_map["null", "right"] = "null"
+        self.solver.value_map["null", "l"] = "null"
+        self.solver.value_map["null", "r"] = "null"
 
-        solver.sorts["component"].append("null")
+        self.solver.sorts["component"].append("null")
 
         self.solver.sorts["tile"] = [f"tile<{i},{j}>)" for i in range(width) for j in range(height)]
 
@@ -250,7 +280,7 @@ class MapTagger:
 
         if button == pyglet.window.mouse.LEFT and x >= self.editor.layout.x: # TODO: declunkify
             self.on_editor = not self.on_editor # TODO: change to something better
-            print(self.on_editor)
+
 
 class ProgramEditor:
 
@@ -334,6 +364,7 @@ sample_map = [
 tagger = MapTagger()
 tagger.read_map(sample_map)
 tagger.draw_map()
+tagger.update_models()
 
 @window.event
 def on_draw():
