@@ -97,8 +97,8 @@ loathes (p : pony, q : pony) => loathes (q : pony, p : pony)
 
 Comments are written between double dashes, and can span as many lines as you like.
 
-They support an embarrasignly small set of characters (just some ascii
-punctuation and ascii characters - not even ascii digits!)
+They support an embarrasignly small set of characters (just some ASCII
+punctuation and ASCII characters - not even ASCII digits!)
 
 Sort declarations have the form `sort <sort name> <number of constants>`, and they
 ensure there is a sort with the given name, populated by `n` uniform constans (i.e. mere
