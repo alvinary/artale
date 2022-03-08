@@ -109,6 +109,8 @@ You can also define distinguished constants using `sort <sort name> add <some na
 All sort declarations must precede all rules.
 
 Rules cannot mix disjunctions and conjunction (they are either Horn rules or disjunctions).
+You can use negation and mix literals any way you want, but using Horn rules is more cognitively
+ergonomic.
 
 Disjunctions are written as in `somewhere(p : pony) v nowhere (p)`. In order for 
 the scripts to interpret a symbol as a variable symbol, it must be given a sort at
@@ -134,6 +136,15 @@ and arguments are separated by commas. Unnecesary and childishly idiosyncratic b
 So you can perfectly write `building (b: part), has part (b, t : part), on fire (t) => risk of fire (b)`.
 
 ### Useful idioms
+
+#### Negation
+
+Negation can be embedded for specific predicates by writing
+
+```
+small (a : s) v not small (a : s)
+small (a : s), not small (a : s) => False
+```
 
 #### Existence
 
