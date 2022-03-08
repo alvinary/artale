@@ -101,7 +101,7 @@ They support an embarrasignly small set of characters (just some ASCII
 punctuation and ASCII characters - not even ASCII digits!)
 
 Sort declarations have the form `sort <sort name> <number of constants>`, and they
-ensure there is a sort with the given name, populated by `n` uniform constans (i.e. mere
+ensure there is a sort with the given name, populated by `number of constants` uniform constans (i.e. mere
 names of constants).
 
 You can also define distinguished constants using `sort <sort name> add <some name>, <some other name>, <as many names as you want>`.
