@@ -114,7 +114,7 @@ ergonomic.
 
 Disjunctions are written as in `somewhere(p : pony) v nowhere (p)`. In order for 
 the scripts to interpret a symbol as a variable symbol, it must be given a sort at
-least once. You can ommit it elsewhere for brevity (ugly, I know, but less typing).
+least once. You can ommit it elsewhere for brevity, as in the previous example (ugly, I know, but less typing).
 
 You assign a sort to a variable using `:`.
 
