@@ -45,7 +45,7 @@ between constants is semantic equality). Note "full fledged" equality can be emu
 increase in time and space complexity) simply by defining a suitable equivalence relation, and
 stating every property that holds for a member of an equivalence class holds for the rest.
 - Single-argument functions (these rely on the unique name assumption as well, but it is possible to
-define functions with several arguments by placing suitable restrictions on a relation using equality as
+define functions without the UNA and/or with several arguments by placing suitable restrictions on a relation using equality as
 defined above).
 - Disjunctions (which may increase the time required to find a model above polynomial bounds, but
 very likely will not affect the time required to solve a problem instance, as model finding relies
