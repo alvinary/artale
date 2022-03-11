@@ -25,27 +25,42 @@ sample = '''
 sort component 40
 sort tile 60
 
+-- Map components are either leaves or nodes --
+
 leaf(c : component), node(c : component) => False
 
 leaf(c : component) v node(c : component)
 
+-- Only leaves can be assigned tiles --
+
 node(c: component), assign(t: tile, c) => False
+
+-- Leaves cannot be virtual components --
 
 leaf(c: component), virtual(c) => False
 
+-- Map components are either virtual or actual --
+
 virtual(c : component) v actual(c : component)
 
-actual(c : component), virtual(c.l) => regent(c, c.l)
+-- Virtual nodes inherit all their properties to their
+   parents (so that the first actual node above any number
+   of virtual nodes gets all their properties) --
 
-actual(c : component), virtual(c.r) => regent(c, c.r)
+prop : property (c.l : component), virtual(c.l) => prop(c)
 
-virtual(c : component), virtual(c.l), regent(d: component, c) => regent(d, c.l)
+prop : property (c.r : component), virtual(c.r) => prop(c)
 
-virtual(c : component), virtual(c.r), regent(d: component, c) => regent(d, c.r)
+-- Same goes for relations --
 
 rel: relation (c.l : component, d : component), virtual(c.l) => rel(c, d)
 
 rel: relation (c.r : component, d : component), virtual(c.r) => rel(c, d)
+
+-- Components obey the following rules -- 
+
+
+
 '''
 
 letters = [
