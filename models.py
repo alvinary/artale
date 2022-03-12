@@ -35,16 +35,6 @@ class Rule:
 
     flags: Set[str]
 
-    def get_disjunction(self, assignment):
-        
-        self.rebind(self, assignment)
-
-        disjuncts = [self.bind_variables(d) for d in self.body]
-
-        string_disjuncts = [d.get_string_encoding() for d in disjuncts]
-
-        return [Disjunction(disjuncts)]
-
     def get_clauses(self, assignment):
 
         self.rebind(assignment)
