@@ -59,8 +59,6 @@ rel: relation (c.r : component, d : component), virtual(c.r) => rel(c, d)
 
 -- Components obey the following rules -- 
 
-
-
 '''
 
 letters = [
@@ -221,7 +219,7 @@ class MapTagger:
             
     def update_models(self):
 
-        self.program = self.program.replace(" ", "\n")
+        self.program = self.program.replace("", "\n")
     
         self.models = []
         
