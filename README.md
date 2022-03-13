@@ -148,7 +148,7 @@ small (a : s), not small (a : s) => False
 
 #### Existence
 
-You can simulate some simple kinds of assertions of existence using this cheap trick:
+Assertions of existence can be made indirectly:
 
 ```
 has part (b : part, e : part), entrance (e) => has entrance (b)
@@ -156,4 +156,5 @@ building (b : part), has entrance . not (b) => False
 ```
 
 As long as you can turn your condition into a unary predicate, you just have to
-rule out models in which constants for which some predicate holds also meet that unary predicate.
+rule out models in which constants for which some specific predicate holds do
+not meet that unary predicate.
