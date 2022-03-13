@@ -101,10 +101,10 @@ glad (some pony . sibling)
 disjunctions = '''-- This program contains disjunctions --
 sort pony 4
 
-tall (p : pony) | short(p)
+tall (p : pony) v short(p)
 
-cool (p : pony) |
-cute (p) |
+cool (p : pony) v
+cute (p) v
 stern (p)
 
 orderly (p : pony), messy(q : pony) =>
@@ -136,7 +136,7 @@ sort island 10
 
 -- No pony can be nowhere, and no pony can be somehwere and nowhere simultaneously --
 
-somewhere(p : pony) | nowhere (p)
+somewhere(p : pony) v nowhere (p)
 
 somewhere(p : pony), nowhere(p) => False
 
@@ -160,6 +160,37 @@ at(q, i) => False
 
 loathes (p : pony, q : pony) => loathes (q : pony, p : pony)
 
+'''
+
+sample = '''
+sort component 40
+sort tile 60
+
+leaf(c : component), node(c : component) => False
+
+leaf(c : component) v node(c : component)
+
+node(c: component), assign(t: tile, c) => False
+
+assign(t: tile, c: component), matches(s: tile, c), t != s => False
+
+assign(t: tile, c: component), assign(t, d: component), d != c => False
+
+leaf(c: component), virtual(c) => False
+
+virtual(c : component) v actual(c : component)
+
+actual(c : component), virtual(c.left) => regent(c, c.left)
+
+actual(c : component), virtual(c.right) => regent(c, c.right)
+
+virtual(c : component), virtual(c.left), regent(d: component, c) => regent(d, c.left)
+
+virtual(c : component), virtual(c.right), regent(d: component, c) => regent(d, c.right)
+
+rel: relation (c.left : component, d : component), virtual(c.left) => rel(c, d)
+
+rel: relation (c.right : component, d : component), virtual(c.right) => rel(c, d)
 '''
 
 def test_preprocessing_a():
@@ -204,11 +235,15 @@ def test_parse():
     joelo = (parser.parser.parse(complete)).pretty()
     gerbacio = parser.parse(comparisons)
     ambulo = parser.parser.parse(complete).pretty()
+    potoño = parser.parse(sample)
 
     for r in rogelio[1]:
         print(f"head {r[0]} \nbody {r[1]}\nvariables {r[2]}\nsorts {r[3]}", "")
 
     print(ambulo)
+    
+    for r in potoño[1]:
+        print(r[0])
 
 
 if __name__ == "__main__":

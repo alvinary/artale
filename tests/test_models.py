@@ -2,8 +2,10 @@ import pytest
 from parser import Parser
 from models import Relation, Rule, HornSolver
 from test_parser import complete as program
+from constants import TEMPLATE
 
 sorts_part, rules_part = Parser().parse(program)
+heavy_sorts, heavy_rules = Parser().parse(TEMPLATE)
 
 rules = []
 
@@ -60,8 +62,8 @@ def test_unfolding():
     solver = HornSolver()
     solver.rules = rules
 
-    solver.sorts["pony"] = [f"pony{i}" for i in range(10)]
-    solver.sorts["island"] = [f"island{i}" for i in range(10)]
+    solver.sorts["pony"] = [f"pony{i}" for i in range(30)]
+    solver.sorts["island"] = [f"island{i}" for i in range(30)]
 
     solver.unfold_instance()
     solver.una_equality()
