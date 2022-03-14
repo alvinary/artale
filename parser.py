@@ -145,7 +145,7 @@ class Parser:
 
     def preprocess(self, program):
         '''Preprocess an input program to match the preconditions of the parser (by
-        removing duplicated whitespace and whitespace before newlines, and adding
+        removing duplicate whitespace and whitespace before newlines, and adding
         whitespace after or before some punctuation symbols -',', '(' and ')'-, and
         making sure instances of the '=>' symbol are surrounded by whitespace). '''
 
@@ -281,5 +281,4 @@ class Parser:
 
         except:
             pass
-
 

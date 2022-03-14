@@ -13,8 +13,8 @@ start : NEWLINE* ((sort | comment) NEWLINE*)* ((rule | assertion | comment | dis
 comment : "--" (LETTER | WS | NEWLINE | INT | "/"
         | "," | ":" | "." | "(" | ")" | "'" | "?" | "!")* "--" NEWLINE
 
-sort : "sort" WS token WS INT NEWLINE
-     | "sort" WS token WS "add" WS (token "," WS)* token NEWLINE
+sort : "sort" WS token WS INT
+     | "sort" WS token WS "add" WS (token "," WS)* token
 
 rule : atoms (WS | NEWLINE) "=>" (WS | NEWLINE) atoms
      | atoms (WS | NEWLINE) "=>" (WS | NEWLINE) "False"
