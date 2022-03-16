@@ -22,42 +22,26 @@ special_keys = {
 }
 
 sample = '''
-sort component 40
-sort tile 60
 
--- Map components are either leaves or nodes --
-
-leaf(c : component), node(c : component) => False
+sort component 800
 
 leaf(c : component) v node(c : component)
 
--- Only leaves can be assigned tiles --
+leaf(c : component), node(c : component) => False
 
-node(c: component), assign(t: tile, c) => False
+node(c : component), assign(t : tile, c) => False
 
--- Leaves cannot be virtual components --
-
-leaf(c: component), virtual(c) => False
-
--- Map components are either virtual or actual --
+leaf(c : component), virtual(c) => False
 
 virtual(c : component) v actual(c : component)
-
--- Virtual nodes inherit all their properties to their
-   parents (so that the first actual node above any number
-   of virtual nodes gets all their properties) --
 
 prop : property (c.l : component), virtual(c.l) => prop(c)
 
 prop : property (c.r : component), virtual(c.r) => prop(c)
 
--- Same goes for relations --
-
 rel: relation (c.l : component, d : component), virtual(c.l) => rel(c, d)
 
 rel: relation (c.r : component, d : component), virtual(c.r) => rel(c, d)
-
--- Components obey the following rules -- 
 
 '''
 
@@ -218,8 +202,6 @@ class MapTagger:
             self.current_map[x, y] = cat
             
     def update_models(self):
-
-        self.program = self.program.replace("", "\n")
     
         self.models = []
         
@@ -364,7 +346,7 @@ class ProgramEditor:
             self.index = max(0, self.index)
             self.index = min(len(self.text), self.index)
 
-            self.tagger.program = self.text
+            self.tagger.program = self.text.replace("\u2028", "\n")
             self.document.text = self.text
 
 
