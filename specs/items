@@ -23,7 +23,7 @@ property : word
          | word " <: " word
          | word " :> " word
 
-number : INT+
+number : INT
 
 word : letter (letter | WS)+ letter
 
