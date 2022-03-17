@@ -114,7 +114,7 @@ ergonomic.
 
 Disjunctions are written as in `somewhere(p : pony) v nowhere (p)`. In order for 
 the scripts to interpret a symbol as a variable symbol, it must be given a sort at
-least once. You can ommit it elsewhere for brevity, as in the previous example (ugly, I know, but less typing).
+least once. You can ommit it elsewhere for brevity, as in the previous example.
 
 You assign a sort to a variable using `:`.
 
@@ -124,14 +124,14 @@ but rules like `p(a: s, b: s) => q(b: s, a: s), r(a)` are allowed as well.
 Those are simply shorthand for `p(a: s, b: s) => q(b: s, a: s)` and `p(a: s, b: s) => r(a)`.
 
 Functions are written like fields of a struct / properties of an object: `f(a)` is `a.f` and
-`h(g(f(a)))` is `a.f.g.h`. I know, this is ugly too.
+`h(g(f(a)))` is `a.f.g.h`.
 
 Terms using functions must be assigned the sort of their domain. This is because variables
 work like really simple macros (just replacing variable names with constants from their sorts).
 
-In order to avoid `somePredicate1` and `isA`, predicates and constants can include spaces.
+In order to avoid `somePredicate1`, `isA` and `someConstantName`, names of predicates and constants can include whitespace.
 It is assumed that one can tell a predicate is a predicate because it precedes parentheses,
-and arguments are separated by commas. Unnecesary and childishly idiosyncratic but more readable!
+and arguments are separated by commas.
 
 So you can perfectly write `building (b: part), has part (b, t : part), on fire (t) => risk of fire (b)`.
 
