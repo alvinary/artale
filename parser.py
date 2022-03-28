@@ -1,4 +1,5 @@
 from lark import Lark, Tree, Token
+from string import digits as digits
 
 IS_DISJUNCTION = "vee"
 IS_ASSERTION = "wedge"
@@ -39,7 +40,7 @@ def get_preterminal(lark_tree):
     preterminal symbol in the grammar as a string (e.g. if a parse 
     was derived from the rule many_as -> a _many_as, return the string 
     'many_as').'''
-    return lark_tree.data[0:]
+    return lark_tree.data
 
 
 def get_head(rule_tree):
@@ -104,6 +105,9 @@ def get_tokens(term_tree):
             [_c.strip() for _c in c.children if isinstance(_c, Token)])
     return tokens
 
+def read_sort_token(sort_token):
+    return "".join([c.value for c in sort_token.children])
+
 
 def get_variables(term_lists):
     '''Given a list of terms encoded as strings, return a set
@@ -136,6 +140,27 @@ def get_sorts(term_lists):
     in sort membership declarations in terms from the input list. '''
     return [s for v, s in get_variables(term_lists)]
 
+def read_sort(sort_tree):
+    ''''''
+    
+    sort_actions = []
+
+    is_filling = set(sort_tree.pretty()) & set(digits)
+    is_addition = not is_filling
+
+    if is_filling:
+        target_sort = read_sort_token(sort_tree.children[1])
+        no_constants = sort_tree.children[3].value
+        filling = ("fill", target_sort, int(no_constants))
+        sort_actions.append(filling)
+
+    if is_addition:
+        target_sort = read_sort_token(sort_tree.children[1])
+        for child in [c for c in sort_tree.children[1:] if isinstance(c, Tree)]:
+            addition = ("add", target_sort, read_sort_token(child))
+            sort_actions.append(addition)
+        
+    return sort_actions
 
 class Parser:
 
@@ -205,16 +230,11 @@ class Parser:
         # Additions are sort delcarations of the form 'sort name add c1, c2, c3, ...',
         # intended for users to define distinguished elements of a sort
 
-        fillings = []
-        additions = []
-        for sort in sorts:
-            if True:
-                pass
-            if True:
-                pass
-
         sorts_parts = []
         rule_parts = []
+
+        for sort in sorts:
+            sorts_parts = sorts_parts + read_sort(sort)
 
         for rule in rules:
 

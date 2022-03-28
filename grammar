@@ -8,13 +8,13 @@
 // more elegant recursive formulations to avoid nesting
 // and simplify handling parser output.
 
-start : NEWLINE* ((sort | comment) NEWLINE*)* ((rule | assertion | comment | disjunction) NEWLINE*)+ NEWLINE*
+start : NEWLINE* ((sort | comment) NEWLINE*)+ ((rule | assertion | comment | disjunction) NEWLINE*)+ NEWLINE*
 
 comment : "--" (LETTER | WS | NEWLINE | INT | "/"
         | "," | ":" | "." | "(" | ")" | "'" | "?" | "!")* "--" NEWLINE
 
-sort : "sort" WS token WS INT
-     | "sort" WS token WS "add" WS (token "," WS)* token
+sort : "sort" WS sortoken WS INT
+     | "sort" WS sortoken WS "add" WS (sortoken "," WS)* sortoken
 
 rule : atoms (WS | NEWLINE) "=>" (WS | NEWLINE) atoms
      | atoms (WS | NEWLINE) "=>" (WS | NEWLINE) "False"
@@ -36,7 +36,9 @@ term : token
 
 token : (WORD WS*)+
 
-WORD: LETTER+ | ":" | "=" | "!="
+WORD: (LETTER | INT)+ | ":" | "=" | "!="
+
+sortoken : LETTER (LETTER | WS)+
 
 %import common.LETTER
 %import common.WS
