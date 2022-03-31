@@ -38,7 +38,7 @@ token : (WORD WS*)+
 
 WORD: (LETTER | INT)+ | ":" | "=" | "!="
 
-sortoken : LETTER (LETTER | WS)+
+sortoken : LETTER (LETTER | WS)*
 
 %import common.LETTER
 %import common.WS
