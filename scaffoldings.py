@@ -1,4 +1,4 @@
-def tree(sort_name, relations, size, prefix=""):
+def tree(sort_name, size, prefix=""):
     facts = set()
     constants = [f"c{i}" for i in range(size)]
     for i in range(size):
