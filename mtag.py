@@ -65,7 +65,7 @@ window = pyglet.window.Window(width=WINDOW_WIDTH, height=WINDOW_HEIGHT)
 
 class MapTagger:
 
-    def __init__(self, tileset="./images/tileset.png", tilespec="./specs/atlas_reference"):
+    def __init__(self, tileset="./images/8230.png", tilespec="./specs/atlas_reference"):
 
         # tags[tag] should hold all elements tagged as 'tag'
 
@@ -144,14 +144,15 @@ class MapTagger:
 
             for line in specs:
 
-                line_parts = line.split(" ")
+                coordinates, properties = line.split(":")
 
-                x, y = line_parts[:2]
-                name = " ".join(line_parts[2:]).strip()
+                x, y = [int(s.strip()) for s in coordinates.split(",")]
+                name = [prop for prop in properties.split(",") if "NAME" in prop]
+                name = name.pop().replace("NAME", "").strip()
 
                 print(f"{x}, {y}, {name}")
 
-                self.tile_map[name] = (int(x), int(y))
+                self.tile_map[name] = (x, y)
 
     def set_up(self):
 
@@ -351,9 +352,9 @@ class ProgramEditor:
 
 
 sample_map = [
-    (1, 1, "deep water"), (1, 2, "deep water"), (1, 3, "deep water"), 
-    (2, 1, "deep water"), (2, 2, "deep water"), (2, 3, "deep water"), 
-    (3, 1, "deep water"), (3, 2, "deep water"), (3, 3, "deep water")
+    (1, 1, "RU sea water coast"), (1, 2, "U sea water coast"), (1, 3, "LU sea water coast"), 
+    (2, 1, "R sea water coast"), (2, 2, "sea water"), (2, 3, "L sea water coast"), 
+    (3, 1, "R sea water coast"), (3, 2, "sea water"), (3, 3, "L sea water coast")
 ]
 
 tagger = MapTagger()
