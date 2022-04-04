@@ -1,35 +1,106 @@
-sort node 20
+sort node 30
+sort type 30
 
-phrase(node)
-blank(null)
+-- Leaves vs phrases --
 
-blank(n : node), full(n.head) => False
-blank(n : node), full(n.modifier) => False
+phrase(n : node) => expression(n)
+leaf(n : node) => expression(n)
 
-blank(n : node) => blank(n.head)
-blank(n : node) => blank(n.modifier)
+leaf(n : node) v phrase(n)
+leaf(n : node), phrase(n) => False
 
-phrase(n : node), blank(n.head) => False
-phrase(n : node), blank(n.modifier) => False
+complementation(n : node) => composition(n)
+adjunction(n : node) => composition(n)
+leaf(n : node), composition(n) => False
 
-leaf(n : node) => blank(n.head)
-leaf(n : node) => blank(n.modifier)
+composition(n : node) v not a composition (n)
+composition(n : node), not a composition (n) => False
 
-phrase(n : node) => full(n.head)
-phrase(n : node) => full(n.modifier)
+phrase(n : node), not a composition (n) => False
 
-phrase(n : node) => full(n)
-leaf(n : node) => full(n)
+-- Tree properties --
 
-blank(n : node), full(n) => False
-phrase(n : node), leaf(n) => False
-phrase(n : node), blank(n) => False
-leaf(n : node), blank(n) => False
+next(n : node, m: node) v is not next(n : node, m : node)
+next(n : node), is not next (n : node, m : node) => False
 
-name(t: type), sentence(t) => False
-adjunct(t: type), complement(t) => False
+leaf(n : node), left(n, m : node) => False
+leaf(n : node), right(n, m : node) => False
 
-phrase(n : node), complement(n.type), cat : category (n.head.type.output) => cat (n.type)
-phrase(n : node), cat : category (n.modifier.type.output)  => cat (n.type)
+left(n : node, m : node), before(m, n) => False
+right(n : node, m : node), before(m, n) => False
 
+left(n : node, m : node), is not next(n, m) => False
 
+left(a : node, b : node), right(a, c : node) => left of (a, c)
+left of (b : node, a : node), before(a, b) => False
+
+-- Syntactic composition rules and type rules --
+
+-- composition --
+
+phrase(n : node),
+argumentor(n, m : node) =>
+match(n.type, m.type.output)
+
+expression(a : node),
+argumentor(a, b : node),
+argument(a, c : node),
+not match (b.type.input, c.type) =>
+False
+
+match(a : type, b : type) => match(b, a)
+not match(a : type, b : type) => not match (b, a)
+
+-- types --
+
+composite(t : type), blank(t.input) => False
+composite(t : type), blank(t.output) => False
+composite(t: type), blank(t) => False
+
+sentence(t : type) v name(t) v composite(t)
+simple(t : type), composite(t) => False
+
+sentence(t : type)  => simple(t)
+name(t : type) => simple(t)
+
+match(t : type, s : type) v not match(t, s)
+match(t : type, s : type), not match(t, s) => False
+
+sentence(t : type),
+name(s : type) =>
+not match (t, s)
+
+name(t : type),
+name(s : type) =>
+match (t, s)
+
+sentence(t : type),
+sentence(s : type) =>
+match(t, s)
+
+composite(t : type),
+composite(s : type),
+match(t.input, s.input),
+match(t.output, s.output) =>
+match(t, s)
+
+composite(t : type),
+composite(s : type),
+not match(t.input, s.input) =>
+not match(t, s)
+
+composite(t: type),
+composite(s: type),
+match(t.output, s.output) =>
+not match(t, s)
+
+-- Semantic composition rules --
+
+argument(n: node, m: node), adjunction(n) => bind(n.drs.self, m.drs.self)
+argumentor(n : node, m: node), complementation(n) => bind(n.drs.self, m.drs.self)
+
+-- Draft of DRS rules --
+
+p : property (s : semitem), bind(s : semitem, t : semitem) => p(t)
+r : relation (s: semitem, t : semiten), bind(s: semitem, u: semitem) => r(u, t)
+r : relation (s: semitem, t : semiten), bind(t: semitem, u: semitem) => r(s, u)
