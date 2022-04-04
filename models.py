@@ -208,4 +208,4 @@ class HornSolver:
             counter = counter % 9
             if counter == 0:
                 readable_model = readable_model + "\n"
-        print(readable_model)
+        return readable_model
