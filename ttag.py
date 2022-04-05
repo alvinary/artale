@@ -91,7 +91,7 @@ print("Looking for models...")
 for i in range(1, 300):
     res = solver.solver.solve([i])
     if res:
-        print(":D :D :D")
+        print(f"Instance is satisfiable when fixing atom {i} to true")
         m = solver.solver.get_model()
         tree_facts = set()
         for a in m:
@@ -104,4 +104,4 @@ for i in range(1, 300):
         print("\n".join(sorted(list(tree_facts))), "\n")
         print(len(m), "", len([a for a in m if a > 0]))
     else:
-        print(f"D:")
+        print(f"\nInstance is not satisfiable when fixing atom {i} to true!!\n")
