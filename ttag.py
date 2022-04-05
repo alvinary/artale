@@ -2,13 +2,13 @@ from parser import Parser
 from models import Relation, Rule, Clause, HornSolver, TERM_SEPARATOR
 from scaffoldings import tree, binary_tree
 
-SIZE_BOUND = 30
+SIZE_BOUND = 10
 
 solver = HornSolver()
 
 theory_program = ""
 
-with open("./specs/theory") as theory_file:
+with open("./specs/trees") as theory_file:
     for line in theory_file:
         theory_program = theory_program + line
 
@@ -24,15 +24,23 @@ print("Assembling tree...")
 
 tree_constants, tree_facts = tree("node", SIZE_BOUND)
 
+for f in tree_facts:
+    print(f)
+
 solver.sorts["node"] = list(tree_constants)
 
 for f in tree_facts:
-    tree_clause = Clause(f, [])
-    solver.update_maps([tree_clause])
-    solver.solver.add_clause(solver.dimacs(tree_clause))
+    clause_literal = " ".join(f)
+    if "not" not in clause_literal:
+        tree_clause = Clause(clause_literal, [])
+        solver.update_maps([tree_clause])
+        solver.solver.add_clause(solver.dimacs(tree_clause))
+    if "not" in clause_literal:
+        tree_clause = Clause("", [clause_literal[4:]])
+        solver.update_maps([tree_clause])
+        solver.solver.add_clause(solver.dimacs(tree_clause))
 
 for t in tree_constants:
-    print(f"tree for {t}...")
     node_drs = f"{t}.drs"
     node_type = f"{t}.type"
     
@@ -80,12 +88,20 @@ print("Done")
 
 print("Looking for models...")
 
-for i in range(800, 911):
-    print(i)
+for i in range(1, 300):
     res = solver.solver.solve([i])
     if res:
         print(":D :D :D")
         m = solver.solver.get_model()
+        tree_facts = set()
+        for a in m:
+            if abs(a) in solver.reverse_literal_map:
+                readable_atom = solver.reverse_literal_map[abs(a)]
+                if "=" not in readable_atom and a > 0:
+                    tree_facts.add(readable_atom)
+                if "=" not in readable_atom and a < 0:
+                    tree_facts.add("- " + readable_atom)
+        print("\n".join(sorted(list(tree_facts))), "\n")
         print(len(m), "", len([a for a in m if a > 0]))
     else:
         print(f"D:")

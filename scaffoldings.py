@@ -2,10 +2,15 @@ def tree(sort_name, size, prefix=""):
     facts = set()
     constants = [f"c{i}" for i in range(size)]
     for i in range(size):
-        if i <= size - 2:
-            facts.add(("next", f"c{i}", f"c{i+1}"))
-        for j in range(i, size):
-            facts.add(("before", f"c{i}", f"c{j}"))
+        for j in range(size):
+            if i < j:
+                facts.add(("before", f"c{i}", f"c{j}"))
+            if i >= j:
+                facts.add(("not before", f"c{i}", f"c{j}"))
+            if j == i+1:
+                facts.add(("next", f"c{i}", f"c{j}"))
+            if j != i+1:
+                facts.add(("not next", f"c{i}", f"c{j}"))
     return constants, facts
 
 def binary_tree(sort_name, relations, size, prefix=""):
