@@ -104,4 +104,4 @@ for i in range(1, 300):
         print("\n".join(sorted(list(tree_facts))), "\n")
         print(len(m), "", len([a for a in m if a > 0]))
     else:
-        print(f"\nInstance is not satisfiable when fixing atom {i} to true!!\n")
+        print(f"\nInstance is not satisfiable when fixing atom {i} ({solver.reverse_literal_map[i]}) to true!!\n")
