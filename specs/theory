@@ -20,19 +20,38 @@ phrase(n : node), not a composition (n) => False
 
 -- Tree properties --
 
-next(n : node, m: node) v is not next(n : node, m : node)
-next(n : node), is not next (n : node, m : node) => False
+next(n : node, m: node) v not next(n : node, m : node)
+next(n : node), not next (n : node, m : node) => False
+
+before(n : node, m : node) v not before(n : node, m : node)
+before(n : node, m : node), not before(n, m) => False
 
 leaf(n : node), left(n, m : node) => False
 leaf(n : node), right(n, m : node) => False
 
+phrase(n : node), next(n : node, m: node) => left(n, m)
+
+left(n : node, n) => False
+right(n : node, n) => False
+
+left(a: node, b : node), right(a, b) => False
+
 left(n : node, m : node), before(m, n) => False
 right(n : node, m : node), before(m, n) => False
 
-left(n : node, m : node), is not next(n, m) => False
+left(n : node, m : node), not next(n, m) => False
 
-left(a : node, b : node), right(a, c : node) => left of (a, c)
 left of (b : node, a : node), before(a, b) => False
+left(a : node, b : node), right(a, c : node) => left of (b, c)
+left of (a : node, b : node), left of (b : node, c : node) => left of (a, c)
+left of(a : node, b : node), left of(b, a) => False
+
+left(a : node, b : node), right(a, b) => False
+
+right(a : node, b : node), right(c : node, b), a != c => False
+right(a : node, b : node), left(c : node, b) => False
+left(a : node, b : node), left(c : node, b), a != c => False
+
 
 -- Syntactic composition rules and type rules --
 
