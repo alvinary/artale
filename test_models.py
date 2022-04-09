@@ -110,6 +110,15 @@ def test_una_equality():
 
     assert cond
 
+def test_show_models():
+    solver = HornSolver()
+    nums = [int(c) for c in "123456789"]
+    letters = [c for c in "abcdefghi"]
+    solver.reverse_literal_map = dict(zip(nums, letters))
+    model = [-1, 3, 5, -6, -7, 2, 8]
+    solver.show_model(model)
+    solver.show_model(model, show_false=True)
+
 if __name__ == "__main__":
     test_unfolding()
     test_una_equality()

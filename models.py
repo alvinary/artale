@@ -139,11 +139,22 @@ class HornSolver:
             self.literal_map[s] = self.name_counter
             self.reverse_literal_map[self.name_counter] = s
 
-    def show_model(self, model):
+    def show_model(self, model, show_false=False):
         readable_model = ""
         counter = 1
-        atoms = [self.reverse_literal_map[a] for a in model if a > 0]
-        atoms = [a for a in atoms if "=" not in a]
+
+        if not show_false:
+            atoms = [self.reverse_literal_map[a] for a in model if a > 0]
+            atoms = [a for a in atoms if "=" not in a]
+
+        if show_false:
+            atoms = []
+            for a in model:
+                if a > 0:
+                    atoms.append(self.reverse_literal_map[a])
+                else:
+                    atoms.append(f"- {self.reverse_literal_map[abs(a)]}")
+        
         for atom in atoms:
             readable_model = f"{readable_model}, {atom}"
             counter += 1
