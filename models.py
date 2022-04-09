@@ -10,114 +10,12 @@ TERM_SEPARATOR = "--"
 IS_DISJUNCTION = "vee"
 ANY = "any"
 
+def is_any(name):
+    return "any" in name
+
 def index():
     return defaultdict(lambda: [])
-
-@dataclass
-class Relation:
-    parts: List[str]
-
-    def get_string_encoding(self):
-        return TERM_SEPARATOR.join([p.strip() for p in self.parts])
-
-@dataclass
-class Clause:
-    head: str
-    body: List[str]
-
-@dataclass
-class Rule:
-    heads: List[Relation]
-    body: List[Relation]
-    sorts: List[str]
-    variables: List[str]
-    solver: HornSolver
-
-    bindings: Dict[str, str]
-
-    flags: Set[str]
-
-    def get_clauses(self, assignment):
-
-        has_any = True in [is_any(v) for v in self.variables]
-
-        if not has_any:
-
-            self.rebind(assignment)
-
-            heads = [self.bind_variables(r) for r in self.heads]
-            body = [self.bind_variables(r) for r in self.body]
-        
-        if has_any:
-
-            self.guarded_rebind(assignment)
-
-            heads = [self.bind_any_variables(r) for r in self.heads]
-            body = [self.bind_any_variables(r) for r in self.body]
-
-        string_heads = [r.get_string_encoding() for r in heads]
-        string_body = [r.get_string_encoding() for r in body]
-
-        if string_heads:
-            return [Clause(h, string_body) for h in string_heads]
-
-        else:
-            return [Clause("", string_body)]
-
-    def rebind(self, assignment):
-        for variable, value in zip(self.variables, assignment):
-            self.bindings[variable] = value
-
-    def guarded_rebind(self, assignment):
-        for variable, value in zip(self.variables, assignment):
-            if not is_any(variable):
-                self.bindings[variable] = value
-
-    def bind_any_variables(self, relation):
-        relations = []
-        checked = set()
-
-        pairs = [(n, s) for (n, s) in zip(self.variables, self.sorts)]
-        
-        any_pairs = [(n, s) for (n, s) in pairs if is_any(n)]
-        any_names = product([n for (n, s) in any_pairs])
-        any_sorts = product([self.solver.sorts[s] for (n, s) in any_pairs])
-        
-        any_bindings = product()
-        
-        for names, bindees in any_bindings:
-            
-            for n, b in zip(names, bindees):
-                self.bindings[n] = b
-
-            new_relation = Relation([self.replace(s) for s in relation.parts])
-            hashable_new_relation = new_relation.get_string_encoding()
-
-            if hashable_new_relation not in checked:
-                relations.append(new_relation)
-            checked.add(hashable_new_relation)
-
-        return relations
-
-    def bind_variables(self, relation):
-        return Relation([self.replace(s) for s in relation.parts])
-
-    def replace(self, symbol):
-
-        if "." not in symbol:
-
-            if symbol in self.bindings:
-                return self.bindings[symbol]
-
-            else:
-                return symbol
-
-        if "." in symbol:
-
-            symbol_parts = [p.strip() for p in symbol.split(".")]
-            return ".".join([self.replace(s) for s in symbol_parts])
-
-
+    
 class HornSolver:
 
     def __init__(self):
@@ -253,3 +151,112 @@ class HornSolver:
             if counter == 0:
                 readable_model = readable_model + "\n"
         return readable_model
+
+@dataclass
+class Relation:
+    parts: List[str]
+
+    def get_string_encoding(self):
+        return TERM_SEPARATOR.join([p.strip() for p in self.parts])
+
+@dataclass
+class Clause:
+    head: str
+    body: List[str]
+
+@dataclass
+class Rule:
+    heads: List[Relation]
+    body: List[Relation]
+    sorts: List[str]
+    variables: List[str]
+    solver: HornSolver
+
+    bindings: Dict[str, str]
+
+    flags: Set[str]
+
+    def get_clauses(self, assignment):
+
+        has_any = True in [is_any(v) for v in self.variables]
+
+        if not has_any:
+
+            self.rebind(assignment)
+
+            heads = [self.bind_variables(r) for r in self.heads]
+            body = [self.bind_variables(r) for r in self.body]
+        
+        if has_any:
+
+            self.guarded_rebind(assignment)
+
+            heads = [self.bind_any_variables(r) for r in self.heads]
+            body = [self.bind_any_variables(r) for r in self.body]
+
+        string_heads = [r.get_string_encoding() for r in heads]
+        string_body = [r.get_string_encoding() for r in body]
+
+        if string_heads:
+            return [Clause(h, string_body) for h in string_heads]
+
+        else:
+            return [Clause("", string_body)]
+
+    def rebind(self, assignment):
+        for variable, value in zip(self.variables, assignment):
+            self.bindings[variable] = value
+
+    def guarded_rebind(self, assignment):
+        for variable, value in zip(self.variables, assignment):
+            if not is_any(variable):
+                self.bindings[variable] = value
+
+    def bind_any_variables(self, relation):
+        relations = []
+        checked = set()
+
+        pairs = [(n, s) for (n, s) in zip(self.variables, self.sorts)]
+        
+        any_pairs = [(n, s) for (n, s) in pairs if is_any(n)]
+        any_names = product([n for (n, s) in any_pairs])
+        any_sorts = product([self.solver.sorts[s] for (n, s) in any_pairs])
+        
+        any_bindings = product()
+        
+        for names, bindees in any_bindings:
+            
+            for n, b in zip(names, bindees):
+                self.bindings[n] = b
+
+            new_relation = Relation([self.replace(s) for s in relation.parts])
+            hashable_new_relation = new_relation.get_string_encoding()
+
+            if hashable_new_relation not in checked:
+                relations.append(new_relation)
+            checked.add(hashable_new_relation)
+
+        return relations
+
+    def bind_variables(self, relation):
+        return Relation([self.replace(s) for s in relation.parts])
+
+    def replace(self, symbol):
+
+        if "." not in symbol:
+
+            if symbol in self.bindings:
+                return self.bindings[symbol]
+
+            else:
+                return symbol
+
+        if "." in symbol:
+
+            symbol_parts = [p.strip() for p in symbol.split(".")]
+            return ".".join([self.replace(s) for s in symbol_parts])
+
+    def rename_any(self):
+        raise NotImplementedError
+
+
