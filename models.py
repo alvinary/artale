@@ -191,8 +191,11 @@ class Rule:
 
             self.guarded_rebind(assignment)
 
-            heads = [self.bind_any_variables(r) for r in self.heads]
-            body = [self.bind_any_variables(r) for r in self.body]
+            nested_heads = [self.bind_any_variables(r) for r in self.heads]
+            nested_body = [self.bind_any_variables(r) for r in self.body]
+
+            heads = [r for h in nested_heads for r in h]
+            body = [r for b in nested_body for r in b]
 
         string_heads = [r.get_string_encoding() for r in heads]
         string_body = [r.get_string_encoding() for r in body]
@@ -220,9 +223,9 @@ class Rule:
         
         any_pairs = [(n, s) for (n, s) in pairs if is_any(n)]
         any_names = product([n for (n, s) in any_pairs])
-        any_sorts = product([self.solver.sorts[s] for (n, s) in any_pairs])
+        any_sorts = product(*[self.solver.sorts[s] for (n, s) in any_pairs])
         
-        any_bindings = product()
+        any_bindings = product(any_names, any_sorts)
         
         for names, bindees in any_bindings:
             
