@@ -43,6 +43,8 @@ def test_string_encoding():
 
 def test_unfolding():
 
+    solver = HornSolver()
+
     rules = []
 
     for rule in rules_part:
@@ -56,11 +58,11 @@ def test_unfolding():
 
         models_module_rule = Rule([Relation([term for term in atom]) for atom in head],
                                   [Relation([term for term in atom]) for atom in body],
-                                  [s for v, s in variables], [v for v, s in variables], {}, flags)
+                                  [s for v, s in variables], [v for v, s in variables],
+                                  solver, {}, flags)
 
         rules.append(models_module_rule)
 
-    solver = HornSolver()
     solver.rules = rules
 
     solver.sorts["pony"] = [f"pony{i}" for i in range(30)]
@@ -77,10 +79,7 @@ def test_unfolding():
             models.append(solver.solver.get_model())
 
     for m in models:
-        for a in m:
-            if a > 0 and a in solver.reverse_literal_map:
-                print(solver.reverse_literal_map[a])
-    print("\n"*2)
+        print(solver.show_model(m))
 
 def test_una_equality():
     rules = []
