@@ -1,10 +1,18 @@
 sort node 30
 
+left(n : node, m : node) v not left(n, m)
+left(n : node, m : node), not left (n, m) => False
+
+right(n : node, m : node) v not right (n, m)
+right(n : node, m : node), not right (n, m) => False
+
 leaf(n : node) v phrase(n)
 leaf(n : node), phrase(n) => False
 
 leaf(n : node), left(n, m : node) => False
 leaf(n : node), right(n, m : node) => False
+
+phrase(n : node), not right(n, any : node) => False
 
 phrase(n : node), next(n : node, m: node) => left(n, m)
 
