@@ -184,7 +184,7 @@ def on_draw():
 
 trees = ""
 
-with open("./specs/trees") as le_file:
+with open("./specs/old_tree_data") as le_file:
     for line in le_file:
         trees = trees + line
 
