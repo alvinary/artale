@@ -1,6 +1,7 @@
 import pyglet
 
 from constants import *
+import ttag
 
 window = pyglet.window.Window(1200, 900)
 
@@ -182,16 +183,6 @@ def on_draw():
     node_box_batch.draw()
     node_batch.draw()
 
-trees = ""
-
-with open("./specs/old_tree_data") as le_file:
-    for line in le_file:
-        trees = trees + line
-
-trees = [t.strip() for t in trees.split("\n\n\n")]
-
-tree_data = list({frozenset({s.strip() for s in t.split("\n")}) for t in trees})
-
 def read_tree(tree_predicates, prefix):
 
     names = {}
@@ -221,35 +212,79 @@ def read_tree(tree_predicates, prefix):
 
     return node_names, relations
 
+def read_relations(relation):
+    
+    nodes = set()
+
+    print("before:")
+    for i in relation:
+        print(i)
+
+    print("after:")
+
+    relation = {t for t in relation if len(t) == 3}
+
+    for r in relation:
+        print(r)
+    
+    for r in relation:
+        for l in r[1:]:
+            nodes.add(l)
+
+    return nodes, relation
+
 
 class TreeViewer:
 
     def __init__(self):
 
-        self.index = 0
+        self.index = 900
         self.nodes_map = {}
         self.tree = []
 
-        self.tree_nodes, self.tree_relations = read_tree(tree_data[-2], "data")
+        self.tree_nodes, self.tree_relations = [], {}
         
         self.update_tree_view()
 
+        self.model_length = 1
+
     def on_key_press(self, symbol, modifiers):
 
+        satisfiability_check = False
+
         if symbol == pyglet.window.key.RIGHT:
+            index_shift = 1
             self.index += 1
-            if self.index >= len(tree_data):
-                self.index = 0
+            self.index = self.index % self.model_length + 1
                 
         if symbol == pyglet.window.key.LEFT:
+            index_shift = -1
             self.index -= 1
-            if self.index < 0:
-                self.index = len(tree_data) - 1
+            self.index = self.index % self.model_length + 1
 
         for k in list(self.nodes_map.keys()):
             self.nodes_map[k].destroy()
 
-        self.tree_nodes, self.tree_relations = read_tree(tree_data[self.index], "data")
+        print(self.index)
+
+        satisfiability_check = ttag.solver.solver.solve([self.index])
+
+        while not satisfiability_check:
+            self.index = (self.index + index_shift) % self.model_length + 1
+            satisfiability_check = ttag.solver.solver.solve([self.index])
+            print(f"index: {self.index}")
+
+        model = ttag.solver.solver.get_model()
+
+        if self.model_length == 1:
+            self.model_length = max([abs(atlit) for atlit in model])
+            print(f"Updated model length: {self.model_length}")
+
+        model_as_set = ttag.solver.get_relations(model, ["left", "right"])
+
+        print("\n".join([" ".join(t) for t in model_as_set]), "\n")
+
+        self.tree_nodes, self.tree_relations = read_relations(model_as_set)
         self.nodes_map = {}
 
         self.update_tree_view()
