@@ -2,7 +2,7 @@ from parser import Parser
 from models import Relation, Rule, Clause, HornSolver, TERM_SEPARATOR
 from scaffoldings import tree, binary_tree
 
-SIZE_BOUND = 10
+SIZE_BOUND = 15
 
 solver = HornSolver()
 
@@ -18,11 +18,20 @@ for rule in rule_declarations:
     body, head, variables, sorts, flags = rule
     solver.rules.append(Rule([Relation([term for term in atom]) for atom in head],
                              [Relation([term for term in atom]) for atom in body],
-                             [s for v, s in variables], [v for v, s in variables], {}, flags))
+                             [s for v, s in variables], [v for v, s in variables],
+                             solver, {}, flags))
 
 print("Assembling tree...")
 
 tree_constants, tree_facts = tree("node", SIZE_BOUND)
+
+paired_constants = []
+
+for i in range(SIZE_BOUND):
+    for j in range(i+1, SIZE_BOUND):
+        paired_constants.append((f"c{i}", f"c{j}"))
+
+right_facts = [f"right {a} {b}" for a, b in paired_constants]
 
 for f in tree_facts:
     print(f)
@@ -88,20 +97,22 @@ print("Done")
 
 print("Looking for models...")
 
-for i in range(1, 300):
-    res = solver.solver.solve([i])
-    if res:
-        print(f"Instance is satisfiable when fixing atom {i} to true")
-        m = solver.solver.get_model()
-        tree_facts = set()
-        for a in m:
-            if abs(a) in solver.reverse_literal_map:
-                readable_atom = solver.reverse_literal_map[abs(a)]
-                if "=" not in readable_atom and a > 0:
-                    tree_facts.add(readable_atom)
-                if "=" not in readable_atom and a < 0:
-                    tree_facts.add("- " + readable_atom)
-        print("\n".join(sorted(list(tree_facts))), "\n")
-        print(len(m), "", len([a for a in m if a > 0]))
-    else:
-        print(f"\nInstance is not satisfiable when fixing atom {i} ({solver.reverse_literal_map[i]}) to true!!\n")
+if __name__ == "__main__":
+
+    for i in range(1, 300):
+        res = solver.solver.solve([i])
+        if res:
+            print(f"Instance is satisfiable when fixing atom {i} to true")
+            m = solver.solver.get_model()
+            tree_facts = set()
+            for a in m:
+                if abs(a) in solver.reverse_literal_map:
+                    readable_atom = solver.reverse_literal_map[abs(a)]
+                    if "=" not in readable_atom and a > 0:
+                        tree_facts.add(readable_atom)
+                    if "=" not in readable_atom and a < 0:
+                        tree_facts.add("- " + readable_atom)
+            print("\n".join(sorted(list(tree_facts))), "\n")
+            print(len(m), "", len([a for a in m if a > 0]))
+        else:
+            print(f"\nInstance is not satisfiable when fixing atom {i} ({solver.reverse_literal_map[i]}) to true!!\n")

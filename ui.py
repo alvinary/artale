@@ -242,11 +242,13 @@ class TreeViewer:
         self.nodes_map = {}
         self.tree = []
 
+        self.right_facts = ttag.right_facts
+
         self.tree_nodes, self.tree_relations = [], {}
         
         self.update_tree_view()
 
-        self.model_length = 1
+        self.model_length = len(self.right_facts)
 
     def on_key_press(self, symbol, modifiers):
 
@@ -267,11 +269,13 @@ class TreeViewer:
 
         print(self.index)
 
-        satisfiability_check = ttag.solver.solver.solve([self.index])
+        fact_literal = ttag.solver.literal_map[self.right_facts[self.index]]
+        satisfiability_check = ttag.solver.solver.solve([fact_literal])
 
         while not satisfiability_check:
             self.index = (self.index + index_shift) % self.model_length + 1
-            satisfiability_check = ttag.solver.solver.solve([self.index])
+            fact_literal = ttag.solver.literal_map[self.right_facts[self.index]]
+            satisfiability_check = ttag.solver.solver.solve([fact_literal])
             print(f"index: {self.index}")
 
         model = ttag.solver.solver.get_model()
