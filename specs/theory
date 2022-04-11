@@ -1,30 +1,18 @@
 sort node 30
 sort type 30
 
--- Leaves vs phrases --
+sort node 30
 
-phrase(n : node) => expression(n)
-leaf(n : node) => expression(n)
+-- Base tree behavior --
+
+left(n : node, m : node) v not left(n, m)
+left(n : node, m : node), not left (n, m) => False
+
+right(n : node, m : node) v not right (n, m)
+right(n : node, m : node), not right (n, m) => False
 
 leaf(n : node) v phrase(n)
 leaf(n : node), phrase(n) => False
-
-complementation(n : node) => composition(n)
-adjunction(n : node) => composition(n)
-leaf(n : node), composition(n) => False
-
-composition(n : node) v not a composition (n)
-composition(n : node), not a composition (n) => False
-
-phrase(n : node), not a composition (n) => False
-
--- Tree properties --
-
-next(n : node, m: node) v not next(n : node, m : node)
-next(n : node), not next (n : node, m : node) => False
-
-before(n : node, m : node) v not before(n : node, m : node)
-before(n : node, m : node), not before(n, m) => False
 
 leaf(n : node), left(n, m : node) => False
 leaf(n : node), right(n, m : node) => False
@@ -39,7 +27,7 @@ left(a: node, b : node), right(a, b) => False
 left(n : node, m : node), before(m, n) => False
 right(n : node, m : node), before(m, n) => False
 
-left(n : node, m : node), not next(n, m) => False
+left(n : node, m : node) => next(n, m)
 
 left of (b : node, a : node), before(a, b) => False
 left(a : node, b : node), right(a, c : node) => left of (b, c)
@@ -48,14 +36,20 @@ left of(a : node, b : node), left of(b, a) => False
 
 left(a : node, b : node), right(a, b) => False
 
+phrase(a : node), not left(a, any : node) => False
+phrase(a : node), not right(a, any : node) => False
+
 right(a : node, b : node), right(c : node, b), a != c => False
 right(a : node, b : node), left(c : node, b) => False
 left(a : node, b : node), left(c : node, b), a != c => False
+left(a : node, b : node), right(c : node, b) => False
 
+right(a : node, b : node), right(a, c : node), b != c => False
+left(a : node, b : node), left(a, b : node), b != c => False
 
 -- Syntactic composition rules and type rules --
 
--- composition --
+-- syntactic composition --
 
 phrase(n : node),
 argumentor(n, m : node) =>
@@ -70,7 +64,7 @@ False
 match(a : type, b : type) => match(b, a)
 not match(a : type, b : type) => not match (b, a)
 
--- types --
+-- type composition --
 
 composite(t : type), blank(t.input) => False
 composite(t : type), blank(t.output) => False
