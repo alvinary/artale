@@ -21,7 +21,7 @@ for rule in rule_declarations:
                              [s for v, s in variables], [v for v, s in variables],
                              solver, {}, flags))
 
-print("Assembling tree...")
+print("Assembling tree scaffolding...")
 
 tree_constants, tree_facts = tree("node", SIZE_BOUND)
 
@@ -32,9 +32,6 @@ for i in range(SIZE_BOUND):
         paired_constants.append((f"c{i}", f"c{j}"))
 
 right_facts = [f"right {a} {b}" for a, b in paired_constants]
-
-for f in tree_facts:
-    print(f)
 
 solver.sorts["node"] = list(tree_constants)
 

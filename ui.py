@@ -216,16 +216,7 @@ def read_relations(relation):
     
     nodes = set()
 
-    print("before:")
-    for i in relation:
-        print(i)
-
-    print("after:")
-
     relation = {t for t in relation if len(t) == 3}
-
-    for r in relation:
-        print(r)
     
     for r in relation:
         for l in r[1:]:
