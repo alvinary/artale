@@ -257,12 +257,12 @@ class TreeViewer:
         if symbol == pyglet.window.key.RIGHT:
             index_shift = 1
             self.index += 1
-            self.index = self.index % self.model_length + 1
+            self.index = self.index % self.model_length
                 
         if symbol == pyglet.window.key.LEFT:
             index_shift = -1
             self.index -= 1
-            self.index = self.index % self.model_length + 1
+            self.index = self.index % self.model_length
 
         for k in list(self.nodes_map.keys()):
             self.nodes_map[k].destroy()
@@ -273,7 +273,7 @@ class TreeViewer:
         satisfiability_check = ttag.solver.solver.solve([fact_literal])
 
         while not satisfiability_check:
-            self.index = (self.index + index_shift) % self.model_length + 1
+            self.index = (self.index + index_shift) % self.model_length
             fact_literal = ttag.solver.literal_map[self.right_facts[self.index]]
             satisfiability_check = ttag.solver.solver.solve([fact_literal])
             print(f"index: {self.index}")
