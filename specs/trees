@@ -12,8 +12,6 @@ leaf(n : node), phrase(n) => False
 leaf(n : node), left(n, m : node) => False
 leaf(n : node), right(n, m : node) => False
 
-phrase(n : node), not right(n, any : node) => False
-
 phrase(n : node), next(n : node, m: node) => left(n, m)
 
 left(n : node, n) => False
@@ -33,6 +31,13 @@ left of(a : node, b : node), left of(b, a) => False
 
 left(a : node, b : node), right(a, b) => False
 
+phrase(a : node), not left(a, any : node) => False
+phrase(a : node), not right(a, any : node) => False
+
 right(a : node, b : node), right(c : node, b), a != c => False
 right(a : node, b : node), left(c : node, b) => False
 left(a : node, b : node), left(c : node, b), a != c => False
+left(a : node, b : node), right(c : node, b) => False
+
+right(a : node, b : node), right(a, c : node), b != c => False
+left(a : node, b : node), left(a, b : node), b != c => False
