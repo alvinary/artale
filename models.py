@@ -162,6 +162,19 @@ class HornSolver:
             if counter == 0:
                 readable_model = readable_model + "\n"
         return readable_model
+        
+    def get_relations(self, model, target_relations):
+        relations = set()
+
+        for atom in model:
+            if atom > 0:
+                relation = tuple(self.reverse_literal_map[atom].split(" "))
+                predicate = relation[0]
+                if predicate in target_relations:
+                    relations.add(relation)
+
+        return relations
+        
 
 @dataclass
 class Relation:
