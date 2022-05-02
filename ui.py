@@ -51,9 +51,11 @@ def make_node_edge(x_pos, y_pos, _x_pos, _y_pos):
 
 class Node:
     
-    def __init__(self, text, children=[], tags=set(), parent=None, x=0, y=0):
+    def __init__(self, text, node_type ="", children=[], tags=set(), parent=None, x=0, y=0):
         
         self.text = text
+        
+        self.node_type = node_type
         
         self.children = list(children) # these children are not labeled!
         self.parent = parent
@@ -275,6 +277,7 @@ class TreeViewer:
             print(f"index: {self.index}")
 
         model = ttag.solver.solver.get_model()
+        rels = ttag.solver.get_relations(model, ["nominal", "sentence"])
 
         if self.model_length == 1:
             self.model_length = max([abs(atlit) for atlit in model])

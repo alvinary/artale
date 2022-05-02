@@ -8,7 +8,7 @@ solver = HornSolver()
 
 theory_program = ""
 
-with open("./specs/trees") as theory_file:
+with open("./specs/trees_copyy") as theory_file:
     for line in theory_file:
         theory_program = theory_program + line
 
@@ -71,7 +71,7 @@ for t in tree_constants:
 
     type_constants, type_tree = binary_tree("", ["input", "output"], 4, prefix=node_type)
 
-    solver.sorts["type"] = solver.sorts["type"] + list(type_constants)
+    solver.sorts["type"] = list(solver.sorts["type"] + list(type_constants))
     
     chomeur = set(type_constants)
 

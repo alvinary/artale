@@ -1,0 +1,75 @@
+X - Add 'distinct' macro
+     X - Parser
+     X - Solver interpretation (skipping assignment candidate tuples where
+         variables marked as distinct are identical)
+     - Test with more complicated instances
+
+- Add HornSolver.add_rule() method
+
+- Test programs with errors to find relevant cases for Parser.check()
+
+- Add negation macro (a or not a) and (a and not a => False)
+
+X - Add equality macro (each constant is equal to itself and unequal to the rest. That makes
+    the distinct macro reundant)
+
+- Add order and equivalence operators to grammar
+
+- Change the 'bodge' model enumaration strategy for something more complete or something complete
+
+- Add parser for lexical items
+
+- Define interpretation for 'sort' statements
+  - sort name n
+  - constant sort blah, blah, blah
+  - tree name n_leaves
+  
+  (num name n) (tree name n) (const name ct_name) - por cada nombre ahi -
+
+- Improve docstrings
+
+- Testear exhaustivamente la mierda esta
+
+- Dump tile properties to file
+
+- Test a.f : fun
+
+- Add könisberg bridge example
+
+- explain predicates with sorts
+
+- agregar estructura de modulos decente
+
+- agregarle al modelo algo para leer las sort parts que saca el parser
+   X - Ta en el parser, no ta la interpretacion en models.py
+   - Models.py no sorto interublabla
+
+- hacer que artale.py tenga artale.from_program() que parsee y aplique el pipeline bien
+
+- agregar declaraciones de funciones
+
+X- embedding de la negación
+
+
+- Any macro
+   X - draft
+     - test
+
+X - El embedding de la negacion anda!!
+
+- Usar un orden y una lista para contar cuantos elementos lexicos cubre cada
+  diatesis:
+
+  - Accepts(d1, e1), not in (e1, d1.list) => False
+  - cons(e1, d.1list), not accepts(d1, e1) => False
+  - before(e1, e2), above(e2, e1, list) => False (para romper la simetria esa)
+
+- qué pasa si un... coso tiene dos any?
+- en realidad todos los any son independientes no? total, tienen que ser todos los miembros de cada sort :)
+
+- Add test suite with any macros
+
+- When only functions of the sort over which a variable ranges are used, for some reason there is a bug:
+  full(t : type), full(s : type), match(s.input, s.output) => macth(s, t) works, but
+  match(s.input : type, t.input : type) => match(s, t) doesn't. Code up to now is super ad hoc
+  and full of errors like that one. 

@@ -73,4 +73,26 @@ head (a : node, b : node), modifier (a : node, c : node), complement (b.type) =>
 modifier (a : node, b : node), adjunct (b.type) => match (a.type, b.type.output)
 head (a : node, b : node), modifier (a : node, c : node), adjunct (c.type) => match (a.type, b.type.input)
 
+sentential (t : type) v nominal (t : type)
+sentential (t : type), nominal (t : type) => False
 
+full (t : type) v blank (t : type)
+full (t : type), blank (t) => False
+
+nodetype (t : type), leaftype (t) => False
+full (t : type), not leaftype (t), not nodetype (t) => False
+
+leaf (t : type) => blank (t.output), blank (t.input)
+
+match (s : type, t : type) v not match (s, t)
+match (s : type, t : type), not match(s, t) => False
+
+match (s : type, t : type) => match (t, s)
+
+blank (t : type), blank (s : type) => match (t, s)
+leaf (t : type), leaf (s : type), nominal (t), nominal (s) => match (t, s)
+leaf (t : type), leaf (s : type), sentential (t), sentential (s) => match (t, s)
+full(t : type), full (s: type), match (t.input, s.input), match(t.output, s.output) => match (t, s)
+
+leaf (t : type), leaf (s : type), nominal (t), sentential (s) => not match (t, s)
+blank (t : type), full (s : type) => not match(t, s)
