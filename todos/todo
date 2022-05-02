@@ -73,3 +73,7 @@ X - El embedding de la negacion anda!!
   full(t : type), full(s : type), match(s.input, s.output) => macth(s, t) works, but
   match(s.input : type, t.input : type) => match(s, t) doesn't. Code up to now is super ad hoc
   and full of errors like that one. 
+  
+- Add a set of facts to HornSolver, so you can check if p(x) by checking running "p x" in HornSolver.positive_facts.
+  Maybe getting the facts from a model is better, since true facts are a property of models, and not the solver
+  itself.

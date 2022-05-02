@@ -9,6 +9,27 @@ edge_batch = pyglet.graphics.Batch()
 node_box_batch = pyglet.graphics.Batch()
 node_batch = pyglet.graphics.Batch()
 
+def read_type(constant_name):
+    type_members = set()
+    type_members.add(constant_name)
+    remaining_elements = True
+    while remaining_elements:
+        new = set()
+        for t in type_members:
+            if (t, "input") in ttag.solver.value_map:
+                new.add(ttag.solver.value_map[t, "input"])
+            if (t, "output") in ttag.solver.value_map:
+                new.add(ttag.solver.value_map[t, "output"])
+        if not new - type_members:
+            remaining_elements = False
+            
+    visible_members = set()
+    for t in type_members:
+        if f"blank {t}" in ttag.solver.pos_facts:
+            pass
+        
+    return readable_type
+
 def tree_from_relations(predicates, relation_order):
     '''Given a set of unary and binary predicates, and an ordering
     between relations, return a tree representation of that relation,
@@ -51,11 +72,11 @@ def make_node_edge(x_pos, y_pos, _x_pos, _y_pos):
 
 class Node:
     
-    def __init__(self, text, node_type ="", children=[], tags=set(), parent=None, x=0, y=0):
+    def __init__(self, text, children=[], tags=set(), parent=None, x=0, y=0):
         
         self.text = text
         
-        self.node_type = node_type
+        self.node_type = read_type(self.text)
         
         self.children = list(children) # these children are not labeled!
         self.parent = parent
