@@ -215,6 +215,11 @@ def read_tree(tree_predicates, prefix):
 def read_relations(relation):
     
     nodes = set()
+    
+    check = lambda x: x[1] != "of" and x[1] != "headed"
+    # TODO: properly extend this function so that relations are taken
+    # from a set of target relations (for instance, "left" and "right")
+    # and excluded from a set of other relations ("left of", "right headed")
 
     relation = {t for t in relation if len(t) == 3}
     
