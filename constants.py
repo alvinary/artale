@@ -29,6 +29,8 @@ CHAR_WIDTH = 10
 CHAR_HEIGHT = 14
 NODE_MARGIN = 5
 
+NO_WORD = "(...)"
+
 TEMPLATE = '''
 sort component 40
 sort tile 60
