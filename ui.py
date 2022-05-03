@@ -54,6 +54,8 @@ def read_type(constant_name, model):
     return leaf_types
 
 def read_word(constant_name, lexicon, model):
+    '''Return the word w if w's predicate holds for the input constant.
+    If there is no such word, return NO_WORD.'''
     hash_model = set(model)
     for item in lexicon:
         word_fact = f"lexicon {constant_name}"
@@ -330,7 +332,6 @@ class TreeViewer:
             print(f"index: {self.index}")
 
         model = ttag.solver.solver.get_model()
-        rels = ttag.solver.get_relations(model, ["nominal", "sentence"])
 
         if self.model_length == 1:
             self.model_length = max([abs(atlit) for atlit in model])
