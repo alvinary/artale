@@ -9,26 +9,58 @@ edge_batch = pyglet.graphics.Batch()
 node_box_batch = pyglet.graphics.Batch()
 node_batch = pyglet.graphics.Batch()
 
-def read_type(constant_name):
+def read_type(constant_name, model):
+
+    hash_model = set(model)
+
     type_members = set()
     type_members.add(constant_name)
+    
     remaining_elements = True
+
     while remaining_elements:
         new = set()
+
         for t in type_members:
             if (t, "input") in ttag.solver.value_map:
                 new.add(ttag.solver.value_map[t, "input"])
             if (t, "output") in ttag.solver.value_map:
                 new.add(ttag.solver.value_map[t, "output"])
-        if not new - type_members:
+
+        if not (new - type_members):
             remaining_elements = False
+
+        type_members |= new
             
-    visible_members = set()
+    leaf_types = {}
+
     for t in type_members:
-        if f"blank {t}" in ttag.solver.pos_facts:
-            pass
+
+        leaf_fact = f"leaf {t}"
+        sent_fact = f"sentential {t}"
+        nomi_fact = f"nominal {t}"
+
+        l_atom = ttag.solver.reverse_literal_map[leaf_fact]
+        is_leaf = l_atom in hash_model
+
+        if is_leaf:
+            s_atom = ttag.solver.reverse_literal_map[sent_fact]
+            n_atom = ttag.solver.reverse_literal_map[nomi_fact]
+            if s_atom in hash_model:
+                leaf_types[t] = "s"
+            if n_atom in hash_model:
+                leaf_types[t] = "n"
         
-    return readable_type
+    return leaf_types
+
+def read_word(constant_name, lexicon, model):
+    hash_model = set(model)
+    for item in lexicon:
+        word_fact = f"lexicon {constant_name}"
+        atom = ttag.solver.reverse_literal_map[word_fact]
+        if atom in hash_model:
+            return item
+    return NO_WORD
 
 def tree_from_relations(predicates, relation_order):
     '''Given a set of unary and binary predicates, and an ordering
