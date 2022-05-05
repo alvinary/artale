@@ -237,6 +237,7 @@ def test_parse():
     gerbacio = parser.parse(comparisons)
     ambulo = parser.parser.parse(complete).pretty()
     potoño = parser.parse(sample)
+    polis = parser.parse(complete)
 
     for r in rogelio[1]:
         print(f"head {r[0]} \nbody {r[1]}\nvariables {r[2]}\nsorts {r[3]}", "")

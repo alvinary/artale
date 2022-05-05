@@ -81,6 +81,12 @@ sentential (t : type), nominal (t : type) => False
 full (t : type) v blank (t : type)
 full (t : type), blank (t) => False
 
+nodetype (t : type) v not nodetype (t)
+nodetype (t : type), not nodetype (t) => False
+
+leaftype (t : type) v not leaftype (t)
+leaftype (t : type), not leaftype (t) => False
+
 nodetype (t : type), leaftype (t) => False
 full (t : type), not leaftype (t), not nodetype (t) => False
 
