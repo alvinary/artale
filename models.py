@@ -36,26 +36,28 @@ class HornSolver:
         self.reverse_literal_map = {}
         self.value_map = {}
 
+    def unfold_rule(self, rule):
+        
+        for assignment in product(*[self.sorts[s] for s in rule.sorts]):
+  
+            clauses = rule.get_clauses(assignment)
+
+            pure_clauses = [self.evaluate_functions(c) for c in clauses]
+  
+            self.update_maps(pure_clauses)
+  
+            if IS_DISJUNCTION in rule.flags:
+                cnf_clauses = [self.disjunction_dimacs(c) for c in pure_clauses]
+  
+            else:
+                cnf_clauses = [self.dimacs(c) for c in pure_clauses]
+  
+            for cnf_clause in cnf_clauses:
+                self.solver.add_clause(cnf_clause)
+
     def unfold_instance(self):
-
         for rule in self.rules:
-
-            for assignment in product(*[self.sorts[s] for s in rule.sorts]):
-
-                clauses = rule.get_clauses(assignment)
-
-                pure_clauses = [self.evaluate_functions(c) for c in clauses]
-
-                self.update_maps(pure_clauses)
-
-                if IS_DISJUNCTION in rule.flags:
-                    cnf_clauses = [self.disjunction_dimacs(c) for c in pure_clauses]
-
-                else:
-                    cnf_clauses = [self.dimacs(c) for c in pure_clauses]
-
-                for cnf_clause in cnf_clauses:
-                    self.solver.add_clause(cnf_clause)
+            self.unfold_rule(rule)
 
     def una_equality(self):
         for s in self.sorts:
