@@ -82,3 +82,22 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
   -> This is not useful, since models are small arrays which can be converted to sets very quickly with set(model)
 
 - Complete symmetry breaking (adding constraints to which constants can be right of another)
+   - These will be made worse with lexical items (if there can be W words right of a given node,
+     then you have WR isomorphic trees, with W right of that node, in constants cn, cn+1, cn+2...c(r-n))
+
+- Quantify over blocks of clauses
+  
+  a : A, b : A, c : C {
+     p(a) => q(a)
+     q(b, a), r(b, c) => s(b)
+     t(a, c) => y(c, a)
+  }
+
+  That requires less typing and will make embeddings faster, I think (the same number of clauses are added, but
+  all n clauses are created for each set of assignments, and you don't have to allocate and cycle through assignments n times)
+
+  - Figure out how to deal with rules using only a subset of variables (i.e. don't add the same clause on a and c |b| times)
+  - Write the parser
+
+- There is more (and more serious) symmetry breaking to be done! Now there are types, and those have symmetries too
+  (at least in trees without a lexicon - better fix that before trying anything else!)
