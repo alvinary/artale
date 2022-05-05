@@ -8,7 +8,7 @@ solver = HornSolver()
 
 theory_program = ""
 
-with open("./specs/trees_copyy") as theory_file:
+with open("./specs/trees") as theory_file:
     for line in theory_file:
         theory_program = theory_program + line
 
