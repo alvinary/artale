@@ -57,8 +57,10 @@ left (a : node, b : node), right (a : node, c : node), not head (a, b), not head
 right (a : node, b : node), head (a, b) => rightHeaded (a)
 left (a : node, b : node), head (a, b) => leftHeaded (a)
 
+not left (a : node, b : node), not right (a, b), child (a, b) => False
+
 left (a : node, b : node) => child(a, b)
-right(a : node, b : node) => child(a, b)
+right (a : node, b : node) => child(a, b)
 
 child(a : node, b : node), not left (a, b), not right(a, b) => False
 
@@ -82,7 +84,7 @@ full (t : type), blank (t) => False
 nodetype (t : type), leaftype (t) => False
 full (t : type), not leaftype (t), not nodetype (t) => False
 
-leaf (t : type) => blank (t.output), blank (t.input)
+leaftype (t : type) => blank (t.output), blank (t.input)
 
 match (s : type, t : type) v not match (s, t)
 match (s : type, t : type), not match(s, t) => False
@@ -90,9 +92,21 @@ match (s : type, t : type), not match(s, t) => False
 match (s : type, t : type) => match (t, s)
 
 blank (t : type), blank (s : type) => match (t, s)
-leaf (t : type), leaf (s : type), nominal (t), nominal (s) => match (t, s)
-leaf (t : type), leaf (s : type), sentential (t), sentential (s) => match (t, s)
-full(t : type), full (s: type), match (t.input, s.input), match(t.output, s.output) => match (t, s)
+leaftype (t : type), leaftype (s : type), nominal (t), nominal (s) => match (t, s)
+leaftype (t : type), leaftype (s : type), sentential (t), sentential (s) => match (t, s)
+nodetype (t : type), nodetype (s: type), match (t.input, s.input), match(t.output, s.output) => match (t, s)
 
-leaf (t : type), leaf (s : type), nominal (t), sentential (s) => not match (t, s)
+leaftype (t : type), leaftype (s : type), nominal (t), sentential (s) => not match (t, s)
 blank (t : type), full (s : type) => not match(t, s)
+
+blank (t : type) => blank (t.output), blank (t.input)
+nodetype (t : type), blank (t.input) => False
+nodetype (t : type), blank (t.output) => False
+nodetype (t : type) => full (t.input)
+nodetype (t : type) => full (t.output)
+
+phrase(a : node) => full(a.type)
+leaf(a: node) => full(a.type)
+
+blank (a: type), nodetype (a) => False
+blank (a: type), leaftype (a) => False
