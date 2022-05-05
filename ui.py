@@ -1,3 +1,5 @@
+from collections import defaultdict as ddict
+
 import pyglet
 
 from constants import *
@@ -11,7 +13,11 @@ node_batch = pyglet.graphics.Batch()
 
 def read_type(constant_name, model):
 
+    print(model[:6])
+
     hash_model = set(model)
+
+    # Obtain all parts of the type
 
     type_members = set()
     type_members.add(constant_name)
@@ -31,27 +37,73 @@ def read_type(constant_name, model):
             remaining_elements = False
 
         type_members |= new
+
+    type_members.remove("blanktype")
+
+    print("TYPE MEMBERS", type_members)
+
+    for i in model:
+        i_atom = ttag.solver.reverse_literal_map[abs(i)]
+        if "leaftype" in i_atom or "nodetype" in i_atom or "nominal" in i_atom or "sentential" in i_atom:
+            print(i_atom)
+
+    # Put in a map the category of each leaf (N or S),
+    # and put in another map the input and output child
+    # of the 'node' parts
+    # (Blank parts are left out properly, since nor
+    #  the leaf predicate nor the nodetype predicate should
+    # hold for them)
             
-    leaf_types = {}
+    leaf_categories = {}
+    node_children = {}
 
     for t in type_members:
 
-        leaf_fact = f"leaf {t}"
+        leaf_fact = f"leaftype {t}"
         sent_fact = f"sentential {t}"
         nomi_fact = f"nominal {t}"
+        node_fact = f"nodetype {t}"
 
-        l_atom = ttag.solver.reverse_literal_map[leaf_fact]
+        l_atom = ttag.solver.literal_map[leaf_fact]
+        n_atom = ttag.solver.literal_map[node_fact]
         is_leaf = l_atom in hash_model
+        is_node = n_atom in hash_model
 
         if is_leaf:
-            s_atom = ttag.solver.reverse_literal_map[sent_fact]
-            n_atom = ttag.solver.reverse_literal_map[nomi_fact]
+            s_atom = ttag.solver.literal_map[sent_fact]
+            n_atom = ttag.solver.literal_map[nomi_fact]
             if s_atom in hash_model:
-                leaf_types[t] = "s"
+                leaf_categories[t] = "s"
             if n_atom in hash_model:
-                leaf_types[t] = "n"
+                leaf_categories[t] = "n"
+
+        elif is_node:
+            node_children[t, "input"] = f"{t}.input"
+            node_children[t, "output"] = f"{t}.output"
+
+        else:
+            print("quack", t, leaf_fact, l_atom)
         
-    return leaf_types
+    return get_type(constant_name, leaf_categories, node_children)
+
+def get_type(root_name, leaf_map, node_map):
+
+    if root_name in leaf_map:
+
+        return leaf_map[root_name].upper()
+
+    if (root_name, "input") in node_map:
+        left = f"{root_name}.input"
+        right = f"{root_name}.output"
+
+        input_type = get_type(left, leaf_map, node_map)
+        output_type = get_type(right, leaf_map, node_map)
+
+        return f"({input_type} -> {output_type})"
+
+    else:
+        print(root_name, leaf_map, node_map)
+        return "MALA COSA"
 
 def read_word(constant_name, lexicon, model):
     '''Return the word w if w's predicate holds for the input constant.
@@ -106,11 +158,10 @@ def make_node_edge(x_pos, y_pos, _x_pos, _y_pos):
 
 class Node:
     
-    def __init__(self, text, children=[], tags=set(), parent=None, x=0, y=0):
+    def __init__(self, text, type_description, children=[], tags=set(), parent=None, x=0, y=0):
         
         self.text = text
-        
-        self.node_type = read_type(self.text)
+        self.type_description = type_description
         
         self.children = list(children) # these children are not labeled!
         self.parent = parent
@@ -119,7 +170,7 @@ class Node:
         self.x = int(x)
         self.y = int(y)
 
-        self.label = make_node_label(self.text, self.x, self.y)
+        self.label = make_node_label(self.text + self.type_description, self.x, self.y)
         self.vertex_box = make_node_box(self.text, self.x, self.y)
 
         self.edge = None
@@ -299,7 +350,7 @@ class TreeViewer:
 
         self.tree_nodes, self.tree_relations = [], {}
         
-        self.update_tree_view()
+        self.update_tree_view([])
 
         self.model_length = len(self.right_facts)
 
@@ -344,16 +395,18 @@ class TreeViewer:
         self.tree_nodes, self.tree_relations = read_relations(model_as_set)
         self.nodes_map = {}
 
-        self.update_tree_view()
+        self.update_tree_view(model)
 
-    def update_tree_view(self):
+    def update_tree_view(self, model):
     
         global node_batch
     
         node_batch = pyglet.graphics.Batch()
 
-        for n in self.tree_nodes:
-            self.nodes_map[n] = Node(n)
+        for node in self.tree_nodes:
+            node_type = f"{node}.type"
+            type_description = read_type(node_type, model)
+            self.nodes_map[node] = Node(node, type_description)
 
         self.tree = {self.nodes_map[k].root().text for k in self.nodes_map}
         self.tree = [self.nodes_map[k] for k in self.tree]
