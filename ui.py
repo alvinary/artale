@@ -80,9 +80,6 @@ def read_type(constant_name, model):
         elif is_node:
             node_children[t, "input"] = f"{t}.input"
             node_children[t, "output"] = f"{t}.output"
-
-        else:
-            print("quack", t, leaf_fact, l_atom)
         
     return get_type(constant_name, leaf_categories, node_children)
 
