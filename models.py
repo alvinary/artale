@@ -3,6 +3,8 @@ from typing import List, Dict, Set
 from itertools import product
 from dataclasses import dataclass
 from copy import copy
+from json import dumps as as_json
+from array import array
 
 from pysat.solvers import Solver
 
@@ -29,6 +31,7 @@ class HornSolver:
         self.reverse_literal_map = {}
         self.solver = Solver()
         self.name_counter = 0
+        self.cnf_clauses = list()
 
     def reset_maps(self):
 
@@ -54,6 +57,7 @@ class HornSolver:
   
             for cnf_clause in cnf_clauses:
                 self.solver.add_clause(cnf_clause)
+                self.cnf_clauses.append(array("l", cnf_clause))
 
     def unfold_instance(self):
         for rule in self.rules:
@@ -176,6 +180,25 @@ class HornSolver:
                     relations.add(relation)
 
         return relations
+
+    def serialize(self):
+
+        '''
+
+        Return a JSON object whose fields are .clauses, .literals
+        
+        - The first field is an array of arrays encoding the CNF instance stored in self.solver.
+        
+        - The second field is an array of (key, value) pairs associating CNF literals to string atoms.
+
+        Since the map in the second field is invertible, there is no need to serialize a map
+        from string atoms to CNF literals.
+
+        '''
+
+        cnf_clauses = [c.tolist() for c in self.cnf_clauses]
+
+        return as_json( { clauses : cnf_clauses , literals : self.literal_map } )
         
 
 @dataclass
