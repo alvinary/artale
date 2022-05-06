@@ -35,11 +35,28 @@ class HornSolver:
 
     def reset_maps(self):
 
+        '''
+
+        Assign empty dictionaries to self.literal_map, self.value_map and
+        self.value_map.
+
+        '''
+
         self.literal_map = {}
         self.reverse_literal_map = {}
         self.value_map = {}
 
     def unfold_rule(self, rule):
+
+        '''
+
+        Obtain a list of clauses encoding a propositional embedding of the
+        first-order input rule and add them to the CNF formula stored by the
+        SAT solver in self.solver.
+
+        As a side effect, new clauses are appended to self.cnf_clauses.
+
+        '''
         
         for assignment in product(*[self.sorts[s] for s in rule.sorts]):
   
@@ -60,10 +77,41 @@ class HornSolver:
                 self.cnf_clauses.append(array("l", cnf_clause))
 
     def unfold_instance(self):
+        
+        '''
+
+        Embed all first-order rules stored in self.rules into a 
+        propositional CNF formula and add its clauses to the CNF
+        used by self.solver.
+
+        '''
+        
         for rule in self.rules:
             self.unfold_rule(rule)
 
+    def reset_instance(self):
+
+        '''
+
+        Discard the current SAT solver, assign a new Solver object to
+        self.solver, and replace the problem instance CNF in cnf_clauses
+        with an empty list.
+
+        '''
+
+        self.solver = Solver()
+        self.cnf_clauses = list()
+
     def una_equality(self):
+
+        '''
+
+        Embed equality as defined when making the unique-name assumption into
+        the solver's CNF problem instance - i.e. if 'a' and 'b' are constants
+        in the same sort, a != b iff a and b are different constants.
+
+        '''
+
         for s in self.sorts:
             for c1 in self.sorts[s]:
                 for c2 in self.sorts[s]:
@@ -80,9 +128,31 @@ class HornSolver:
                         self.solver.add_clause(self.dimacs(pure_clause))
 
     def is_functional(self, term_string):
+
+        '''
+
+        Check if a term contains function applications (i.e. it is not
+        a constant name, but has at least one function application, such
+        as a.f.g or pair.first).
+
+        '''
+
         return "." in term_string
 
     def dimacs(self, pure_clause):
+
+        '''
+
+        Return a list encoding the dimacs representation of a clause
+        containing only constants terms (i.e. terms that are constant
+        names / are not functional terms).
+
+        The input clause must be a Horn clause.
+        
+        HornSolver.disjunction_dimacs() can be used for arbitrary
+        disjunctions-
+
+        '''
 
         dimacs_clause = []
 
@@ -95,9 +165,27 @@ class HornSolver:
         return dimacs_clause
 
     def disjunction_dimacs(self, pure_clause):
+
+        '''
+
+        Return a list encoding the dimacs represention of a CNF clause
+        containing only constant names as terms.
+
+        '''
+
         return [self.literal_map[atom] for atom in pure_clause.body]
 
     def evaluate(self, term_string):
+
+        '''
+
+        Return the single constant name that results from evaluating all
+        functions in the input term string.
+
+        If the input term is already a single constant name, then it
+        is returned unchanged.
+
+        '''
 
         terms = term_string.split(TERM_SEPARATOR)
         evaluated_terms = []
@@ -122,6 +210,14 @@ class HornSolver:
 
     def evaluate_functions(self, clause):
 
+        '''
+
+        Evaluate all function applications that appear in the input clause
+        and return an equivalent clause whose terms are exclusively constant
+        names.
+
+        '''
+
         function_free_clause = copy(clause)
         function_free_clause.head = self.evaluate(function_free_clause.head)
         function_free_clause.body = [
@@ -131,6 +227,15 @@ class HornSolver:
         return function_free_clause
 
     def update_maps(self, clauses):
+
+        '''
+
+        Update the dictionaries mapping atoms in string form to and form atoms
+        represented as DIMACS literals (i.e. if any of the input clauses contains
+        one or more atoms that have not yet been given a DIMACS representation,
+        they are assigned a new integer).
+
+        '''
 
         all_symbols = set()
 
@@ -146,6 +251,16 @@ class HornSolver:
             self.reverse_literal_map[self.name_counter] = s
 
     def show_model(self, model, show_false=False):
+
+        '''
+
+        Given a model in DIMACS form, return a single string
+        containing all true atoms in a human-readable string form.
+
+        If show_false is set to True, false atoms are included as well.
+
+        '''
+
         readable_model = ""
         counter = 1
 
@@ -167,9 +282,18 @@ class HornSolver:
             counter = counter % 9
             if counter == 0:
                 readable_model = readable_model + "\n"
+
         return readable_model
         
     def get_relations(self, model, target_relations):
+
+        '''
+
+        Return a set containing all atoms in the input model that
+        are contained in target_relations.
+
+        '''
+
         relations = set()
 
         for atom in model:
@@ -185,11 +309,13 @@ class HornSolver:
 
         '''
 
-        Return a JSON object whose fields are .clauses, .literals
+        Return a JSON object whose fields are .clauses, .literals and .values.
         
         - The first field is an array of arrays encoding the CNF instance stored in self.solver.
         
         - The second field is an array of (key, value) pairs associating CNF literals to string atoms.
+
+        - The third field serializes self.value_map as an array of triples (key1, key2, self.value_map[key1, key2]).
 
         Since the map in the second field is invertible, there is no need to serialize a map
         from string atoms to CNF literals.
@@ -197,8 +323,9 @@ class HornSolver:
         '''
 
         cnf_clauses = [c.tolist() for c in self.cnf_clauses]
+        value_triples = [(a, f, self.value_map[a, f]) for (a, f) in self.value_map]
 
-        return as_json( { clauses : cnf_clauses , literals : self.literal_map } )
+        return as_json( { clauses : cnf_clauses , literals : self.literal_map, values : value_triples } )
         
 
 @dataclass
