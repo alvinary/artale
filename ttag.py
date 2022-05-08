@@ -69,7 +69,7 @@ for t in tree_constants:
 
     solver.value_map[node_drs, "self"] = f"{node_drs}.self"
 
-    type_constants, type_tree = binary_tree("", ["input", "output"], 4, prefix=node_type)
+    type_constants, type_tree = binary_tree("", ["input", "output"], 2, prefix=node_type)
 
     solver.sorts["type"] = list(solver.sorts["type"] + list(type_constants))
     
