@@ -309,7 +309,7 @@ class HornSolver:
 
         '''
 
-        Return a JSON object whose fields are .clauses, .literals and .values.
+        Return the string encoding of a JSON object whose fields are .clauses, .literals and .values.
         
         - The first field is an array of arrays encoding the CNF instance stored in self.solver.
         
