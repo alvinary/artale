@@ -101,3 +101,9 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
 
 - There is more (and more serious) symmetry breaking to be done! Now there are types, and those have symmetries too
   (at least in trees without a lexicon - better fix that before trying anything else!)
+
+- Add a keyword argument sort_restrictions to HornSolver.unfold_rule(), so you can
+  unfold / embed a rule only for a subset of a sort (this is useful when
+  a sort can be partitioned into several independent / mutually not related
+  subsets, so that rules quantifying over the sort do not waste user time and memory
+  on relations that have no bearing on relevant model properties)
