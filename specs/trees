@@ -1,6 +1,5 @@
 sort node 30
 sort type 30
-sort word 20
 
 left (n : node, m : node) v not left (n, m)
 left (n : node, m : node), not left (n, m) => False
