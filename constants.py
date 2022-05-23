@@ -30,6 +30,7 @@ CHAR_HEIGHT = 14
 NODE_MARGIN = 5
 
 NO_WORD = "(...)"
+TYPE_WARNING = "NO TYPE"
 
 TEMPLATE = '''
 sort component 40
