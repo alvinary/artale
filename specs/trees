@@ -1,4 +1,6 @@
 sort node 30
+sort type 30
+sort word 20
 
 left (n : node, m : node) v not left (n, m)
 left (n : node, m : node), not left (n, m) => False
@@ -23,6 +25,9 @@ left (n : node, m : node), before (m, n) => False
 right (n : node, m : node), before (m, n) => False
 
 left (n : node, m : node) => next (n, m)
+left (a : node, b : node), right(a, c : node), leaf (b) => next(b, c)
+
+above(a : node, b : node), before(b, a) => False
 
 left of (b : node, a : node), before (a, b) => False
 left (a : node, b : node), right (a, c : node) => left of (b, c)
