@@ -11,6 +11,8 @@ edge_batch = pyglet.graphics.Batch()
 node_box_batch = pyglet.graphics.Batch()
 node_batch = pyglet.graphics.Batch()
 
+lexicon = "is ".split()
+
 def read_type(constant_name, model):
 
     print(model[:6])
@@ -100,7 +102,7 @@ def get_type(root_name, leaf_map, node_map):
 
     else:
         print(root_name, leaf_map, node_map)
-        return "MALA COSA"
+        return TYPE_WARNING
 
 def read_word(constant_name, lexicon, model):
     '''Return the word w if w's predicate holds for the input constant.
@@ -155,10 +157,15 @@ def make_node_edge(x_pos, y_pos, _x_pos, _y_pos):
 
 class Node:
     
-    def __init__(self, text, type_description, children=[], tags=set(), parent=None, x=0, y=0):
+    def __init__(self, text, type_description,
+                 word="", children=[], tags=set(),
+                 show_order=False, show_type=True,
+                 show_word=False, parent=None,
+                 x=0, y=0):
         
         self.text = text
         self.type_description = type_description
+        self.word = word
         
         self.children = list(children) # these children are not labeled!
         self.parent = parent
@@ -167,7 +174,16 @@ class Node:
         self.x = int(x)
         self.y = int(y)
 
-        self.label = make_node_label(self.text + self.type_description, self.x, self.y)
+        label_text = ""
+
+        if show_order:
+            label_text = self.text + ' '
+        if show_word:
+            label_text = label_text + self.word + '\n'
+        if show_type:
+            label_text = label_text + self.type_description
+
+        self.label = make_node_label(label_text, self.x, self.y)
         self.vertex_box = make_node_box(self.text, self.x, self.y)
 
         self.edge = None
@@ -339,6 +355,8 @@ class TreeViewer:
 
     def __init__(self):
 
+        self.lexicon = []
+
         self.index = 900
         self.nodes_map = {}
         self.tree = []
@@ -401,9 +419,17 @@ class TreeViewer:
         node_batch = pyglet.graphics.Batch()
 
         for node in self.tree_nodes:
+
             node_type = f"{node}.type"
             type_description = read_type(node_type, model)
-            self.nodes_map[node] = Node(node, type_description)
+            node_word = read_word(node, self.lexicon, model)
+            
+            if node_word == NO_WORD:
+                ui_node = Node(node, type_description)
+            if node_word != NO_WORD:
+                ui_node = Node(node, type_description, word=node_word)
+
+            self.nodes_map[node] = ui_node
 
         self.tree = {self.nodes_map[k].root().text for k in self.nodes_map}
         self.tree = [self.nodes_map[k] for k in self.tree]
@@ -426,6 +452,7 @@ class TreeViewer:
             node_batch.draw()
 
 viewer = TreeViewer()
+viewer.lexicon = lexicon
 window.push_handlers(viewer)
 
 pyglet.app.run()
