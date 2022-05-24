@@ -1,27 +1,26 @@
 start : (NEWLINE* item NEWLINE*)+
 
-item : form " : " type
+item : form WS* "::" WS* type
 
 form : letter+
 
-type : category number " " property (", " property)*
-     | "(" type ")"
-     | type rightarrow type
-     | type rightpipe type
+type : category
+     | "(" WS* type WS* arrow WS* type WS* ")"
+     | "(" WS* type WS* pipe WS* type WS* ")"
+     | type WS* ":" WS* (property "," WS+)* property 
 
-arrow : " -> "
-      | " -> " NEWLINE
+arrow : "->"
 
-pipe : " |> "
-     | " |> " NEWLINE
+pipe : "|>"
 
 category : "S"
          | "N"
 
-property : word
-         | word (" . " word)+
-         | word " <: " word
-         | word " :> " word
+property : word reference
+         | word reference reference
+         
+reference : word
+          | word ("." (word | number))+
 
 number : INT
 
