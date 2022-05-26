@@ -2,7 +2,7 @@ from parser import Parser
 from models import Relation, Rule, Clause, HornSolver, TERM_SEPARATOR
 from scaffoldings import tree, binary_tree
 
-SIZE_BOUND = 15
+SIZE_BOUND = 10
 
 solver = HornSolver()
 
