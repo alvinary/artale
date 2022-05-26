@@ -11,7 +11,7 @@ edge_batch = pyglet.graphics.Batch()
 node_box_batch = pyglet.graphics.Batch()
 node_batch = pyglet.graphics.Batch()
 
-lexicon = "is ".split()
+lexicon = "".split()
 
 def read_type(constant_name, model):
 
@@ -41,13 +41,6 @@ def read_type(constant_name, model):
         type_members |= new
 
     type_members.remove("blanktype")
-
-    print("TYPE MEMBERS", type_members)
-
-    for i in model:
-        i_atom = ttag.solver.reverse_literal_map[abs(i)]
-        if "leaftype" in i_atom or "nodetype" in i_atom or "nominal" in i_atom or "sentential" in i_atom:
-            print(i_atom)
 
     # Put in a map the category of each leaf (N or S),
     # and put in another map the input and output child
@@ -109,10 +102,11 @@ def read_word(constant_name, lexicon, model):
     If there is no such word, return NO_WORD.'''
     hash_model = set(model)
     for item in lexicon:
-        word_fact = f"lexicon {constant_name}"
-        atom = ttag.solver.reverse_literal_map[word_fact]
-        if atom in hash_model:
-            return item
+        word_fact = f"{item} {constant_name}"
+        if word_fact in ttag.solver.reverse_literal_map():
+            atom = ttag.solver.reverse_literal_map[word_fact]
+            if atom in hash_model:
+                return item
     return NO_WORD
 
 def tree_from_relations(predicates, relation_order):
@@ -357,7 +351,7 @@ class TreeViewer:
 
         self.lexicon = []
 
-        self.index = 900
+        self.index = 300
         self.nodes_map = {}
         self.tree = []
 
@@ -404,8 +398,6 @@ class TreeViewer:
             print(f"Updated model length: {self.model_length}")
 
         model_as_set = ttag.solver.get_relations(model, ["left", "right"])
-
-        print("\n".join([" ".join(t) for t in model_as_set]), "\n")
 
         self.tree_nodes, self.tree_relations = read_relations(model_as_set)
         self.nodes_map = {}
