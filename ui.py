@@ -193,10 +193,6 @@ class Node:
         else:
             return 1 + self.parent.depth()
 
-    def spawn_child(self, text):
-        spawn = Node(text)
-        self.add_child(spawn)
-
     def add_child(self, node):
         self.children.append(node)
         node.parent = self
