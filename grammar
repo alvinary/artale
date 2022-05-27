@@ -10,8 +10,9 @@
 
 start : NEWLINE* ((sort | comment) NEWLINE*)+ ((rule | assertion | comment | disjunction) NEWLINE*)+ NEWLINE*
 
-comment : "--" (LETTER | WS | NEWLINE | INT | "/"
-        | "," | ":" | "." | "(" | ")" | "'" | "?" | "!")* "--" NEWLINE
+comment : "--" (LETTER | WS | NEWLINE | INT | "/" | "=" | 
+        | "," | ":" | "." | "(" | ")" | "'" | "?" | "!" |
+        | "<" | ">" | "-")* "--" NEWLINE
 
 sort : "sort" WS sortoken WS INT
      | "sort" WS sortoken WS "add" WS (sortoken "," WS)* sortoken

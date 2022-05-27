@@ -118,3 +118,73 @@ leaf(a: node) => full(a.type)
 
 blank (a: type), nodetype (a) => False
 blank (a: type), leaftype (a) => False
+
+-- You can cut a type node to prevent it from having meaningful branches --
+cut (t : type) => blank(t.input), blank(t.output)
+
+-- If a word is a word node, it has to be a leaf --
+word (a : node) => leaf (a)
+word (a : node), phrase(a) => False
+
+-- We define several common word types 
+
+Common nouns, or ncom, are word nodes whose type is nominal and is cut
+
+Common transitive verbs, or nns, are word nodes taking a noun as an input and returning 
+a function from yet another noun to a sentence
+
+Common noun adjuncts, or nn, are word nodes taking a noun as an argument and returning a noun --
+
+is (a : node) => word (a), nominal (a.type.input), nominal (a.type.output.input), sentential (a.type.output.output)
+is (a : node) => cut (a.type.input), cut (a.type.output.input), cut (a.type.output.output)
+
+-- aprendi una banda en famaf en primero y segundo. A tercero y cuarto no los aproveche nada.
+   salvo el primer cuatri, que programe banda, y el segundo en inge con los chicos.
+   pero de teoria mucho no.
+
+   Antes de haskell no entendia un pingo de recursion y no hubiera entendido CCG --
+
+-- es tio, esta tio, no, es silla, esta silla, no --
+-- add blank semitems, if a semitem is blank, it cant have properties --
+
+the (a : node) => word (a), nominal (a.type.input), nominal (a.type.output)
+the (a : node) => cut (a.type.input), cut (a.type.output)
+
+-- An individual expression is fully referring if it is identified --
+
+-- An individual expression is identified if it has a relational determinant --
+
+ncom (a : node) => word(a), nominal (a.type), cut (a.type) 
+
+george (a : node) => ncom(a), person (a.drs.self)
+chair (a : node) => ncom(a), furniture (a.drs.self)
+
+nn (a : node) => word(a)
+nn (a : node) => nominal (a.type.input), nominal (a.type.output)
+nn (a : node) => cut (a.type.input), cut (a.type.output)
+
+nns (a : node) => word(a)
+nns (a : node) => nominal (a.type.input), nominal (a.type.output.input), sentential (a.type.output.output)
+nns (a : node) => cut (a.type.input), cut (a.type.output.input), cut (a.type.output.output)
+
+broke (a : node) => actor (a.drs.1), thing (a.drs.2), event (a.drs.self)
+
+-- george 's uncle --
+-- the man who sold the world --
+-- peter is tall  --
+-- peter is one of the tall folk --
+-- peter is thomas 's boss --
+-- thomas 's boss wants us to leave -- 
+
+-- I dont trust the tall folk --
+
+-- Poke peter --
+-- Poke peter in the eye --
+-- X Peter and Pam are poking --
+-- Peter and Pam are looking --
+
+-- Ojala Elo pudiera ser orgullosa y tranquila como Santi de Famaf y Guido --
+-- Tiene mucho miedo y la pasa re mal. Tiene un posdoctorado ya, ha trabajado bien, --
+-- por un lado le sirve, pero si estuviera tranquila podria hacer mucho mas --
+
+-- Y no se por que duda tanto del motor. Trickster Ne capaz --
