@@ -50,17 +50,24 @@ class TileTagger:
         self.label = None
         self.tile_x = 0
         self.tile_y = 0
+
         self.scroll_shift_y = 0
         self.scroll_shift_x = 0
+        self.selected_areas = []
 
         self.tilemap.scale_x = 3
         self.tilemap.scale_y = 3
+
+        self.selected_tiles_x = []
+        self.selected_tiles_y = []
 
         self.drag = False
 
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
         self.tilemap.y = self.tilemap.y - int(scroll_y * SCROLL_SCALING)
         self.scroll_shift_y -= int(scroll_y * SCROLL_SCALING)
+        for rect in self.selected_areas:
+            rect.adjust_to_scrolling()
 
     def on_key_press(self, symbol, modifiers):
 
@@ -70,6 +77,9 @@ class TileTagger:
 
         if symbol == pyglet.window.key.TAB:
             self.dump_string()
+
+        if symbol == pyglet.window.key.BACKSPACE:
+            self.clear_label()
 
         if symbol == pyglet.window.key.LEFT:
             self.scroll_shift_x += 6 * TILE_SIDE
@@ -97,14 +107,20 @@ class TileTagger:
                 self.label = None
 
             self.label = ShortTextInput(self, ">", x, y)
+            
+            self.selected_tiles_x.append(self.tile_x)
+            self.selected_tiles_y.append(self.tile_y)
+
+            self.selected_areas.append(AreaRectangle(self.tile_x, self.tile_y, self))
+
             window.push_handlers(self.label)
 
         if button == pyglet.window.mouse.RIGHT:
             self.drag = not self.drag
 
     def on_mouse_motion(self, x, y, dx, dy):
-        self.tile_x = (x - self.scroll_shift_x) // TILE_SIDE
-        self.tile_y = (y - self.scroll_shift_y) // TILE_SIDE
+        self.tile_x = self.get_tile_x(x)
+        self.tile_y = self.get_tile_y(y)
         self.mouse_x = x
         self.mouse_y = y
 
@@ -113,10 +129,26 @@ class TileTagger:
             self.scroll_shift_x += dx
             self.tilemap.x += dx
             self.tilemap.y += dy
+            for rect in self.selected_areas:
+                rect.adjust_to_scrolling()
 
     def on_key_release(self, symbol, modifiers):
         if symbol == pyglet.window.key.LSHIFT and self.panel:
             self.drop_panel()
+
+    def clear_label(self):
+        self.selected_tiles_x = []
+        self.selected_tiles_y = []
+        if self.label:
+            if self.label.label_item:
+                self.label.label_item.delete()
+            self.label = None
+
+    def get_tile_x(self, x):
+        return (x - self.scroll_shift_x) // TILE_SIDE
+
+    def get_tile_y(self, y):
+        return (y - self.scroll_shift_y) // TILE_SIDE
 
     def drop_panel(self):
         if self.panel:
@@ -143,6 +175,31 @@ class TileTagger:
             coordinates = tuple(line.split(":")[0].strip().split(", "))
             properties = {p.strip() for p in line.split(":")[1].split(",")}
             self.property_index[coordinates] |= properties
+
+
+class AreaRectangle:
+    def __init__(self, tile_x, tile_y, tagger):
+        
+        self.x = tile_x
+        self.y = tile_y
+
+        self.tagger = tagger
+
+        abs_x = tile_x * TILE_SIDE + self.tagger.scroll_shift_x
+        abs_y = tile_y * TILE_SIDE + self.tagger.scroll_shift_y
+
+        self.shape = pyglet.shapes.Rectangle(x=abs_x, y=abs_y,
+                                             width=TILE_SIDE,
+                                             height=TILE_SIDE,
+                                             color=(0, 255, 0),
+                                             batch=hover_batch)
+
+        self.shape.opacity = 100
+
+    def adjust_to_scrolling(self):
+        self.shape.x = self.x * TILE_SIDE + self.tagger.scroll_shift_x
+        self.shape.y = self.y * TILE_SIDE + self.tagger.scroll_shift_y
+
 
 
 class ShortTextInput:
@@ -179,8 +236,20 @@ class ShortTextInput:
         
             new_tags = set([s.strip() for s in self.text.split(",")])
 
-            self.tagger.property_index[self.tile_x,
-                                           self.tile_y] |= new_tags
+            selected_tiles = zip(self.tagger.selected_tiles_x,
+                    self.tagger.selected_tiles_y)
+
+            for (tile_x, tile_y) in selected_tiles:
+                self.tagger.property_index[tile_x, tile_y] |= new_tags
+
+            while self.tagger.selected_areas:
+                rect = self.tagger.selected_areas.pop()
+                rect.shape.delete()
+                rect.shape = None
+
+            self.tagger.selected_tiles_x = []
+            self.tagger.selected_tiles_y = []
+
             self.label_item.delete()
             self.label_item = None
 
