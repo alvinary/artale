@@ -139,6 +139,12 @@ class TileTagger:
     def clear_label(self):
         self.selected_tiles_x = []
         self.selected_tiles_y = []
+
+        while self.selected_areas:
+            rect = self.selected_areas.pop()
+            rect.shape.delete()
+            rect.shape = None
+        
         if self.label:
             if self.label.label_item:
                 self.label.label_item.delete()
