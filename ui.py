@@ -1,5 +1,3 @@
-from collections import defaultdict as ddict
-
 import pyglet
 
 from constants import *
@@ -377,8 +375,6 @@ class TreeViewer:
             self.nodes_map[k].destroy()
 
         print(self.index)
-        for k in ttag.solver.literal_map:
-            print(k, ttag.solver.literal_map[k])
 
         fact_literal = ttag.solver.literal_map[self.right_facts[self.index]]
         satisfiability_check = ttag.solver.solver.solve([fact_literal])
