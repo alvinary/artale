@@ -72,7 +72,11 @@ for t in tree_constants:
 
     type_constants, type_tree = binary_tree("", ["input", "output"], TYPE_DEPTH, prefix=node_type)
 
-    solver.sorts["type"] = list(list(solver.sorts["type"]) + list(type_constants))
+    solver.sorts["type"] = sorted(list(set(solver.sorts["type"]) | set(type_constants)))
+
+    print("Types: ")
+    for c in solver.sorts["type"]:
+        print(c)
     
     chomeur = set(type_constants)
 

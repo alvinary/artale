@@ -97,6 +97,19 @@ modifies to left (a.type : node), child (b : node, a : node) => right (b, a)
 complements to right (a.type : node), child (b : node, a : node) => left (b, a)
 complements to left (a.type : node), child (b : node, a : node) => right (b, a)
 
+-- Semantic complementation and adjunction rules --
+
+head (a : node, b : node), complement(b.type : node) => bind up (b.drs.self, a.drs.self)
+head (a : node, b : node), complement(b.type : node) => bind up (b.drs.2, a.drs.1)
+head (a : node, b : node), complement(b.type : node) => bind up (b.drs.3, a.drs.2)
+head (a : node, b : node), complement(b.type : node) => bind up (b.drs.4, a.drs.3)
+
+modifier (a : node, b : node), adjunct(b.type : node) => bind up (b.drs.1, a.drs.self)
+
+bind up (sa: semitem, sb : semitem), physical thing (sa) => p(sb)
+bind up (sa: semitem, sb : semitem), person (sa) => p(sb)
+bind up (sa: semitem, sb : semitem), fully referring (sa) => p(sb)
+
 -- CCG-style typing rules --
 
 sentential (t : type) v nominal (t : type)
@@ -146,7 +159,6 @@ blank (t: type), leaftype (t : type) => False
 cut (t : type) => blank(t.input), blank(t.output)
 
 -- Lexical item rules --
-
 --     If a word is a word node, it has to be a leaf --
 
 word (a : node) => leaf (a)
@@ -197,17 +209,31 @@ nn (a : node) => modifies to right (a.type)
 -- X Peter and Pam are poking --
 -- Peter and Pam are looking --
 
-chair (a : node) => n(a)
+chair (a : node) => n (a)
 chair (a : node) => physical thing (a.drs.self)
 
+vase (a : node) => n(a)
+vase (a : node) => physical thing (a.drs.self)
+
 broke (a : node) => nns(a)
-broke (a : node) => actor (a.drs.1), thing (a.drs.2), event (a.drs.self)
+broke (a : node) => actor (a.drs.1), physical thing (a.drs.2), event (a.drs.self)
+broke (a : node), not fully referring (a.drs.1) => False
+broke (a : node), not fully referring (a.drs.2) => False
 
 steven (a : node) => n(a)
+steven (a : node) => person(a.drs.self)
+
 marygold (a : node) => n(a)
+marygold (a : node) => person(a.drs.self)
+
+person (s : semitem), physical thing (s : semitem) => False
+
+not fully referring (s : semitem) v fully referring (s : semitem)
+not fully referring (s : semitem), fully referring (s : semitem) => False
 
 is (a : node) => word (a), nominal (a.type.input), nominal (a.type.output.input), sentential (a.type.output.output)
 is (a : node) => cut (a.type.input), cut (a.type.output.input), cut (a.type.output.output)
 
 the (a : node) => nn(a)
 the (a : node) => cut (a.type.input), cut (a.type.output)
+the (a : node) => fully referring (a.drs.1)
