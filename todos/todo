@@ -107,3 +107,5 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
   a sort can be partitioned into several independent / mutually not related
   subsets, so that rules quantifying over the sort do not waste user time and memory
   on relations that have no bearing on relevant model properties)
+
+- Closest feature match in map tagger
