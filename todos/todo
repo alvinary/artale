@@ -4,8 +4,8 @@ X - Add 'distinct' macro
          variables marked as distinct are identical)
      X - Test with more complicated instances
 
-- Add HornSolver.add_rule() method (which adds a rule and updates the two literal
-  maps)
+X - Add HornSolver.add_rule() method (which adds a rule and updates the two literal
+    maps)
 
 - Test programs with errors to find relevant cases for Parser.check()
 
@@ -33,6 +33,13 @@ X - Add equality macro (each constant is equal to itself and unequal to the rest
   (num name n) (tree name n) (const name ct_name) - por cada nombre ahi -
 
 - Improve docstrings
+    X - Properly documented models.py
+    - Document parser
+    - Document ui
+    - Document ttag
+    - Document tile tagger
+
+X - Add multiple selection to tile tagger
 
 - Testear exhaustivamente las funciones que ya están escritas
 
@@ -72,7 +79,7 @@ X - El embedding de la negacion anda!!
 - Add test suite with any macros
 
 - When only functions of the sort over which a variable ranges are used, for some reason there is a bug:
-  full(t : type), full(s : type), match(s.input, s.output) => macth(s, t) works, but
+  full(t : type), full(s : type), match(s.input, s.output) => match(s, t) works, but
   match(s.input : type, t.input : type) => match(s, t) doesn't. Code up to now is super ad hoc
   and full of errors like this. 
   
@@ -84,6 +91,8 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
 - Complete symmetry breaking (adding constraints to which constants can be right of another)
    - These will be made worse with lexical items (if there can be W words right of a given node,
      then you have WR isomorphic trees, with W right of that node, in constants cn, cn+1, cn+2...c(r-n))
+   - I think node order univocally determines "which word can go where", but I'm not sure. Make
+     sure the reasoning is clear and precise, and then check if it holds
 
 - Quantify over blocks of clauses
   
@@ -99,7 +108,7 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
   - Figure out how to deal with rules using only a subset of variables (i.e. don't add the same clause on a and c |b| times)
   - Write the parser
 
-- Group rules with the same argument signature to avoid unfolding the same set of assignments more than once
+  - In general, group rules with the same argument signature to avoid unfolding the same set of assignments more than once
 
 - There is more (and more serious) symmetry breaking to be done! Now there are types, and those have symmetries too
   (at least in trees without a lexicon - better fix that before trying anything else!)
@@ -112,4 +121,6 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
 
 - Closest feature match in map tagger
 
-- Use quadratic CYK style tree embedding
+- Use quadratic CYK-style tree embedding
+
+- Find out why sometimes type rules are unfolded and sometimes they are not
