@@ -57,8 +57,8 @@ for t in tree_constants:
     solver.sorts["drs"].append(node_drs)
 
     for semitem in ["self", "1", "2", "3", "4"]:
-        solver.value_map[t, semitem] = f"{t}.{semitem}"
-        solver.sorts["semitem"].append(f"{t}.{semitem}")
+        solver.value_map[node_drs, semitem] = f"{node_drs}.{semitem}"
+        solver.sorts["semitem"].append(f"{node_drs}.{semitem}")
 
     for i in range(1, 3):
         solver.value_map[f"{t}.{str(i)}", "next"] = f"{t}.{str(i+1)}"

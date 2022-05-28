@@ -74,13 +74,13 @@ rightHeaded (a : node), left (a : node, b : node) => modifier (a, b)
 right head (b : node), right (a : node, b) => rightHeaded(a)
 left head (b : node), left (a : node, b) => leftHeaded(a)
 
-right modifier (b.type : node), right (a : node, b) => leftHeaded(a)
-left modifier (b.type : node), left (a : node, b) => rightHeaded(a)
+right modifier (b.type : node), right (a : node, b : node) => leftHeaded(a)
+left modifier (b.type : node), left (a : node, b : node) => rightHeaded(a)
 
-head (a : node, b : node), complement (b.type) => match (a.type, b.type.output)
+head (a : node, b : node), complement (b.type : node) => match (a.type, b.type.output)
 head (a : node, b : node), modifier (a : node, c : node), complement (b.type) => match (a.type, b.type.input)
 
-modifier (a : node, b : node), adjunct (b.type) => match (a.type, b.type.output)
+modifier (a : node, b : node), adjunct (b.type : node) => match (a.type, b.type.output)
 head (a : node, b : node), modifier (a : node, c : node), adjunct (c.type) => match (a.type, b.type.input)
 
 sentential (t : type) v nominal (t : type)
