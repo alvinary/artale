@@ -71,6 +71,12 @@ head (a : node, b : node), not child (a, b) => False
 leftHeaded (a : node), right (a : node, b : node) => modifier (a, b)
 rightHeaded (a : node), left (a : node, b : node) => modifier (a, b)
 
+right head (b : node), right (a : node, b) => rightHeaded(a)
+left head (b : node), left (a : node, b) => leftHeaded(a)
+
+right modifier (b.type : node), right (a : node, b) => leftHeaded(a)
+left modifier (b.type : node), left (a : node, b) => rightHeaded(a)
+
 head (a : node, b : node), complement (b.type) => match (a.type, b.type.output)
 head (a : node, b : node), modifier (a : node, c : node), complement (b.type) => match (a.type, b.type.input)
 
@@ -135,39 +141,26 @@ a function from yet another noun to a sentence
 
 Common noun adjuncts, or nn, are word nodes taking a noun as an argument and returning a noun --
 
-is (a : node) => word (a), nominal (a.type.input), nominal (a.type.output.input), sentential (a.type.output.output)
-is (a : node) => cut (a.type.input), cut (a.type.output.input), cut (a.type.output.output)
-
--- aprendi una banda en famaf en primero y segundo. A tercero y cuarto no los aproveche nada.
-   salvo el primer cuatri, que programe banda, y el segundo en inge con los chicos.
-   pero de teoria mucho no.
-
-   Antes de haskell no entendia un pingo de recursion y no hubiera entendido CCG --
-
 -- es tio, esta tio, no, es silla, esta silla, no --
 -- add blank semitems, if a semitem is blank, it cant have properties --
-
-the (a : node) => word (a), nominal (a.type.input), nominal (a.type.output)
-the (a : node) => cut (a.type.input), cut (a.type.output)
 
 -- An individual expression is fully referring if it is identified --
 
 -- An individual expression is identified if it has a relational determinant --
 
-ncom (a : node) => word(a), nominal (a.type), cut (a.type) 
-
-george (a : node) => ncom(a), person (a.drs.self)
-chair (a : node) => ncom(a), furniture (a.drs.self)
+n (a : node) => word(a), nominal (a.type), cut (a.type) 
 
 nn (a : node) => word(a)
 nn (a : node) => nominal (a.type.input), nominal (a.type.output)
 nn (a : node) => cut (a.type.input), cut (a.type.output)
 
+nn (a : node), left (b : node, a) =>
+
 nns (a : node) => word(a)
 nns (a : node) => nominal (a.type.input), nominal (a.type.output.input), sentential (a.type.output.output)
 nns (a : node) => cut (a.type.input), cut (a.type.output.input), cut (a.type.output.output)
 
-broke (a : node) => actor (a.drs.1), thing (a.drs.2), event (a.drs.self)
+nns (a: node), head (b : node, a) => leftHeaded (b)
 
 -- george 's uncle --
 -- the man who sold the world --
@@ -183,8 +176,17 @@ broke (a : node) => actor (a.drs.1), thing (a.drs.2), event (a.drs.self)
 -- X Peter and Pam are poking --
 -- Peter and Pam are looking --
 
--- Ojala Elo pudiera ser orgullosa y tranquila como Santi de Famaf y Guido --
--- Tiene mucho miedo y la pasa re mal. Tiene un posdoctorado ya, ha trabajado bien, --
--- por un lado le sirve, pero si estuviera tranquila podria hacer mucho mas --
+chair (a : node) => n(a)
+chair (a : node) => physical thing (a.drs.self)
 
--- Y no se por que duda tanto del motor. Trickster Ne capaz --
+broke (a : node) => nns(a)
+broke (a : node) => actor (a.drs.1), thing (a.drs.2), event (a.drs.self)
+
+steven (a : node) => n(a)
+marygold (a : node) => n(a)
+
+is (a : node) => word (a), nominal (a.type.input), nominal (a.type.output.input), sentential (a.type.output.output)
+is (a : node) => cut (a.type.input), cut (a.type.output.input), cut (a.type.output.output)
+
+the (a : node) => nn(a)
+the (a : node) => cut (a.type.input), cut (a.type.output)
