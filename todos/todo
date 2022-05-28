@@ -109,3 +109,5 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
   on relations that have no bearing on relevant model properties)
 
 - Closest feature match in map tagger
+
+- Use quadratic CYK style tree embedding
