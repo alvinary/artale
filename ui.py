@@ -23,6 +23,7 @@ def read_type(constant_name, model):
     remaining_elements = True
 
     while remaining_elements:
+
         new = set()
 
         for t in type_members:
@@ -36,7 +37,7 @@ def read_type(constant_name, model):
 
         type_members |= new
 
-    type_members.remove("blanktype")
+    type_members.discard("blanktype")
 
     # Put in a map the category of each leaf (N or S),
     # and put in another map the input and output child
@@ -372,7 +373,7 @@ class TreeViewer:
         for k in list(self.nodes_map.keys()):
             self.nodes_map[k].destroy()
 
-        print(self.index)
+        print("Current model index: ", self.index)
 
         fact_literal = ttag.solver.literal_map[self.right_facts[self.index]]
         satisfiability_check = ttag.solver.solver.solve([fact_literal])
@@ -381,7 +382,7 @@ class TreeViewer:
             self.index = (self.index + index_shift) % self.model_length
             fact_literal = ttag.solver.literal_map[self.right_facts[self.index]]
             satisfiability_check = ttag.solver.solver.solve([fact_literal])
-            print(f"index: {self.index}")
+            print(f"Skipping to index {self.index}...")
 
         model = ttag.solver.solver.get_model()
 

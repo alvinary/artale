@@ -105,14 +105,14 @@ sentential (t : type), nominal (t : type) => False
 full (t : type) v blank (t : type)
 full (t : type), blank (t) => False
 
-nodetype (t : type) v not nodetype (t)
-nodetype (t : type), not nodetype (t) => False
+nodetype (t : type) v not nodetype (t : type)
+nodetype (t : type), not nodetype (t : type) => False
 
-leaftype (t : type) v not leaftype (t)
-leaftype (t : type), not leaftype (t) => False
+leaftype (t : type) v not leaftype (t : type)
+leaftype (t : type), not leaftype (t : type) => False
 
-nodetype (t : type), leaftype (t) => False
-full (t : type), not leaftype (t), not nodetype (t) => False
+nodetype (t : type), leaftype (t : type) => False
+full (t : type), not leaftype (t : type), not nodetype (t : type) => False
 
 leaftype (t : type) => blank (t.output), blank (t.input)
 
@@ -138,8 +138,8 @@ nodetype (t : type) => full (t.output)
 phrase(a : node) => full(a.type)
 leaf(a: node) => full(a.type)
 
-blank (a: type), nodetype (a) => False
-blank (a: type), leaftype (a) => False
+blank (t: type), nodetype (t : type) => False
+blank (t: type), leaftype (t : type) => False
 
 --     You can cut a type node to prevent it from having meaningful branches --
 

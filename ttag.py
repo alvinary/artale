@@ -3,6 +3,7 @@ from models import Relation, Rule, Clause, HornSolver, TERM_SEPARATOR
 from scaffoldings import tree, binary_tree
 
 SIZE_BOUND = 13
+TYPE_DEPTH = 2
 
 solver = HornSolver()
 
@@ -18,7 +19,7 @@ for rule in rule_declarations:
     body, head, variables, sorts, flags = rule
     solver.rules.append(Rule([Relation([term for term in atom]) for atom in head],
                              [Relation([term for term in atom]) for atom in body],
-                             [s for v, s in variables], [v for v, s in variables],
+                             [s for _, s in variables], [v for v, _ in variables],
                              solver, {}, flags))
 
 print("Assembling tree scaffolding...")
@@ -69,9 +70,9 @@ for t in tree_constants:
 
     solver.value_map[node_drs, "self"] = f"{node_drs}.self"
 
-    type_constants, type_tree = binary_tree("", ["input", "output"], 2, prefix=node_type)
+    type_constants, type_tree = binary_tree("", ["input", "output"], TYPE_DEPTH, prefix=node_type)
 
-    solver.sorts["type"] = list(solver.sorts["type"] + list(type_constants))
+    solver.sorts["type"] = list(list(solver.sorts["type"]) + list(type_constants))
     
     chomeur = set(type_constants)
 
