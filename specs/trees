@@ -1,10 +1,10 @@
-sort node 30
+sort node 13
 sort type 30
 
 left (n : node, m : node) v not left (n, m)
 left (n : node, m : node), not left (n, m) => False
 
-right (n : node, m : node) v not right (n, m)
+right (n : node, m : node) v not right (n : node, m : node)
 right (n : node, m : node), not right (n, m) => False
 
 leaf (n : node) v phrase (n)
@@ -66,6 +66,8 @@ right (a : node, b : node) => child(a, b)
 
 child(a : node, b : node), not left (a, b), not right(a, b) => False
 
+-- Complementation and adjunction rules --
+
 head (a : node, b : node), not child (a, b) => False
 
 leftHeaded (a : node), right (a : node, b : node) => modifier (a, b)
@@ -82,6 +84,20 @@ head (a : node, b : node), modifier (a : node, c : node), complement (b.type) =>
 
 modifier (a : node, b : node), adjunct (b.type : node) => match (a.type, b.type.output)
 head (a : node, b : node), modifier (a : node, c : node), adjunct (c.type) => match (a.type, b.type.input)
+
+modifies to right (t : type) => adjunct (t : type)
+modifies to left (t : type) => adjunct (t : type)
+
+complements to left (t : type) => complement(t : type)
+complements to right (t : type) => complement(t : type)
+
+modifies to right (a.type : node), child (b : node, a : node) => left (b, a)
+modifies to left (a.type : node), child (b : node, a : node) => right (b, a)
+
+complements to right (a.type : node), child (b : node, a : node) => left (b, a)
+complements to left (a.type : node), child (b : node, a : node) => right (b, a)
+
+-- CCG-style typing rules --
 
 sentential (t : type) v nominal (t : type)
 sentential (t : type), nominal (t : type) => False
@@ -125,21 +141,40 @@ leaf(a: node) => full(a.type)
 blank (a: type), nodetype (a) => False
 blank (a: type), leaftype (a) => False
 
--- You can cut a type node to prevent it from having meaningful branches --
+--     You can cut a type node to prevent it from having meaningful branches --
+
 cut (t : type) => blank(t.input), blank(t.output)
 
--- If a word is a word node, it has to be a leaf --
+-- Lexical item rules --
+
+--     If a word is a word node, it has to be a leaf --
+
 word (a : node) => leaf (a)
 word (a : node), phrase(a) => False
 
--- We define several common word types 
+--     We define several common word types --
+--     Common nouns, or n, are word nodes whose type is nominal and is cut --
 
-Common nouns, or ncom, are word nodes whose type is nominal and is cut
+n (a : node) => word(a), nominal (a.type), cut (a.type)
 
-Common transitive verbs, or nns, are word nodes taking a noun as an input and returning 
-a function from yet another noun to a sentence
+--     Common transitive verbs, or nns, are word nodes taking a noun as an input and returning --
+--     a function from yet another noun to a sentence --
 
-Common noun adjuncts, or nn, are word nodes taking a noun as an argument and returning a noun --
+nns (a : node) => word(a)
+
+nns (a : node) => nominal (a.type.input), nominal (a.type.output.input), sentential (a.type.output.output)
+nns (a : node) => cut (a.type.input), cut (a.type.output.input), cut (a.type.output.output)
+
+nns (a: node) => complements to right (a.type), complements to left (a.type.output)
+
+--     Common noun adjuncts, or nn, are word nodes taking a noun as an argument and returning a noun --
+
+nn (a : node) => word(a)
+
+nn (a : node) => nominal (a.type.input), nominal (a.type.output)
+nn (a : node) => cut (a.type.input), cut (a.type.output)
+
+nn (a : node) => modifies to right (a.type)
 
 -- es tio, esta tio, no, es silla, esta silla, no --
 -- add blank semitems, if a semitem is blank, it cant have properties --
@@ -147,20 +182,6 @@ Common noun adjuncts, or nn, are word nodes taking a noun as an argument and ret
 -- An individual expression is fully referring if it is identified --
 
 -- An individual expression is identified if it has a relational determinant --
-
-n (a : node) => word(a), nominal (a.type), cut (a.type) 
-
-nn (a : node) => word(a)
-nn (a : node) => nominal (a.type.input), nominal (a.type.output)
-nn (a : node) => cut (a.type.input), cut (a.type.output)
-
-nn (a : node), left (b : node, a) =>
-
-nns (a : node) => word(a)
-nns (a : node) => nominal (a.type.input), nominal (a.type.output.input), sentential (a.type.output.output)
-nns (a : node) => cut (a.type.input), cut (a.type.output.input), cut (a.type.output.output)
-
-nns (a: node), head (b : node, a) => leftHeaded (b)
 
 -- george 's uncle --
 -- the man who sold the world --
