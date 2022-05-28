@@ -71,6 +71,8 @@ class TileTagger:
 
     def on_key_press(self, symbol, modifiers):
 
+        modifiers = pyglet.window.key.modifiers_string(modifiers)
+
         if symbol == pyglet.window.key.LSHIFT:
             if self.property_index[self.tile_x, self.tile_y]:
                 self.set_panel(self.mouse_x, self.mouse_y)
@@ -78,7 +80,7 @@ class TileTagger:
         if symbol == pyglet.window.key.TAB:
             self.dump_string()
 
-        if symbol == pyglet.window.key.BACKSPACE:
+        if symbol == pyglet.window.key.BACKSPACE and 'MOD_SHIFT' in modifiers:
             self.clear_label()
 
         if symbol == pyglet.window.key.LEFT:
@@ -242,6 +244,8 @@ class ShortTextInput:
 
     def on_key_press(self, symbol, modifiers):
 
+        modifiers = pyglet.window.key.modifiers_string(modifiers)
+
         if symbol == pyglet.window.key.ENTER:
         
             new_tags = set([s.strip() for s in self.text.split(",")])
@@ -254,12 +258,11 @@ class ShortTextInput:
 
             self.tagger.clear_label()
 
-        elif as_ascii(
-                symbol
-        ) in letters and "MOD_SHIFT" in pyglet.window.key.modifiers_string(
-                modifiers):
+        elif as_ascii(symbol) in letters and "MOD_SHIFT" in modifiers:
+
             if self.text == ">":
                 self.text = pyglet.window.key.symbol_string(symbol)
+
             else:
                 self.text = self.text + pyglet.window.key.symbol_string(symbol)
                 self.label_item.delete()
