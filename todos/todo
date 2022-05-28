@@ -99,6 +99,8 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
   - Figure out how to deal with rules using only a subset of variables (i.e. don't add the same clause on a and c |b| times)
   - Write the parser
 
+- Group rules with the same argument signature to avoid unfolding the same set of assignments more than once
+
 - There is more (and more serious) symmetry breaking to be done! Now there are types, and those have symmetries too
   (at least in trees without a lexicon - better fix that before trying anything else!)
 
