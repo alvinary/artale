@@ -12,12 +12,15 @@ TERM_SEPARATOR = "--"
 IS_DISJUNCTION = "vee"
 ANY = "any"
 
+
 def is_any(name):
     return "any" in name
 
+
 def index():
     return defaultdict(lambda: [])
-    
+
+
 class HornSolver:
 
     def __init__(self):
@@ -34,7 +37,6 @@ class HornSolver:
         self.cnf_clauses = list()
 
     def reset_maps(self):
-
         '''
 
         Assign empty dictionaries to self.literal_map, self.value_map and
@@ -47,7 +49,6 @@ class HornSolver:
         self.value_map = {}
 
     def unfold_rule(self, rule):
-
         '''
 
         Obtain a list of clauses encoding a propositional embedding of the
@@ -57,27 +58,28 @@ class HornSolver:
         As a side effect, new clauses are appended to self.cnf_clauses.
 
         '''
-        
+
         for assignment in product(*[self.sorts[s] for s in rule.sorts]):
-  
+
             clauses = rule.get_clauses(assignment)
 
             pure_clauses = [self.evaluate_functions(c) for c in clauses]
-  
+
             self.update_maps(pure_clauses)
-  
+
             if IS_DISJUNCTION in rule.flags:
-                cnf_clauses = [self.disjunction_dimacs(c) for c in pure_clauses]
-  
+                cnf_clauses = [
+                    self.disjunction_dimacs(c) for c in pure_clauses
+                ]
+
             else:
                 cnf_clauses = [self.dimacs(c) for c in pure_clauses]
-  
+
             for cnf_clause in cnf_clauses:
                 self.solver.add_clause(cnf_clause)
                 self.cnf_clauses.append(array("l", cnf_clause))
 
     def unfold_instance(self):
-        
         '''
 
         Embed all first-order rules stored in self.rules into a 
@@ -85,12 +87,11 @@ class HornSolver:
         used by self.solver.
 
         '''
-        
+
         for rule in self.rules:
             self.unfold_rule(rule)
 
     def reset_instance(self):
-
         '''
 
         Discard the current SAT solver, assign a new Solver object to
@@ -103,7 +104,6 @@ class HornSolver:
         self.cnf_clauses = list()
 
     def una_equality(self):
-
         '''
 
         Embed equality as defined when making the unique-name assumption into
@@ -128,7 +128,6 @@ class HornSolver:
                         self.solver.add_clause(self.dimacs(pure_clause))
 
     def is_functional(self, term_string):
-
         '''
 
         Check if a term contains function applications (i.e. it is not
@@ -140,7 +139,6 @@ class HornSolver:
         return "." in term_string
 
     def dimacs(self, pure_clause):
-
         '''
 
         Return a list encoding the dimacs representation of a clause
@@ -165,7 +163,6 @@ class HornSolver:
         return dimacs_clause
 
     def disjunction_dimacs(self, pure_clause):
-
         '''
 
         Return a list encoding the dimacs represention of a CNF clause
@@ -176,7 +173,6 @@ class HornSolver:
         return [self.literal_map[atom] for atom in pure_clause.body]
 
     def evaluate(self, term_string):
-
         '''
 
         Return the single constant name that results from evaluating all
@@ -209,7 +205,6 @@ class HornSolver:
         return " ".join(evaluated_terms)
 
     def evaluate_functions(self, clause):
-
         '''
 
         Evaluate all function applications that appear in the input clause
@@ -227,7 +222,6 @@ class HornSolver:
         return function_free_clause
 
     def update_maps(self, clauses):
-
         '''
 
         Update the dictionaries mapping atoms in string form to and form atoms
@@ -251,7 +245,6 @@ class HornSolver:
             self.reverse_literal_map[self.name_counter] = s
 
     def show_model(self, model, show_false=False):
-
         '''
 
         Given a model in DIMACS form, return a single string
@@ -275,7 +268,7 @@ class HornSolver:
                     atoms.append(self.reverse_literal_map[a])
                 else:
                     atoms.append(f"- {self.reverse_literal_map[abs(a)]}")
-        
+
         for atom in atoms:
             readable_model = f"{readable_model}, {atom}"
             counter += 1
@@ -284,9 +277,8 @@ class HornSolver:
                 readable_model = readable_model + "\n"
 
         return readable_model
-        
-    def get_relations(self, model, target_relations):
 
+    def get_relations(self, model, target_relations):
         '''
 
         Return a set containing all atoms in the input model that
@@ -306,7 +298,6 @@ class HornSolver:
         return relations
 
     def serialize(self):
-
         '''
 
         Return the string encoding of a JSON object whose fields are .clauses, .literals and .values.
@@ -323,10 +314,15 @@ class HornSolver:
         '''
 
         cnf_clauses = [c.tolist() for c in self.cnf_clauses]
-        value_triples = [(a, f, self.value_map[a, f]) for (a, f) in self.value_map]
+        value_triples = [(a, f, self.value_map[a, f])
+                         for (a, f) in self.value_map]
 
-        return as_json( { clauses : cnf_clauses , literals : self.literal_map, values : value_triples } )
-        
+        return as_json({
+            clauses: cnf_clauses,
+            literals: self.literal_map,
+            values: value_triples
+        })
+
 
 @dataclass
 class Relation:
@@ -335,10 +331,12 @@ class Relation:
     def get_string_encoding(self):
         return TERM_SEPARATOR.join([p.strip() for p in self.parts])
 
+
 @dataclass
 class Clause:
     head: str
     body: List[str]
+
 
 @dataclass
 class Rule:
@@ -362,7 +360,7 @@ class Rule:
 
             heads = [self.bind_variables(r) for r in self.heads]
             body = [self.bind_variables(r) for r in self.body]
-        
+
         if has_any:
 
             self.guarded_rebind(assignment)
@@ -396,15 +394,15 @@ class Rule:
         checked = set()
 
         pairs = [(n, s) for (n, s) in zip(self.variables, self.sorts)]
-        
+
         any_pairs = [(n, s) for (n, s) in pairs if is_any(n)]
         any_names = product([n for (n, s) in any_pairs])
         any_sorts = product(*[self.solver.sorts[s] for (n, s) in any_pairs])
-        
+
         any_bindings = product(any_names, any_sorts)
-        
+
         for names, bindees in any_bindings:
-            
+
             for n, b in zip(names, bindees):
                 self.bindings[n] = b
 
@@ -437,5 +435,3 @@ class Rule:
 
     def rename_any(self):
         raise NotImplementedError
-
-
