@@ -207,6 +207,10 @@ class AreaRectangle:
         self.shape.y = self.y * TILE_SIDE + self.tagger.scroll_shift_y
 
 
+class AreaParse:
+    def __init__(self):
+        pass
+
 
 class ShortTextInput:
 
@@ -248,16 +252,7 @@ class ShortTextInput:
             for (tile_x, tile_y) in selected_tiles:
                 self.tagger.property_index[tile_x, tile_y] |= new_tags
 
-            while self.tagger.selected_areas:
-                rect = self.tagger.selected_areas.pop()
-                rect.shape.delete()
-                rect.shape = None
-
-            self.tagger.selected_tiles_x = []
-            self.tagger.selected_tiles_y = []
-
-            self.label_item.delete()
-            self.label_item = None
+            self.tagger.clear_label()
 
         elif as_ascii(
                 symbol
