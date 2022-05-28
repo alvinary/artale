@@ -13,8 +13,6 @@ lexicon = "".split()
 
 def read_type(constant_name, model):
 
-    print(model[:6])
-
     hash_model = set(model)
 
     # Obtain all parts of the type
