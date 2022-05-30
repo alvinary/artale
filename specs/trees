@@ -44,8 +44,8 @@ left (a : node, b : node), right (c : node, b) => False
 right (a : node, b : node), right (a, c : node), b != c => False
 left (a : node, b : node), left (a, b : node), b != c => False
 
-complement (t : type), adjunct (t) => False
 complement (t : type) v adjunct (t)
+complement (t : type), adjunct (t) => False
 
 not head (a : node, b : node) v head (a, b)
 not head (a : node, b : node), head (a, b) => False
@@ -99,12 +99,6 @@ complements to left (a.type : node), child (b : node, a : node) => right (b, a)
 
 -- CCG-style typing rules --
 
-sentential (t : type) v nominal (t : type)
-sentential (t : type), nominal (t : type) => False
-
-full (t : type) v blank (t : type)
-full (t : type), blank (t) => False
-
 nodetype (t : type) v not nodetype (t : type)
 nodetype (t : type), not nodetype (t : type) => False
 
@@ -116,18 +110,29 @@ full (t : type), not leaftype (t : type), not nodetype (t : type) => False
 
 leaftype (t : type) => blank (t.output), blank (t.input)
 
+sentential (t : type), nominal (t : type) => bitype (t)
+leaftype (t : type), bitype (t : type) => False
+nodetype (t : type), sentential (t : type) => False
+nodetype (t : type), nominal (t : type) => False
+
+full (t : type) v blank (t : type)
+full (t : type), blank (t) => False
+
 match (s : type, t : type) v not match (s, t)
 match (s : type, t : type), not match(s, t) => False
 
 match (s : type, t : type) => match (t, s)
 
 blank (t : type), blank (s : type) => match (t, s)
+blank (t : type), full (s : type) => not match (t, s)
+
 leaftype (t : type), leaftype (s : type), nominal (t), nominal (s) => match (t, s)
 leaftype (t : type), leaftype (s : type), sentential (t), sentential (s) => match (t, s)
-nodetype (t : type), nodetype (s: type), match (t.input, s.input), match(t.output, s.output) => match (t, s)
-
 leaftype (t : type), leaftype (s : type), nominal (t), sentential (s) => not match (t, s)
-blank (t : type), full (s : type) => not match(t, s)
+
+nodetype (t : type), nodetype (s: type), match (t.input, s.input), match(t.output, s.output) => match (t, s)
+nodetype (t : type), nodetype (s: type), not match (t.input, s.input) => not match (t, s)
+nodetype (t : type), nodetype (s: type), not match (t.output, s.output) => not match (t, s)
 
 blank (t : type) => blank (t.output), blank (t.input)
 nodetype (t : type), blank (t.input) => False
@@ -141,16 +146,14 @@ leaf(a: node) => full(a.type)
 blank (t: type), nodetype (t : type) => False
 blank (t: type), leaftype (t : type) => False
 
--- You can cut a type node to prevent it from having meaningful branches --
-
-cut (t : type) => blank(t.input), blank(t.output)
-
 -- Assert the whole tree is a sentence by forcing roots to be of type sentence
    Lexical item rules
    If a word is a word node, it has to be a leaf --
 
 word (a : node) => leaf (a)
 word (a : node), phrase(a) => False
+
+l : litem (a : node), phrase (a : node) => False
 
 -- Semantic complementation and adjunction rules --
 
@@ -166,10 +169,9 @@ bind up (sa: semitem, sb : semitem), person (sa) => p(sb)
 bind up (sa: semitem, sb : semitem), fully referring (sa) => p(sb)
 
 -- We define several common word types
-   Common nouns, or n, are word nodes whose 
-   type is nominal and is cut --
+   Common nouns, or n, are nodes whose type is a leaftype nominal type node --
 
-n (a : node) => word(a), nominal (a.type), cut (a.type)
+n (a : node) => word(a), nominal (a.type), leaftype (a.type)
 
 -- Common transitive verbs, or nns, are word nodes
    taking a noun as an input and returning
@@ -178,19 +180,23 @@ n (a : node) => word(a), nominal (a.type), cut (a.type)
 nns (a : node) => word(a)
 
 nns (a : node) => nominal (a.type.input), nominal (a.type.output.input), sentential (a.type.output.output)
-nns (a : node) => cut (a.type.input), cut (a.type.output.input), cut (a.type.output.output)
+nns (a : node) => leaftype (a.type.input), leaftype (a.type.output.input), leaftype (a.type.output.output)
 
 nns (a: node) => complements to right (a.type), complements to left (a.type.output)
 
 -- Common noun adjuncts, or nn, are word nodes taking a noun as an argument and returning a noun
    phrase (a : node), root (a) => sentential (a.type), leaftype (a.type) --
 
+root (a : node) => sentential (a.type)
+
 nn (a : node) => word(a)
 
 nn (a : node) => nominal (a.type.input), nominal (a.type.output)
-nn (a : node) => cut (a.type.input), cut (a.type.output)
+nn (a : node) => leaftype (a.type.input), leaftype (a.type.output)
 
 nn (a : node) => modifies to right (a.type)
+
+l : litem (a : node), r : litem (a : word), l != r => False
 
 chair (a : node) => n (a)
 chair (a : node) => physical thing (a.drs.self)
@@ -200,8 +206,6 @@ vase (a : node) => physical thing (a.drs.self)
 
 broke (a : node) => nns(a)
 broke (a : node) => person (a.drs.1), physical thing (a.drs.2), event (a.drs.self)
-broke (a : node), not fully referring (a.drs.1) => False
-broke (a : node), not fully referring (a.drs.2) => False
 
 steven (a : node) => n(a)
 steven (a : node) => person(a.drs.self), fully referring (a.drs.self)
@@ -211,14 +215,14 @@ marygold (a : node) => person(a.drs.self), fully referring (a.drs.self)
 
 person (s : semitem), physical thing (s : semitem) => False
 
-not fully referring (s : semitem) v fully referring (s : semitem)
-not fully referring (s : semitem), fully referring (s : semitem) => False
+fully referring (s : semitem) v not fully referring (s : semitem)
+fully referring (s : semitem), not fully referring (s : semitem) => False
 
 is (a : node) => word (a), nominal (a.type.input), nominal (a.type.output.input), sentential (a.type.output.output)
-is (a : node) => cut (a.type.input), cut (a.type.output.input), cut (a.type.output.output)
+is (a : node) => leaftype (a.type.input), leaftype (a.type.output.input), leaftype (a.type.output.output)
 
 the (a : node) => nn(a)
-the (a : node) => cut (a.type.input), cut (a.type.output)
+the (a : node) => leaftype (a.type.input), leaftype (a.type.output)
 the (a : node) => fully referring (a.drs.1)
 
 is (a : node) v the (a : node) v broke (a : node) v vase (a : node) v chair (a : node) v steven (a : node) v marygold (a : node) v not leaf (a : node)
