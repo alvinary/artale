@@ -9,7 +9,7 @@ edge_batch = pyglet.graphics.Batch()
 node_box_batch = pyglet.graphics.Batch()
 node_batch = pyglet.graphics.Batch()
 
-lexicon = "".split()
+lexicon = "is steven marygold the broke vase chair".split()
 
 def read_type(constant_name, model):
 
@@ -100,8 +100,8 @@ def read_word(constant_name, lexicon, model):
     hash_model = set(model)
     for item in lexicon:
         word_fact = f"{item} {constant_name}"
-        if word_fact in ttag.solver.reverse_literal_map():
-            atom = ttag.solver.reverse_literal_map[word_fact]
+        if word_fact in ttag.solver.literal_map:
+            atom = ttag.solver.literal_map[word_fact]
             if atom in hash_model:
                 return item
     return NO_WORD
@@ -167,6 +167,9 @@ class Node:
 
         label_text = ""
 
+        if self.word != "":
+            self.show_word = True
+
         if show_order:
             label_text = self.text + ' '
         if show_word:
@@ -228,10 +231,12 @@ class Node:
         return not self.children
 
     def collect(self):
+
         if not self.children:
             return [self]
         
         child_leaves = [c.collect() for c in self.children]
+        
         return [self] + [leaf for leaves in child_leaves for leaf in leaves]
 
     def arrange(self):
