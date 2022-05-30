@@ -1,6 +1,7 @@
 from parser import Parser
 from models import Relation, Rule, Clause, HornSolver, TERM_SEPARATOR
 from scaffoldings import tree, binary_tree
+from constants import LEXICON
 
 SIZE_BOUND = 13
 TYPE_DEPTH = 2
@@ -41,6 +42,7 @@ for i in range(SIZE_BOUND):
 right_facts = [f"right {a} {b}" for a, b in paired_constants]
 
 solver.sorts["node"] = list(tree_constants)
+solver.sorts["litem"] = LEXICON
 
 solver.add_assertion("root c0")
 

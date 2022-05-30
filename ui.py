@@ -9,8 +9,6 @@ edge_batch = pyglet.graphics.Batch()
 node_box_batch = pyglet.graphics.Batch()
 node_batch = pyglet.graphics.Batch()
 
-lexicon = "is steven marygold the broke vase chair".split()
-
 def read_type(constant_name, model):
 
     hash_model = set(model)
@@ -91,23 +89,39 @@ def get_type(root_name, leaf_map, node_map):
         return f"({input_type} -> {output_type})"
 
     else:
-        print(root_name, leaf_map, node_map)
+        print("Node: ", root_name)
+        print(f"Leaf properties of {root_name}:", leaf_map)
+        print("Node data: ", node_map)
         return TYPE_WARNING
 
 def read_word(constant_name, lexicon, model):
-    '''Return the word w if w's predicate holds for the input constant.
-    If there is no such word, return NO_WORD.'''
+    '''
+    
+    Return the word w if w's predicate holds for the input constant.
+    If there is no such word, return NO_WORD.
+    
+    '''
+    
     hash_model = set(model)
+    
     for item in lexicon:
+    
         word_fact = f"{item} {constant_name}"
+    
         if word_fact in ttag.solver.literal_map:
+    
             atom = ttag.solver.literal_map[word_fact]
+    
             if atom in hash_model:
+                print("Word:", item)
                 return item
+    
     return NO_WORD
 
 def tree_from_relations(predicates, relation_order):
-    '''Given a set of unary and binary predicates, and an ordering
+    '''
+    
+    Given a set of unary and binary predicates, and an ordering
     between relations, return a tree representation of that relation,
     or norify the relation supplied is not a tree.
 
@@ -119,16 +133,24 @@ def tree_from_relations(predicates, relation_order):
   b[q]  c[q']
 
     '''
+
     nodes = []
     node_names = {t[1] for t in predicates}
     node_names = node_names | {t[2] for t in predicates if 2 <= len(t)}
     node_index = {}
+    
     return nodes
 
 def make_node_label(text, x_pos, y_pos):
-    '''Given a 'text' string and two integers (x_pos and y_pos), return
+
+    '''
+    
+    Given a 'text' string and two integers (x_pos and y_pos), return
     a pyglet text label whose text is 'text', placed at (x_pos, y_pos) 2d
-    coordinates.'''
+    coordinates.
+    
+    '''
+
     return pyglet.text.Label(text,
                              font_name="Arial",
                              font_size=14,
@@ -138,25 +160,31 @@ def make_node_label(text, x_pos, y_pos):
 
 
 def make_node_box(text, x_pos, y_pos):
+
     return pyglet.shapes.Rectangle(x_pos, y_pos, 20,
-                            20, 
-                            color=(230, 55, 48), batch=node_box_batch)
+                            20, color=(230, 55, 48),
+                            batch=node_box_batch)
 
 def make_node_edge(x_pos, y_pos, _x_pos, _y_pos):
-    return pyglet.shapes.Line(x_pos, y_pos, _x_pos, _y_pos, width=1, batch=edge_batch, color=(255,255,255))
+
+    return pyglet.shapes.Line(x_pos, y_pos,
+                              _x_pos, _y_pos,
+                              width=1, batch=edge_batch,
+                              color=(255,255,255))
 
 
 class Node:
     
     def __init__(self, text, type_description,
                  word="", children=[], tags=set(),
-                 show_order=False, show_type=True,
-                 show_word=False, parent=None,
+                 show_order=True, show_type=True,
+                 show_word=True, parent=None,
                  x=0, y=0):
         
         self.text = text
         self.type_description = type_description
         self.word = word
+        print(f"Node word for {self.text}: {self.word}")
         
         self.children = list(children) # these children are not labeled!
         self.parent = parent
@@ -240,13 +268,22 @@ class Node:
         return [self] + [leaf for leaves in child_leaves for leaf in leaves]
 
     def arrange(self):
-        '''Count the number of leaves, split a bounding box evenly,
-        place each leaf at its depth, and width "count left" '''
+        
+        '''
+        
+        Count the number of leaves, split a bounding box evenly,
+        place each leaf at its depth, and width "count left"
+        
+        '''
+        
         all_nodes = self.root().collect()
+        
         for n in all_nodes:
+            
             if n.is_leaf():
                 n.x = n.count_left() * NODE_WIDTH
                 n.y = n.depth() * NODE_HEIGHT
+            
             else:
                 min_node_x = min([c.count_left() for c in n.children]) * NODE_WIDTH
                 max_node_x = max([c.count_left() for c in n.children]) * NODE_WIDTH
@@ -457,7 +494,7 @@ class TreeViewer:
             node_batch.draw()
 
 viewer = TreeViewer()
-viewer.lexicon = lexicon
+viewer.lexicon = LEXICON
 window.push_handlers(viewer)
 
 pyglet.app.run()
