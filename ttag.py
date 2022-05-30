@@ -42,20 +42,20 @@ right_facts = [f"right {a} {b}" for a, b in paired_constants]
 
 solver.sorts["node"] = list(tree_constants)
 
-solver.add_assertion("root c0")
-
 
 for f in tree_facts:
 
     clause_literal = " ".join(f)
 
-    if "not" not in clause_literal:
+    if "not " not in clause_literal:
         solver.add_assertion(clause_literal)
 
-    if "not" in clause_literal:
+    if "not " == clause_literal[:4]:
         #TODO: This is bodge, please fix it
         positive_literal = clause_literal[4:]
-        solver.add_assertion(positive_literal)
+        tree_clause = Clause("", [positive_literal])
+        solver.update_maps([tree_clause])
+        solver.solver.add_clause(solver.dimacs(tree_clause))
 
 
 for t in tree_constants:
