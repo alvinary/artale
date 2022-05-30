@@ -5,7 +5,11 @@ from scaffoldings import tree, binary_tree
 SIZE_BOUND = 13
 TYPE_DEPTH = 2
 
+# Initialize solver object
+
 solver = HornSolver()
+
+# Read program specification from file and parse it
 
 theory_program = ""
 
@@ -22,6 +26,8 @@ for rule in rule_declarations:
                              [s for _, s in variables], [v for v, _ in variables],
                              solver, {}, flags))
 
+# Ground rules / clauses and apply tree scaffolding
+
 print("Assembling tree scaffolding...")
 
 tree_constants, tree_facts = tree("node", SIZE_BOUND)
@@ -36,18 +42,24 @@ right_facts = [f"right {a} {b}" for a, b in paired_constants]
 
 solver.sorts["node"] = list(tree_constants)
 
+solver.add_assertion("root c0")
+
+
 for f in tree_facts:
+
     clause_literal = " ".join(f)
+
     if "not" not in clause_literal:
-        tree_clause = Clause(clause_literal, [])
-        solver.update_maps([tree_clause])
-        solver.solver.add_clause(solver.dimacs(tree_clause))
+        solver.add_assertion(clause_literal)
+
     if "not" in clause_literal:
-        tree_clause = Clause("", [clause_literal[4:]])
-        solver.update_maps([tree_clause])
-        solver.solver.add_clause(solver.dimacs(tree_clause))
+        #TODO: This is bodge, please fix it
+        positive_literal = clause_literal[4:]
+        solver.add_assertion(positive_literal)
+
 
 for t in tree_constants:
+
     node_drs = f"{t}.drs"
     node_type = f"{t}.type"
     
@@ -98,6 +110,10 @@ solver.una_equality()
 print("Done")
 
 print("Looking for models...")
+
+# If the program is run as main, print a few models, provided
+# some are found when fixing any of the literals from 1 to 300
+# as true. This is bodge as well, so please fix it too - TODO
 
 if __name__ == "__main__":
 
