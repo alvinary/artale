@@ -59,7 +59,11 @@ class HornSolver:
 
         '''
 
+        print("Rule: ", rule.body, rule.heads)
+
         for assignment in product(*[self.sorts[s] for s in rule.sorts]):
+
+            print(assignment)
 
             clauses = rule.get_clauses(assignment)
 
@@ -103,6 +107,19 @@ class HornSolver:
         self.solver = Solver()
         self.cnf_clauses = list()
 
+    def add_assertion(self, predicate_string):
+        '''
+
+        Input a predicate as a string (e.g. "p (a, b)", "a != b", "r (a.f, a.g)") and
+        add a CNF clause with a single positive literal to the solver CNF, updating
+        self's map from predicates to DIMACS literals and DIMACS literals to predicates.
+        
+        '''
+
+        assertion_clause = Clause(predicate_string, [])
+        self.update_maps([assertion_clause])
+        self.solver.add_clause(self.dimacs(assertion_clause))
+
     def una_equality(self):
         '''
 
@@ -116,16 +133,11 @@ class HornSolver:
             for c1 in self.sorts[s]:
                 for c2 in self.sorts[s]:
                     equality = f"{c1} = {c2}"
+                    inequality = f"{c1} != {c2}"
                     if c1 != c2:
-                        pure_clause = Clause(f"{c1} != {c2}", [])
-                        pure_clauses = [pure_clause]
-                        self.update_maps(pure_clauses)
-                        self.solver.add_clause(self.dimacs(pure_clause))
+                        self.add_assertion(inequality)
                     elif c1 == c2 and equality not in self.literal_map:
-                        pure_clause = Clause(equality, [])
-                        pure_clauses = [pure_clause]
-                        self.update_maps(pure_clauses)
-                        self.solver.add_clause(self.dimacs(pure_clause))
+                        self.add_assertion(equality)
 
     def is_functional(self, term_string):
         '''
