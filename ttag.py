@@ -42,6 +42,8 @@ right_facts = [f"right {a} {b}" for a, b in paired_constants]
 
 solver.sorts["node"] = list(tree_constants)
 
+solver.add_assertion("root c0")
+
 
 for f in tree_facts:
 
