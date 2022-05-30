@@ -1,5 +1,5 @@
 sort node 13
-sort type 30
+sort type 13
 
 left (n : node, m : node) v not left (n, m)
 left (n : node, m : node), not left (n, m) => False
@@ -97,19 +97,6 @@ modifies to left (a.type : node), child (b : node, a : node) => right (b, a)
 complements to right (a.type : node), child (b : node, a : node) => left (b, a)
 complements to left (a.type : node), child (b : node, a : node) => right (b, a)
 
--- Semantic complementation and adjunction rules --
-
-head (a : node, b : node), complement(b.type : node) => bind up (b.drs.self, a.drs.self)
-head (a : node, b : node), complement(b.type : node) => bind up (b.drs.2, a.drs.1)
-head (a : node, b : node), complement(b.type : node) => bind up (b.drs.3, a.drs.2)
-head (a : node, b : node), complement(b.type : node) => bind up (b.drs.4, a.drs.3)
-
-modifier (a : node, b : node), adjunct(b.type : node) => bind up (b.drs.1, a.drs.self)
-
-bind up (sa: semitem, sb : semitem), physical thing (sa) => p(sb)
-bind up (sa: semitem, sb : semitem), person (sa) => p(sb)
-bind up (sa: semitem, sb : semitem), fully referring (sa) => p(sb)
-
 -- CCG-style typing rules --
 
 sentential (t : type) v nominal (t : type)
@@ -154,23 +141,39 @@ leaf(a: node) => full(a.type)
 blank (t: type), nodetype (t : type) => False
 blank (t: type), leaftype (t : type) => False
 
---     You can cut a type node to prevent it from having meaningful branches --
+-- You can cut a type node to prevent it from having meaningful branches --
 
 cut (t : type) => blank(t.input), blank(t.output)
 
--- Lexical item rules --
---     If a word is a word node, it has to be a leaf --
+-- Assert the whole tree is a sentence by forcing roots to be of type sentence
+   Lexical item rules
+   If a word is a word node, it has to be a leaf --
 
 word (a : node) => leaf (a)
 word (a : node), phrase(a) => False
 
---     We define several common word types --
---     Common nouns, or n, are word nodes whose type is nominal and is cut --
+-- Semantic complementation and adjunction rules --
+
+head (a : node, b : node), complement(b.type : node) => bind up (b.drs.self, a.drs.self)
+head (a : node, b : node), complement(b.type : node) => bind up (b.drs.2, a.drs.1)
+head (a : node, b : node), complement(b.type : node) => bind up (b.drs.3, a.drs.2)
+head (a : node, b : node), complement(b.type : node) => bind up (b.drs.4, a.drs.3)
+
+modifier (a : node, b : node), adjunct(b.type : node) => bind up (b.drs.1, a.drs.self)
+
+bind up (sa: semitem, sb : semitem), physical thing (sa) => p(sb)
+bind up (sa: semitem, sb : semitem), person (sa) => p(sb)
+bind up (sa: semitem, sb : semitem), fully referring (sa) => p(sb)
+
+-- We define several common word types
+   Common nouns, or n, are word nodes whose 
+   type is nominal and is cut --
 
 n (a : node) => word(a), nominal (a.type), cut (a.type)
 
---     Common transitive verbs, or nns, are word nodes taking a noun as an input and returning --
---     a function from yet another noun to a sentence --
+-- Common transitive verbs, or nns, are word nodes
+   taking a noun as an input and returning
+   a function from yet another noun to a sentence --
 
 nns (a : node) => word(a)
 
@@ -179,7 +182,8 @@ nns (a : node) => cut (a.type.input), cut (a.type.output.input), cut (a.type.out
 
 nns (a: node) => complements to right (a.type), complements to left (a.type.output)
 
---     Common noun adjuncts, or nn, are word nodes taking a noun as an argument and returning a noun --
+-- Common noun adjuncts, or nn, are word nodes taking a noun as an argument and returning a noun
+   phrase (a : node), root (a) => sentential (a.type), leaftype (a.type) --
 
 nn (a : node) => word(a)
 
@@ -188,27 +192,6 @@ nn (a : node) => cut (a.type.input), cut (a.type.output)
 
 nn (a : node) => modifies to right (a.type)
 
--- es tio, esta tio, no, es silla, esta silla, no --
--- add blank semitems, if a semitem is blank, it cant have properties --
-
--- An individual expression is fully referring if it is identified --
-
--- An individual expression is identified if it has a relational determinant --
-
--- george 's uncle --
--- the man who sold the world --
--- peter is tall  --
--- peter is one of the tall folk --
--- peter is thomas 's boss --
--- thomas 's boss wants us to leave -- 
-
--- I dont trust the tall folk --
-
--- Poke peter --
--- Poke peter in the eye --
--- X Peter and Pam are poking --
--- Peter and Pam are looking --
-
 chair (a : node) => n (a)
 chair (a : node) => physical thing (a.drs.self)
 
@@ -216,15 +199,15 @@ vase (a : node) => n(a)
 vase (a : node) => physical thing (a.drs.self)
 
 broke (a : node) => nns(a)
-broke (a : node) => actor (a.drs.1), physical thing (a.drs.2), event (a.drs.self)
+broke (a : node) => person (a.drs.1), physical thing (a.drs.2), event (a.drs.self)
 broke (a : node), not fully referring (a.drs.1) => False
 broke (a : node), not fully referring (a.drs.2) => False
 
 steven (a : node) => n(a)
-steven (a : node) => person(a.drs.self)
+steven (a : node) => person(a.drs.self), fully referring (a.drs.self)
 
 marygold (a : node) => n(a)
-marygold (a : node) => person(a.drs.self)
+marygold (a : node) => person(a.drs.self), fully referring (a.drs.self)
 
 person (s : semitem), physical thing (s : semitem) => False
 
@@ -237,3 +220,5 @@ is (a : node) => cut (a.type.input), cut (a.type.output.input), cut (a.type.outp
 the (a : node) => nn(a)
 the (a : node) => cut (a.type.input), cut (a.type.output)
 the (a : node) => fully referring (a.drs.1)
+
+is (a : node) v the (a : node) v broke (a : node) v vase (a : node) v chair (a : node) v steven (a : node) v marygold (a : node) v not leaf (a : node)

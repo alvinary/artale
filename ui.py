@@ -349,7 +349,7 @@ class TreeViewer:
 
         self.lexicon = []
 
-        self.index = 300
+        self.index = 0
         self.nodes_map = {}
         self.tree = []
 
@@ -382,25 +382,40 @@ class TreeViewer:
 
         fact_literal = ttag.solver.literal_map[self.right_facts[self.index]]
         satisfiability_check = ttag.solver.solver.solve([fact_literal])
+        found_a_model = False
 
         while not satisfiability_check:
+
+            absolute_index = self.index + index_shift
+
             self.index = (self.index + index_shift) % self.model_length
             fact_literal = ttag.solver.literal_map[self.right_facts[self.index]]
-            satisfiability_check = ttag.solver.solver.solve([fact_literal])
+
             print(f"Skipping to index {self.index}...")
 
-        model = ttag.solver.solver.get_model()
+            satisfiability_check = ttag.solver.solver.solve([fact_literal])
+            found_a_model = found_a_model or satisfiability_check
 
-        if self.model_length == 1:
-            self.model_length = max([abs(atlit) for atlit in model])
-            print(f"Updated model length: {self.model_length}")
+            looped_all_the_way = absolute_index >= self.model_length
 
-        model_as_set = ttag.solver.get_relations(model, ["left", "right"])
+            if not found_a_model and looped_all_the_way:
+                print("The specification in this program is unsatisfiable!")
+                break
 
-        self.tree_nodes, self.tree_relations = read_relations(model_as_set)
-        self.nodes_map = {}
+        if satisfiability_check:
 
-        self.update_tree_view(model)
+            model = ttag.solver.solver.get_model()
+
+            if self.model_length == 1:
+                self.model_length = max([abs(atlit) for atlit in model])
+                print(f"Updated model length: {self.model_length}")
+
+            model_as_set = ttag.solver.get_relations(model, ["left", "right"])
+
+            self.tree_nodes, self.tree_relations = read_relations(model_as_set)
+            self.nodes_map = {}
+
+            self.update_tree_view(model)
 
     def update_tree_view(self, model):
     

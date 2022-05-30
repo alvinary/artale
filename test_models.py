@@ -119,6 +119,9 @@ def test_show_models():
     solver.show_model(model)
     solver.show_model(model, show_false=True)
 
+def test_json_dump():
+    pass
+
 if __name__ == "__main__":
     test_unfolding()
     test_una_equality()
