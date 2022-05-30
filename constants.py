@@ -32,6 +32,8 @@ NODE_MARGIN = 5
 NO_WORD = "(...)"
 TYPE_WARNING = "NO TYPE"
 
+LEXICON = "is steven marygold the broke vase chair".split()
+
 TEMPLATE = '''
 sort component 40
 sort tile 60
