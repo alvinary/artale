@@ -71,6 +71,8 @@ class TileTagger:
         self.scroll_shift_y -= int(scroll_y * SCROLL_SCALING)
         for rect in self.selected_areas:
             rect.adjust_to_scrolling()
+        for node in self.virtual_nodes:
+            node.adjust_to_scrolling()
 
     def on_key_press(self, symbol, modifiers):
 
