@@ -61,6 +61,9 @@ class TileTagger:
         self.selected_tiles_x = []
         self.selected_tiles_y = []
 
+        self.virtual_nodes = []
+        self.selected_virtual_nodes = []
+
         self.drag = False
 
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
@@ -101,7 +104,9 @@ class TileTagger:
 
     def on_mouse_press(self, x, y, button, modifiers):
 
-        if button == pyglet.window.mouse.LEFT:
+        modifiers = pyglet.window.key.modifiers_string(modifiers)
+
+        if button == pyglet.window.mouse.LEFT and 'MOD_SHIFT' not in modifiers and 'MOD_CTRL' not in modifiers:
 
             if self.label:
                 if self.label.label_item:
@@ -117,10 +122,24 @@ class TileTagger:
 
             window.push_handlers(self.label)
 
-        if button == pyglet.window.mouse.RIGHT:
+        if button == pyglet.window.mouse.RIGHT and 'MOD_CTRL' not in modifiers:
             self.drag = not self.drag
 
+        if button == pyglet.window.mouse.LEFT and 'MOD_CTRL' in modifiers and 'MOD_SHIFT' not in modifiers:
+            selected_nodes = [n for n in self.selected_virtual_nodes]
+            selected_tiles = list(zip(self.selected_tiles_x, self.selected_tiles_y))
+            print("Selected tiles: ", selected_tiles)
+            print("Selected nodes: ", selected_nodes)
+            new_node = VirtualNode(self, x, y, list(selected_nodes),
+                                   list(selected_tiles))
+            new_node.update_edges()
+            window.push_handlers(new_node)
+            self.virtual_nodes.append(new_node)
+            self.clear_label()
+
+
     def on_mouse_motion(self, x, y, dx, dy):
+
         self.tile_x = self.get_tile_x(x)
         self.tile_y = self.get_tile_y(y)
         self.mouse_x = x
@@ -133,6 +152,8 @@ class TileTagger:
             self.tilemap.y += dy
             for rect in self.selected_areas:
                 rect.adjust_to_scrolling()
+            for node in self.virtual_nodes:
+                node.adjust_to_scrolling()
 
     def on_key_release(self, symbol, modifiers):
         if symbol == pyglet.window.key.LSHIFT and self.panel:
@@ -209,9 +230,82 @@ class AreaRectangle:
         self.shape.y = self.y * TILE_SIDE + self.tagger.scroll_shift_y
 
 
-class AreaParse:
-    def __init__(self):
-        pass
+class VirtualNode:
+    def __init__(self, tagger, x, y, node_children, tile_children):
+        self.x = x
+        self.y = y
+        self.node_children = node_children
+        self.tile_children = tile_children
+        self.shape = pyglet.shapes.Rectangle(x=self.x, y=self.y,
+                                             width=TILE_SIDE,
+                                             height=TILE_SIDE,
+                                             color=(0, 125, 255),
+                                             batch=hover_batch)
+        self.shape.opacity = 128
+        self.edges = []
+        self.selected = False
+        self.tags = set()
+        self.tagger = tagger
+
+    def update_edges(self):
+
+        while self.edges:
+            current_edge = self.edges.pop()
+            current_edge.delete()
+            current_edge = None
+
+        self.edges = []
+
+        self_center_x = self.x + TILE_SIDE // 2
+        self_center_y = self.y + TILE_SIDE // 2
+
+        for child in self.node_children:
+            child_center_x = child.x + TILE_SIDE // 2
+            child_center_y = child.y + TILE_SIDE // 2
+            new_edge = pyglet.shapes.Line(self_center_x, self_center_y,
+                                          child_center_x, child_center_y,
+                                          batch=hover_batch,
+                                          width=6, color=(255, 0, 0))
+            new_edge.opacity = 100
+            self.edges.append(new_edge)
+
+        for (child_x, child_y) in self.tile_children:
+            child_center_x = child_x * TILE_SIDE + TILE_SIDE // 2 + self.tagger.scroll_shift_x
+            child_center_y = child_y * TILE_SIDE + TILE_SIDE // 2 + self.tagger.scroll_shift_y
+            new_edge = pyglet.shapes.Line(self_center_x, self_center_y,
+                                          child_center_x, child_center_y,
+                                          batch=hover_batch,
+                                          width=2, color=(255, 0, 0))
+            new_edge.opacity = 100
+            self.edges.append(new_edge)
+
+    def on_mouse_press(self, x, y, button, modifiers):
+
+        modifiers_string = pyglet.window.key.modifiers_string(modifiers)
+
+        right_click = button == pyglet.window.mouse.RIGHT
+        control_mod = 'MOD_CTRL' in modifiers_string
+        within_x = self.x <= x + TILE_SIDE and self.x >= x
+        within_y = self.y <= y + TILE_SIDE and self.y >= y
+
+        if right_click and control_mod and within_x and within_y:
+            self.selected = True
+            self.tagger.selected_virtual_nodes.append(self)
+            print("Appended virtual node!")
+            self.shape.color = (0, 0, 255)
+
+        if right_click and control_mod and within_x and within_y and self.selected:
+            self.selected = False
+            self.tagger.selected_virtual_nodes.remove(self)
+            print("Removed virtual node!")
+            self.shape.color = (0, 125, 255)
+
+    def adjust_to_scrolling(self):
+        self.x += self.tagger.scroll_shift_x
+        self.y += self.tagger.scroll_shift_y
+        self.shape.x = self.x + self.tagger.scroll_shift_x
+        self.shape.y = self.y + self.tagger.scroll_shift_y
+        self.update_edges()
 
 
 class ShortTextInput:
