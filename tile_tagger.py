@@ -108,7 +108,13 @@ class TileTagger:
 
         modifiers = pyglet.window.key.modifiers_string(modifiers)
 
-        if button == pyglet.window.mouse.LEFT and 'MOD_SHIFT' not in modifiers and 'MOD_CTRL' not in modifiers:
+        shift_modifier = 'MOD_SHIFT' in modifiers
+        control_modifier = 'MOD_CTRL' in modifiers
+
+        simple = not shift_modifier and not control_modifier
+        just_control = not shift_modifier and control_modifier
+
+        if button == pyglet.window.mouse.LEFT and simple:
 
             if self.label:
                 if self.label.label_item:
@@ -120,23 +126,30 @@ class TileTagger:
             self.selected_tiles_x.append(self.tile_x)
             self.selected_tiles_y.append(self.tile_y)
 
-            self.selected_areas.append(AreaRectangle(self.tile_x, self.tile_y, self))
+            self.selected_areas.append(AreaRectangle(self.tile_x,
+                                                     self.tile_y,
+                                                     self))
 
             window.push_handlers(self.label)
 
-        if button == pyglet.window.mouse.RIGHT and 'MOD_CTRL' not in modifiers:
+        if button == pyglet.window.mouse.RIGHT and not control_modifier:
             self.drag = not self.drag
 
-        if button == pyglet.window.mouse.LEFT and 'MOD_CTRL' in modifiers and 'MOD_SHIFT' not in modifiers:
+        if button == pyglet.window.mouse.LEFT and just_control:
+
             selected_nodes = [n for n in self.selected_virtual_nodes]
             selected_tiles = list(zip(self.selected_tiles_x, self.selected_tiles_y))
+            
             print("Selected tiles: ", selected_tiles)
             print("Selected nodes: ", selected_nodes)
+            
             new_node = VirtualNode(self, x, y, list(selected_nodes),
                                    list(selected_tiles))
+            
             new_node.update_edges()
             window.push_handlers(new_node)
             self.virtual_nodes.append(new_node)
+            
             self.clear_label()
 
 
@@ -234,6 +247,10 @@ class AreaRectangle:
 
 class VirtualNode:
     def __init__(self, tagger, x, y, node_children, tile_children):
+        self.shift_x = tagger.scroll_shift_x
+        self.shift_y = tagger.scroll_shift_y
+        self.start_x = x
+        self.start_y = y
         self.x = x
         self.y = y
         self.node_children = node_children
@@ -303,10 +320,10 @@ class VirtualNode:
             self.shape.color = (0, 125, 255)
 
     def adjust_to_scrolling(self):
-        self.x += self.tagger.scroll_shift_x
-        self.y += self.tagger.scroll_shift_y
-        self.shape.x = self.x + self.tagger.scroll_shift_x
-        self.shape.y = self.y + self.tagger.scroll_shift_y
+        self.x = self.start_x + self.tagger.scroll_shift_x - self.shift_x
+        self.y = self.start_y + self.tagger.scroll_shift_y - self.shift_y
+        self.shape.x = self.x
+        self.shape.y = self.y
         self.update_edges()
 
 
