@@ -175,6 +175,11 @@ class TileTagger:
             self.drop_panel()
 
     def clear_label(self):
+
+        for node in self.selected_virtual_nodes:
+            node.unselect()
+
+        self.selected_virtual_nodes = []
         self.selected_tiles_x = []
         self.selected_tiles_y = []
 
@@ -308,16 +313,12 @@ class VirtualNode:
         within_y = y >= self.y and self.y + TILE_SIDE >= y
 
         if right_click and control_mod and within_x and within_y and not self.selected:
-            self.selected = True
+            self.select()
             self.tagger.selected_virtual_nodes.append(self)
-            print("Appended virtual node!")
-            self.shape.color = (0, 0, 255)
 
         elif right_click and control_mod and within_x and within_y and self.selected:
-            self.selected = False
+            self.unselect()
             self.tagger.selected_virtual_nodes.remove(self)
-            print("Removed virtual node!")
-            self.shape.color = (0, 125, 255)
 
     def adjust_to_scrolling(self):
         self.x = self.start_x + self.tagger.scroll_shift_x - self.shift_x
@@ -325,6 +326,14 @@ class VirtualNode:
         self.shape.x = self.x
         self.shape.y = self.y
         self.update_edges()
+
+    def select(self):
+        self.selected = True
+        self.shape.color = (0, 0, 255)
+
+    def unselect(self):
+        self.selected = False
+        self.shape.color = (0, 125, 255)
 
 
 class ShortTextInput:
