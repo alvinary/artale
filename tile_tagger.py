@@ -284,7 +284,7 @@ class VirtualNode:
             new_edge = pyglet.shapes.Line(self_center_x, self_center_y,
                                           child_center_x, child_center_y,
                                           batch=hover_batch,
-                                          width=6, color=(255, 0, 0))
+                                          width=2, color=(255, 0, 0))
             new_edge.opacity = 100
             self.edges.append(new_edge)
 
@@ -307,13 +307,13 @@ class VirtualNode:
         within_x = x >= self.x and self.x + TILE_SIDE >= x
         within_y = y >= self.y and self.y + TILE_SIDE >= y
 
-        if right_click and control_mod and within_x and within_y:
+        if right_click and control_mod and within_x and within_y and not self.selected:
             self.selected = True
             self.tagger.selected_virtual_nodes.append(self)
             print("Appended virtual node!")
             self.shape.color = (0, 0, 255)
 
-        if right_click and control_mod and within_x and within_y and self.selected:
+        elif right_click and control_mod and within_x and within_y and self.selected:
             self.selected = False
             self.tagger.selected_virtual_nodes.remove(self)
             print("Removed virtual node!")
