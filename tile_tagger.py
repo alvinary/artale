@@ -304,8 +304,8 @@ class VirtualNode:
 
         right_click = button == pyglet.window.mouse.RIGHT
         control_mod = 'MOD_CTRL' in modifiers_string
-        within_x = self.x <= x + TILE_SIDE and self.x >= x
-        within_y = self.y <= y + TILE_SIDE and self.y >= y
+        within_x = x >= self.x and self.x + TILE_SIDE >= x
+        within_y = y >= self.y and self.y + TILE_SIDE >= y
 
         if right_click and control_mod and within_x and within_y:
             self.selected = True
