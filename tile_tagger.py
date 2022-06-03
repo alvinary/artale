@@ -33,7 +33,7 @@ color_batch = pyglet.graphics.Batch()
 
 index = lambda: defaultdict(lambda: set())
 
-tileset_resource = pyglet.image.load("./images/maps/8227.png")
+tileset_resource = pyglet.image.load("./images/maps/kitchen.png")
 
 
 class TileTagger:
