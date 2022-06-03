@@ -48,28 +48,32 @@ class TileTagger:
                                             batch=background_batch)
         self.panel = None
         self.label = None
+
+        self.mouse_x = 0
+        self.mouse_y = 0
+
         self.tile_x = 0
         self.tile_y = 0
 
         self.scroll_shift_y = 0
         self.scroll_shift_x = 0
-        self.selected_areas = []
+
+        self.selected_tiles = set()
+        self.selected_areas = {}
 
         self.tilemap.scale_x = 3
         self.tilemap.scale_y = 3
 
-        self.selected_tiles_x = []
-        self.selected_tiles_y = []
-
         self.virtual_nodes = []
         self.selected_virtual_nodes = []
+        self.hovered_virtual_node = False
 
         self.drag = False
 
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
         self.tilemap.y = self.tilemap.y - int(scroll_y * SCROLL_SCALING)
         self.scroll_shift_y -= int(scroll_y * SCROLL_SCALING)
-        for rect in self.selected_areas:
+        for _, rect in self.selected_areas.items():
             rect.adjust_to_scrolling()
         for node in self.virtual_nodes:
             node.adjust_to_scrolling()
@@ -79,8 +83,7 @@ class TileTagger:
         modifiers = pyglet.window.key.modifiers_string(modifiers)
 
         if symbol == pyglet.window.key.LSHIFT:
-            if self.property_index[self.tile_x, self.tile_y]:
-                self.set_panel(self.mouse_x, self.mouse_y)
+            self.set_panel()
 
         if symbol == pyglet.window.key.TAB:
             self.dump_string()
@@ -114,6 +117,9 @@ class TileTagger:
         simple = not shift_modifier and not control_modifier
         just_control = not shift_modifier and control_modifier
 
+        tile_x = self.tile_x
+        tile_y = self.tile_y
+
         if button == pyglet.window.mouse.LEFT and simple:
 
             if self.label:
@@ -122,15 +128,21 @@ class TileTagger:
                 self.label = None
 
             self.label = ShortTextInput(self, ">", x, y)
+
+            if (tile_x, tile_y) in self.selected_tiles:
+                self.selected_tiles.discard((tile_x, tile_y))
+                rect = self.selected_areas.pop((tile_x, tile_y))
+                rect.discard()
+
+            else: 
             
-            self.selected_tiles_x.append(self.tile_x)
-            self.selected_tiles_y.append(self.tile_y)
+                self.selected_tiles.add((tile_x, tile_y))
 
-            self.selected_areas.append(AreaRectangle(self.tile_x,
-                                                     self.tile_y,
-                                                     self))
+                self.selected_areas[tile_x, tile_y] = AreaRectangle(self.tile_x,
+                                                                    self.tile_y,
+                                                                    self)
 
-            window.push_handlers(self.label)
+                window.push_handlers(self.label)
 
         if button == pyglet.window.mouse.RIGHT and not control_modifier:
             self.drag = not self.drag
@@ -138,7 +150,7 @@ class TileTagger:
         if button == pyglet.window.mouse.LEFT and just_control:
 
             selected_nodes = [n for n in self.selected_virtual_nodes]
-            selected_tiles = list(zip(self.selected_tiles_x, self.selected_tiles_y))
+            selected_tiles = list(self.selected_tiles)
             
             print("Selected tiles: ", selected_tiles)
             print("Selected nodes: ", selected_nodes)
@@ -165,7 +177,7 @@ class TileTagger:
             self.scroll_shift_x += dx
             self.tilemap.x += dx
             self.tilemap.y += dy
-            for rect in self.selected_areas:
+            for _, rect in self.selected_areas.items():
                 rect.adjust_to_scrolling()
             for node in self.virtual_nodes:
                 node.adjust_to_scrolling()
@@ -180,13 +192,11 @@ class TileTagger:
             node.unselect()
 
         self.selected_virtual_nodes = []
-        self.selected_tiles_x = []
-        self.selected_tiles_y = []
+        self.selected_tiles = set()
 
         while self.selected_areas:
-            rect = self.selected_areas.pop()
-            rect.shape.delete()
-            rect.shape = None
+            _, rect = self.selected_areas.popitem()
+            rect.discard()
         
         if self.label:
             if self.label.label_item:
@@ -209,9 +219,13 @@ class TileTagger:
             self.panel.tags = []
             self.panel = None
 
-    def set_panel(self, x, y):
+            if self.hovered_virtual_node:
+                self.hovered_virtual_node.is_hovered = False
+            self.hovered_virtual_node = False
+
+    def set_panel(self):
         if not self.panel:
-            self.panel = TagPanel(self, x, y)
+            self.panel = TagPanel(self)
             self.panel.update_labels()
 
     def dump_string(self):
@@ -249,6 +263,10 @@ class AreaRectangle:
         self.shape.x = self.x * TILE_SIDE + self.tagger.scroll_shift_x
         self.shape.y = self.y * TILE_SIDE + self.tagger.scroll_shift_y
 
+    def discard(self):
+        self.shape.delete()
+        self.shape = None
+
 
 class VirtualNode:
     def __init__(self, tagger, x, y, node_children, tile_children):
@@ -270,6 +288,7 @@ class VirtualNode:
         self.selected = False
         self.tags = set()
         self.tagger = tagger
+        self.is_hovered = False
 
     def update_edges(self):
 
@@ -319,6 +338,21 @@ class VirtualNode:
         elif right_click and control_mod and within_x and within_y and self.selected:
             self.unselect()
             self.tagger.selected_virtual_nodes.remove(self)
+
+    def on_mouse_motion(self, x, y, dx, dy):
+
+        within_x = x >= self.x and self.x + TILE_SIDE >= x
+        within_y = y >= self.y and self.y + TILE_SIDE >= y
+
+        if within_x and within_y and not self.is_hovered:
+            self.is_hovered = True
+            if self.tagger.hovered_virtual_node:
+                self.tagger.hovered_virtual_node.is_hovered = False
+            self.tagger.hovered_virtual_node = self
+        
+        if not (within_x and within_y) and self.is_hovered:
+            self.is_hovered = False
+            self.tagger.hovered_virtual_node = False
 
     def adjust_to_scrolling(self):
         self.x = self.start_x + self.tagger.scroll_shift_x - self.shift_x
@@ -372,11 +406,13 @@ class ShortTextInput:
         
             new_tags = set([s.strip() for s in self.text.split(",")])
 
-            selected_tiles = zip(self.tagger.selected_tiles_x,
-                    self.tagger.selected_tiles_y)
+            selected_tiles = list(self.tagger.selected_tiles)
 
             for (tile_x, tile_y) in selected_tiles:
                 self.tagger.property_index[tile_x, tile_y] |= new_tags
+
+            for node in self.tagger.selected_virtual_nodes:
+                node.tags |= new_tags
 
             self.tagger.clear_label()
 
@@ -435,20 +471,31 @@ class ShortTextInput:
 
 class TagPanel:
 
-    def __init__(self, tagger, x, y):
+    def __init__(self, tagger):
+
         self.tagger = tagger
         self.tile_x = self.tagger.tile_x
         self.tile_y = self.tagger.tile_y
         self.tags = []
         self.label_panel = []
-        self.x = x
-        self.y = y
+        self.x = tagger.mouse_x
+        self.y = tagger.mouse_y
         self.panel_background = None
+        self.virtual_node = False
+
+        if self.tagger.hovered_virtual_node:
+            self.virtual_node = self.tagger.hovered_virtual_node
 
     def update_tags(self):
         self.tags = []
-        for t in self.tagger.property_index[self.tile_x, self.tile_y]:
-            self.tags.append(t)
+
+        if not self.virtual_node:
+            for t in self.tagger.property_index[self.tile_x, self.tile_y]:
+                self.tags.append(t)
+        
+        if self.virtual_node:
+            for t in self.virtual_node.tags:
+                self.tags.append(t)
 
     def update_labels(self):
         self.update_tags()
