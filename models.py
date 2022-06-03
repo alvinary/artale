@@ -330,11 +330,26 @@ class HornSolver:
                          for (a, f) in self.value_map]
 
         return as_json({
-            clauses: cnf_clauses,
-            literals: self.literal_map,
-            values: value_triples
+            'clauses': cnf_clauses,
+            'literals': self.literal_map,
+            'values': value_triples
         })
 
+def group_rules(rules):
+    '''
+
+    Input a list of rules and return a dictionary grouping
+    rules by their 'predicate signature' (i.e. if two
+    predicates range over two variables of the same sort,
+    they are grouped together, same as four rules ranging
+    over a single variable of the same sort).
+
+    '''
+    sorts_map = {}
+    for r in rules:
+        sorts_tuple = tuple(sorted(r.sorts))
+        sorts_map[sorts_tuple].append(r)
+    return sorts_map
 
 @dataclass
 class Relation:
