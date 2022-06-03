@@ -227,7 +227,18 @@ class TileTagger:
 
     def dump_string(self):
         for k in self.property_index:
-            print(f"{k[0]}, {k[1]}: {', '.join(self.property_index[k])}")
+            print(f"{k[0]}.{k[1]}: {', '.join(self.property_index[k])}")
+        print("")
+        for node in self.virtual_nodes:
+            node_properties = ', '.join(list(node.tags))
+            print(f"node at {node.x // TILE_SIDE}.{node.y // TILE_SIDE}: {node_properties}")
+            for tile_x, tile_y in node.tile_children:
+                print(f"has child: node at {node.x}.{node.y}, tile {tile_x}.{tile_y}")
+            for child_node in node.node_children:
+                child_x = child_node.x // TILE_SIDE
+                child_y = child_node.y // TILE_SIDE
+                print(f"has child: node at {node.x}.{node.y}, node at {child_x}.{child_y}")
+            print("")
         print("")
 
     def load_string(self, text):
