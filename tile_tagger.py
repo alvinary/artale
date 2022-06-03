@@ -335,6 +335,14 @@ class VirtualNode:
             self.select()
             self.tagger.selected_virtual_nodes.append(self)
 
+            if self.tagger.label:
+                if self.tagger.label.label_item:
+                    self.tagger.label.label_item.delete()
+                self.tagger.label = None
+
+            self.tagger.label = ShortTextInput(self.tagger, ">", x, y)
+            window.push_handlers(self.tagger.label)
+
         elif right_click and control_mod and within_x and within_y and self.selected:
             self.unselect()
             self.tagger.selected_virtual_nodes.remove(self)
