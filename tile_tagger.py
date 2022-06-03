@@ -33,7 +33,7 @@ color_batch = pyglet.graphics.Batch()
 
 index = lambda: defaultdict(lambda: set())
 
-tileset_resource = pyglet.image.load("./images/61816.png")
+tileset_resource = pyglet.image.load("./images/maps/8227.png")
 
 
 class TileTagger:
@@ -294,6 +294,7 @@ class VirtualNode:
         self.shape.opacity = 128
         self.edges = []
         self.selected = False
+        self.show_edges = False
         self.tags = set()
         self.tagger = tagger
         self.is_hovered = False
@@ -310,25 +311,27 @@ class VirtualNode:
         self_center_x = self.x + TILE_SIDE // 2
         self_center_y = self.y + TILE_SIDE // 2
 
-        for child in self.node_children:
-            child_center_x = child.x + TILE_SIDE // 2
-            child_center_y = child.y + TILE_SIDE // 2
-            new_edge = pyglet.shapes.Line(self_center_x, self_center_y,
-                                          child_center_x, child_center_y,
-                                          batch=hover_batch,
-                                          width=2, color=(255, 0, 0))
-            new_edge.opacity = 100
-            self.edges.append(new_edge)
+        if self.show_edges:
 
-        for (child_x, child_y) in self.tile_children:
-            child_center_x = child_x * TILE_SIDE + TILE_SIDE // 2 + self.tagger.scroll_shift_x
-            child_center_y = child_y * TILE_SIDE + TILE_SIDE // 2 + self.tagger.scroll_shift_y
-            new_edge = pyglet.shapes.Line(self_center_x, self_center_y,
-                                          child_center_x, child_center_y,
-                                          batch=hover_batch,
-                                          width=2, color=(255, 0, 0))
-            new_edge.opacity = 100
-            self.edges.append(new_edge)
+            for child in self.node_children:
+                child_center_x = child.x + TILE_SIDE // 2
+                child_center_y = child.y + TILE_SIDE // 2
+                new_edge = pyglet.shapes.Line(self_center_x, self_center_y,
+                                            child_center_x, child_center_y,
+                                            batch=hover_batch,
+                                            width=2, color=(255, 0, 0))
+                new_edge.opacity = 100
+                self.edges.append(new_edge)
+
+            for (child_x, child_y) in self.tile_children:
+                child_center_x = child_x * TILE_SIDE + TILE_SIDE // 2 + self.tagger.scroll_shift_x
+                child_center_y = child_y * TILE_SIDE + TILE_SIDE // 2 + self.tagger.scroll_shift_y
+                new_edge = pyglet.shapes.Line(self_center_x, self_center_y,
+                                            child_center_x, child_center_y,
+                                            batch=hover_batch,
+                                            width=2, color=(255, 0, 0))
+                new_edge.opacity = 100
+                self.edges.append(new_edge)
 
     def on_mouse_press(self, x, y, button, modifiers):
 
@@ -340,7 +343,9 @@ class VirtualNode:
         within_y = y >= self.y and self.y + TILE_SIDE >= y
 
         if right_click and control_mod and within_x and within_y and not self.selected:
+            
             self.select()
+            
             self.tagger.selected_virtual_nodes.append(self)
 
             if self.tagger.label:
@@ -380,10 +385,25 @@ class VirtualNode:
     def select(self):
         self.selected = True
         self.shape.color = (0, 0, 255)
+        self.show_tree()
 
     def unselect(self):
         self.selected = False
         self.shape.color = (0, 125, 255)
+        self.hide_tree()
+
+    def show_tree(self):
+        self.show_edges = True
+        self.update_edges()
+        for node in self.node_children:
+            node.show_tree()
+
+    def hide_tree(self):
+        self.show_edges = False
+        self.update_edges()
+        for node in self.node_children:
+            if not node.selected:
+                node.hide_tree()
 
 
 class ShortTextInput:
