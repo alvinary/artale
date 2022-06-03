@@ -152,9 +152,6 @@ class TileTagger:
             selected_nodes = [n for n in self.selected_virtual_nodes]
             selected_tiles = list(self.selected_tiles)
             
-            print("Selected tiles: ", selected_tiles)
-            print("Selected nodes: ", selected_nodes)
-            
             new_node = VirtualNode(self, x, y, list(selected_nodes),
                                    list(selected_tiles))
             
