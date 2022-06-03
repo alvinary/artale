@@ -222,7 +222,7 @@ class TileTagger:
 
     def set_panel(self):
         if not self.panel:
-            self.panel = TagPanel(self)
+            self.panel = TagPanel(self, self.tile_x, self.tile_y)
             self.panel.update_labels()
 
     def dump_string(self):
@@ -266,6 +266,7 @@ class AreaRectangle:
                                              batch=hover_batch)
 
         self.shape.opacity = 100
+        self.panel = False
 
     def adjust_to_scrolling(self):
         self.shape.x = self.x * TILE_SIDE + self.tagger.scroll_shift_x
@@ -274,6 +275,24 @@ class AreaRectangle:
     def discard(self):
         self.shape.delete()
         self.shape = None
+
+    def show_panel(self):
+        self.panel = TagPanel(self.tagger,
+                              self.x,
+                              self.y)
+        self.panel.update_labels()
+
+    def hide_panel(self):
+        if self.panel:
+            for l in self.panel.label_panel:
+                l.delete()
+            if self.panel.panel_background:
+                self.panel.panel_background.delete()
+                self.panel.panel_background = None
+            self.panel.tags = []
+            self.panel = None
+
+
 
 
 class VirtualNode:
@@ -298,6 +317,8 @@ class VirtualNode:
         self.tags = set()
         self.tagger = tagger
         self.is_hovered = False
+        self.label = False
+        self.panel = False
 
     def update_edges(self):
 
@@ -393,17 +414,62 @@ class VirtualNode:
         self.hide_tree()
 
     def show_tree(self):
+
         self.show_edges = True
+        self.show_panel()
         self.update_edges()
+
         for node in self.node_children:
             node.show_tree()
 
+        for tile_x, tile_y in self.tile_children:
+
+            if (tile_x, tile_y) not in self.tagger.selected_areas:
+
+                self.tagger.selected_areas[tile_x, tile_y] = AreaRectangle(tile_x,
+                                                                           tile_y,
+                                                                           self.tagger)
+
+                self.tagger.selected_areas[tile_x, tile_y].shape.color = (255, 125, 0)
+
+            self.tagger.selected_areas[tile_x, tile_y].show_panel()
+
     def hide_tree(self):
+
         self.show_edges = False
+        self.hide_panel()
         self.update_edges()
+
         for node in self.node_children:
             if not node.selected:
                 node.hide_tree()
+
+        for tile_x, tile_y in self.tile_children:
+
+            if (tile_x, tile_y) in self.tagger.selected_areas:
+            
+                self.tagger.selected_areas[tile_x, tile_y].hide_panel()
+
+                if (tile_x, tile_y) not in self.tagger.selected_tiles:
+                    chomeur_tile = self.tagger.selected_areas.pop((tile_x, tile_y))
+                    chomeur_tile.discard()
+
+    def show_panel(self):
+        self.panel = TagPanel(self.tagger,
+                              0,
+                              0,
+                              virtual_node=self)
+        self.panel.update_labels()
+
+    def hide_panel(self):
+        if self.panel:
+            for l in self.panel.label_panel:
+                l.delete()
+            if self.panel.panel_background:
+                self.panel.panel_background.delete()
+                self.panel.panel_background = None
+            self.panel.tags = []
+            self.panel = False
 
 
 class ShortTextInput:
@@ -507,19 +573,23 @@ class ShortTextInput:
 
 class TagPanel:
 
-    def __init__(self, tagger):
+    def __init__(self, tagger, tile_x, tile_y, virtual_node=False):
 
         self.tagger = tagger
-        self.tile_x = self.tagger.tile_x
-        self.tile_y = self.tagger.tile_y
+        self.tile_x = tile_x
+        self.tile_y = tile_y
         self.tags = []
         self.label_panel = []
         self.x = tagger.mouse_x
         self.y = tagger.mouse_y
         self.panel_background = None
-        self.virtual_node = False
+        self.virtual_node = virtual_node
 
-        if self.tagger.hovered_virtual_node:
+        if self.virtual_node:
+            self.x = self.virtual_node.x
+            self.y = self.virtual_node.y
+
+        if not self.virtual_node and self.tagger.hovered_virtual_node:
             self.virtual_node = self.tagger.hovered_virtual_node
 
     def update_tags(self):
