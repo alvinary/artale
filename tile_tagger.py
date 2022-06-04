@@ -285,12 +285,6 @@ class TileTagger:
                     upmost_y = max(upmost_tile_y, upmost_node_y) + TILE_SIDE + TILE_SIDE // 2
                     
                     center_x = leftmost_x + (rightmost_x - leftmost_x) // 2
-                    
-                    print("Y: ", upmost_y )
-                    print("Delta y: ", self.scroll_shift_y)
-                    print("y - dy: ", upmost_y - self.scroll_shift_y)
-                    print("y + dy: ", upmost_y + self.scroll_shift_y)
-                    print("mx, my: ", self.mouse_x, self.mouse_y)
                 
                     node.set_position(center_x, upmost_y)
 
