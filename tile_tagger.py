@@ -73,10 +73,6 @@ class TileTagger:
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
         self.tilemap.y = self.tilemap.y - int(scroll_y * SCROLL_SCALING)
         self.scroll_shift_y -= int(scroll_y * SCROLL_SCALING)
-        for _, rect in self.selected_areas.items():
-            rect.adjust_to_scrolling()
-        for node in self.virtual_nodes:
-            node.adjust_to_scrolling()
 
     def on_key_press(self, symbol, modifiers):
 
@@ -94,18 +90,22 @@ class TileTagger:
         if symbol == pyglet.window.key.LEFT:
             self.scroll_shift_x += 6 * TILE_SIDE
             self.tilemap.x += 6 * TILE_SIDE
+            self.update_children()
 
         if symbol == pyglet.window.key.RIGHT:
             self.scroll_shift_x -= 6 * TILE_SIDE
             self.tilemap.x -= 6 * TILE_SIDE
+            self.update_children()
 
         if symbol == pyglet.window.key.UP:
             self.scroll_shift_y -= 6 * TILE_SIDE
             self.tilemap.y -= 6 * TILE_SIDE
+            self.update_children()
 
         if symbol == pyglet.window.key.DOWN:
             self.scroll_shift_y += 6 * TILE_SIDE
             self.tilemap.y += 6 * TILE_SIDE
+            self.update_children()
 
     def on_mouse_press(self, x, y, button, modifiers):
 
@@ -162,7 +162,15 @@ class TileTagger:
             window.push_handlers(new_node)
             
             self.clear_label()
-
+            
+    def update_children(self):
+    
+        for _, rect in self.selected_areas.items():
+            rect.adjust_to_scrolling()
+            
+        for node in self.virtual_nodes:
+            node.adjust_to_scrolling()
+        
 
     def on_mouse_motion(self, x, y, dx, dy):
 
@@ -176,10 +184,7 @@ class TileTagger:
             self.scroll_shift_x += dx
             self.tilemap.x += dx
             self.tilemap.y += dy
-            for _, rect in self.selected_areas.items():
-                rect.adjust_to_scrolling()
-            for node in self.virtual_nodes:
-                node.adjust_to_scrolling()
+            self.update_children()
 
     def on_key_release(self, symbol, modifiers):
         if symbol == pyglet.window.key.LSHIFT and self.panel:
