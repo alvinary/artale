@@ -33,7 +33,7 @@ color_batch = pyglet.graphics.Batch()
 
 index = lambda: defaultdict(lambda: set())
 
-tileset_resource = pyglet.image.load("./images/maps/kitchen.png")
+tileset_resource = pyglet.image.load("./images/maps/route_118.png")
 
 
 class TileTagger:
@@ -108,6 +108,9 @@ class TileTagger:
             self.tilemap.y += 6 * TILE_SIDE
 
     def on_mouse_press(self, x, y, button, modifiers):
+
+        for node in self.selected_virtual_nodes:
+            node.drag = False
 
         modifiers = pyglet.window.key.modifiers_string(modifiers)
 
@@ -301,6 +304,8 @@ class VirtualNode:
         self.shift_y = tagger.scroll_shift_y
         self.start_x = x
         self.start_y = y
+        self.scroll_shift_x = 0
+        self.scroll_shift_y = 0
         self.x = x
         self.y = y
         self.node_children = node_children
@@ -318,6 +323,7 @@ class VirtualNode:
         self.tagger = tagger
         self.is_hovered = False
         self.panel = False
+        self.drag = False
 
     def update_edges(self):
 
@@ -395,9 +401,23 @@ class VirtualNode:
             self.is_hovered = False
             self.tagger.hovered_virtual_node = False
 
+        if self.drag:
+            self.scroll_shift_x += dx
+            self.scroll_shift_y += dy
+            self.shape.x += dx
+            self.shape.y += dy
+
+    def on_key_press(self, symbol, modifiers):
+
+        if self.selected and symbol == pyglet.window.key.Q:
+            self.discard()
+
+        if self.selected and symbol == pyglet.window.key.A:
+            self.drag = not self.drag
+
     def adjust_to_scrolling(self):
-        self.x = self.start_x + self.tagger.scroll_shift_x - self.shift_x
-        self.y = self.start_y + self.tagger.scroll_shift_y - self.shift_y
+        self.x = self.start_x + self.scroll_shift_x + self.tagger.scroll_shift_x - self.shift_x
+        self.y = self.start_y + self.scroll_shift_y + self.tagger.scroll_shift_y - self.shift_y
         self.shape.x = self.x
         self.shape.y = self.y
         self.update_edges()
@@ -470,6 +490,17 @@ class VirtualNode:
             self.panel.tags = []
             self.panel = False
 
+    def discard(self):
+        self.unselect()
+        self.hide_tree()
+        self.hide_panel()
+        self.shape.delete()
+        self.shape = None
+        for node in self.tagger.virtual_nodes:
+            if self in node.node_children:
+                node.node_children.remove(self)
+        self.tagger.virtual_nodes.remove(self)
+        self.tagger.selected_virtual_nodes.remove(self)
 
 class ShortTextInput:
 
