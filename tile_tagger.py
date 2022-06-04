@@ -317,7 +317,6 @@ class VirtualNode:
         self.tags = set()
         self.tagger = tagger
         self.is_hovered = False
-        self.label = False
         self.panel = False
 
     def update_edges(self):
