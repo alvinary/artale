@@ -3,6 +3,8 @@ from collections import defaultdict
 import pyglet
 from pyglet.gl import glTexParameteri, GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_NEAREST
 
+from constants import PROMPT_TOKEN
+
 SCROLL_SCALING = 40
 TILE_SIDE = 48
 SCROLLABLE_PANEL_TOP = 400
@@ -130,7 +132,7 @@ class TileTagger:
                     self.label.label_item.delete()
                 self.label = None
 
-            self.label = ShortTextInput(self, ">", x, y)
+            self.label = ShortTextInput(self, PROMPT_TOKEN, x, y)
 
             if (tile_x, tile_y) in self.selected_tiles:
                 self.selected_tiles.discard((tile_x, tile_y))
@@ -324,6 +326,7 @@ class TileTagger:
                     
 
 class AreaRectangle:
+
     def __init__(self, tile_x, tile_y, tagger):
         
         self.x = tile_x
@@ -366,8 +369,6 @@ class AreaRectangle:
                 self.panel.panel_background = None
             self.panel.tags = []
             self.panel = None
-
-
 
 
 class VirtualNode:
@@ -456,7 +457,7 @@ class VirtualNode:
                     self.tagger.label.label_item.delete()
                 self.tagger.label = None
 
-            self.tagger.label = ShortTextInput(self.tagger, ">", x, y)
+            self.tagger.label = ShortTextInput(self.tagger, PROMPT_TOKEN, x, y)
             window.push_handlers(self.tagger.label)
 
         elif right_click and control_mod and within_x and within_y and self.selected:
@@ -623,20 +624,26 @@ class ShortTextInput:
 
         elif as_ascii(symbol) in letters and "MOD_SHIFT" in modifiers:
 
+            key_string = pyglet.window.key.symbol_string(symbol)
+
             if self.text == ">":
-                self.text = pyglet.window.key.symbol_string(symbol)
+                self.text = key_string
 
             else:
-                self.text = self.text + pyglet.window.key.symbol_string(symbol)
+                self.text = self.text + key_string
                 self.label_item.delete()
                 self.update_label()
 
         elif as_ascii(symbol) in letters:
-            if self.text == ">":
-                self.text = pyglet.window.key.symbol_string(symbol).lower()
+
+            key_string = pyglet.window.key.symbol_string(symbol)
+
+            if self.text == PROMPT_TOKEN:
+                self.text = key_string.lower()
+                self.update_label()
+            
             else:
-                self.text = self.text + pyglet.window.key.symbol_string(
-                    symbol).lower()
+                self.text = self.text + key_string.lower()
                 self.label_item.delete()
                 self.update_label()
 
