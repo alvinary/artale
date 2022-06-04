@@ -137,6 +137,9 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
   X - Autoarrange (arrange al virtual nodes as a decent parse tree)
   - Add child (select a node, press something, click something, and add it as child)
   X - Fix error in positions yielded by auto_arrange when scroll shifts are nonzero
+  - What should we do when two virtual nodes overlap?
+    - ok, we will now group by depth, y height, and center_x. If there are collisions,
+      we will shuffle everyone around so that everyone is above their 'cosito'
 
 - OOP
   - Whenever an object is selected, it should trigger a 'mother object' behavior telling anyone to deselect
