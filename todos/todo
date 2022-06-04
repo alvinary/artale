@@ -109,6 +109,11 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
   - Write the parser
 
   - In general, group rules with the same argument signature to avoid unfolding the same set of assignments more than once
+     X - Group rules by argument signature
+     - Use that grouping when unfolding (that grouping above is a partition so it should be super straightforward).
+     
+  - Limit unfolding to a subset of a sort (add a kwarg restricted_sorts={}, and if a sort s is in restricted_sorts.keys(),
+    you use the contents of restricted_sorts[s] to unfold it, and not the whole sort)
 
 - There is more (and more serious) symmetry breaking to be done! Now there are types, and those have symmetries too
   (at least in trees without a lexicon - better fix that before trying anything else!)
@@ -140,3 +145,6 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
     So: link, unlink, unpyglet
     Since 'where' the reference is depends on the type of an object, uhhh, we should have a way to dynamically
     pbtain the method or property we're talking about
+
+- Be thorough with tests
+
