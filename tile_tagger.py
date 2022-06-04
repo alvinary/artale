@@ -363,8 +363,6 @@ class VirtualNode:
     def __init__(self, tagger, x, y, node_children, tile_children):
         self.start_x = x
         self.start_y = y
-        self.drag_shift_x = 0
-        self.drag_shift_y = 0
         self.x = x
         self.y = y
         self.node_children = node_children
@@ -382,7 +380,6 @@ class VirtualNode:
         self.tagger = tagger
         self.is_hovered = False
         self.panel = False
-        self.drag = False
         
         self.tagger.virtual_nodes.append(self)
         
@@ -471,22 +468,14 @@ class VirtualNode:
             self.is_hovered = False
             self.tagger.hovered_virtual_node = False
 
-        if self.drag:
-            self.drag_shift_x += dx
-            self.drag_shift_y += dy
-            self.adjust_to_scrolling()
-
     def on_key_press(self, symbol, modifiers):
 
         if self.selected and symbol == pyglet.window.key.Q:
             self.discard()
 
-        if self.selected and symbol == pyglet.window.key.A:
-            self.drag = not self.drag
-
     def adjust_to_scrolling(self):
-        self.x = self.start_x + self.drag_shift_x + self.tagger.scroll_shift_x
-        self.y = self.start_y + self.drag_shift_y + self.tagger.scroll_shift_y
+        self.x = self.start_x + self.tagger.scroll_shift_x
+        self.y = self.start_y + self.tagger.scroll_shift_y
         self.shape.x = self.x
         self.shape.y = self.y
         self.update_edges()
