@@ -33,7 +33,7 @@ color_batch = pyglet.graphics.Batch()
 
 index = lambda: defaultdict(lambda: set())
 
-tileset_resource = pyglet.image.load("./images/maps/route_118.png")
+tileset_resource = pyglet.image.load("./images/maps/kitchen.png")
 
 
 class TileTagger:
@@ -283,18 +283,22 @@ class TileTagger:
                     upmost_node_y = max([child.y for child in node.node_children])
                 
                     upmost_y = max(upmost_tile_y, upmost_node_y) + TILE_SIDE + TILE_SIDE // 2
+                    
+                    center_x = leftmost_x + (rightmost_x - leftmost_x) // 2
                 
-                    node.set_position(leftmost_x + (rightmost_x - leftmost_x) // 2, upmost_y)
+                    node.set_position(center_x, upmost_y)
 
                 if node.tile_children and not node.node_children:
-                
+
                     leftmost_x = min([x * TILE_SIDE for x, y in node.tile_children])
                 
-                    rightmost_x = max([x * TILE_SIDE for x, y in node.tile_children])
+                    rightmost_x = max([x * TILE_SIDE for x, y in node.tile_children]) 
                     
                     upmost_y = max([y * TILE_SIDE for x, y in node.tile_children]) + TILE_SIDE + TILE_SIDE // 2
 
-                    node.set_position(leftmost_x + (rightmost_x - leftmost_x) // 2, upmost_y)
+                    center_x = leftmost_x + (rightmost_x - leftmost_x) // 2
+                
+                    node.set_position(center_x, upmost_y)
                     
                 if node.node_children and not node.tile_children:
                      
@@ -304,7 +308,9 @@ class TileTagger:
                 
                     upmost_y = max([child.y for child in node.node_children]) + TILE_SIDE + TILE_SIDE // 2
                 
-                    node.set_position(leftmost_x + (rightmost_x - leftmost_x) // 2, upmost_y)
+                    center_x = leftmost_x + (rightmost_x - leftmost_x) // 2
+                
+                    node.set_position(center_x, upmost_y)
                 
                 if not node.tile_children and not node.node_children:
                 
