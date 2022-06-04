@@ -470,7 +470,7 @@ class VirtualNode:
 
     def on_key_press(self, symbol, modifiers):
 
-        if self.selected and symbol == pyglet.window.key.Q:
+        if self.selected and symbol == pyglet.window.key.DELETE:
             self.discard()
 
     def adjust_to_scrolling(self):
