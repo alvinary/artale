@@ -160,7 +160,6 @@ class TileTagger:
             
             new_node.update_edges()
             window.push_handlers(new_node)
-            self.virtual_nodes.append(new_node)
             
             self.clear_label()
 
@@ -249,7 +248,69 @@ class TileTagger:
             coordinates = tuple(line.split(":")[0].strip().split(", "))
             properties = {p.strip() for p in line.split(":")[1].split(",")}
             self.property_index[coordinates] |= properties
+            
+    def arrange_nodes(self):
+    
+        heights = defaultdict(lambda : [])
+        
+        for node in self.virtual_nodes:
+        
+            depth = node.depth
+            heights[depth].append(node)
+        
+        new_positions = {}
+        
+        depths = sorted(list([k for k in heights.keys()]))
+        print(depths)
+        
+        for d in depths:
+        
+            for node in heights[d]:
+            
+                if node.node_children and node.tile_children:
+                
+                    minimum_child_x = min([child.x for child in node.node_children])
+                    minimum_tile_x = min([x * TILE_SIDE for x, y in node.tile_children])
+                
+                    leftmost_x = min(minimum_child_x, minimum_tile_x)
+                
+                    maximum_child_x = max([child.x for child in node.node_children])
+                    maximum_tile_x = max([x * TILE_SIDE for x, y in node.tile_children])
+                
+                    rightmost_x = max(minimum_child_x, minimum_tile_x)
+                    
+                    upmost_tile_y = max([y * TILE_SIDE for x, y in node.tile_children])
+                    upmost_node_y = max([child.y for child in node.node_children])
+                
+                    upmost_y = max(upmost_tile_y, upmost_node_y) + TILE_SIDE + TILE_SIDE // 2
+                
+                    node.set_position(leftmost_x + (rightmost_x - leftmost_x) // 2, upmost_y)
 
+                if node.tile_children and not node.node_children:
+                
+                    leftmost_x = min([x * TILE_SIDE for x, y in node.tile_children])
+                
+                    rightmost_x = max([x * TILE_SIDE for x, y in node.tile_children])
+                    
+                    upmost_y = max([y * TILE_SIDE for x, y in node.tile_children]) + TILE_SIDE + TILE_SIDE // 2
+
+                    node.set_position(leftmost_x + (rightmost_x - leftmost_x) // 2, upmost_y)
+                    
+                if node.node_children and not node.tile_children:
+                     
+                    leftmost_x = min([child.x for child in node.node_children])
+                
+                    rightmost_x = max([child.x for child in node.node_children])
+                
+                    upmost_y = max([child.y for child in node.node_children]) + TILE_SIDE + TILE_SIDE // 2
+                
+                    node.set_position(leftmost_x + (rightmost_x - leftmost_x) // 2, upmost_y)
+                
+                if not node.tile_children and not node.node_children:
+                
+                    pass
+                    
+                    
 
 class AreaRectangle:
     def __init__(self, tile_x, tile_y, tagger):
@@ -300,12 +361,10 @@ class AreaRectangle:
 
 class VirtualNode:
     def __init__(self, tagger, x, y, node_children, tile_children):
-        self.shift_x = tagger.scroll_shift_x
-        self.shift_y = tagger.scroll_shift_y
         self.start_x = x
         self.start_y = y
-        self.scroll_shift_x = 0
-        self.scroll_shift_y = 0
+        self.drag_shift_x = 0
+        self.drag_shift_y = 0
         self.x = x
         self.y = y
         self.node_children = node_children
@@ -324,6 +383,17 @@ class VirtualNode:
         self.is_hovered = False
         self.panel = False
         self.drag = False
+        
+        self.tagger.virtual_nodes.append(self)
+        
+        self.depth = 0
+        if self.node_children:
+            self.depth = max([child.depth + 1 for child in self.node_children])
+            
+        print("Depth: ", self.depth)
+            
+        self.tagger.arrange_nodes()
+
 
     def update_edges(self):
 
@@ -402,10 +472,9 @@ class VirtualNode:
             self.tagger.hovered_virtual_node = False
 
         if self.drag:
-            self.scroll_shift_x += dx
-            self.scroll_shift_y += dy
-            self.shape.x += dx
-            self.shape.y += dy
+            self.drag_shift_x += dx
+            self.drag_shift_y += dy
+            self.adjust_to_scrolling()
 
     def on_key_press(self, symbol, modifiers):
 
@@ -416,8 +485,8 @@ class VirtualNode:
             self.drag = not self.drag
 
     def adjust_to_scrolling(self):
-        self.x = self.start_x + self.scroll_shift_x + self.tagger.scroll_shift_x - self.shift_x
-        self.y = self.start_y + self.scroll_shift_y + self.tagger.scroll_shift_y - self.shift_y
+        self.x = self.start_x + self.drag_shift_x + self.tagger.scroll_shift_x
+        self.y = self.start_y + self.drag_shift_y + self.tagger.scroll_shift_y
         self.shape.x = self.x
         self.shape.y = self.y
         self.update_edges()
@@ -501,6 +570,15 @@ class VirtualNode:
                 node.node_children.remove(self)
         self.tagger.virtual_nodes.remove(self)
         self.tagger.selected_virtual_nodes.remove(self)
+        
+    def set_position(self, x, y):
+        self.drag_shift_x = 0
+        self.drag_shift_x = 0
+        self.start_x = x
+        self.start_y = y
+        self.x = x
+        self.y = y
+        self.adjust_to_scrolling()
 
 class ShortTextInput:
 
