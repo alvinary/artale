@@ -136,7 +136,7 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
   - Area select (select a corner, move to a corner, then add all tiles in that interval)
   X - Autoarrange (arrange al virtual nodes as a decent parse tree)
   - Add child (select a node, press something, click something, and add it as child)
-  - Fix error in positions yielded by auto_arrange when scroll shifts are nonzero
+  X - Fix error in positions yielded by auto_arrange when scroll shifts are nonzero
 
 - OOP
   - Whenever an object is selected, it should trigger a 'mother object' behavior telling anyone to deselect
