@@ -305,12 +305,6 @@ class TileTagger:
                 
                     node.set_position(center_x, upmost_y)
                     
-                    print("Y: ", upmost_y )
-                    print("Delta y: ", self.scroll_shift_y)
-                    print("y - dy: ", upmost_y - self.scroll_shift_y)
-                    print("y + dy: ", upmost_y + self.scroll_shift_y)
-                    print("mx, my: ", self.mouse_x, self.mouse_y)
-                    
                 if node.node_children and not node.tile_children:
                      
                     leftmost_x = min([child.start_x for child in node.node_children])
@@ -322,12 +316,6 @@ class TileTagger:
                     center_x = leftmost_x + (rightmost_x - leftmost_x) // 2
                 
                     node.set_position(center_x, upmost_y)
-                    
-                    print("Y: ", upmost_y )
-                    print("Delta y: ", self.scroll_shift_y)
-                    print("y - dy: ", upmost_y - self.scroll_shift_y)
-                    print("y + dy: ", upmost_y + self.scroll_shift_y)
-                    print("mx, my: ", self.mouse_x, self.mouse_y)
                 
                 if not node.tile_children and not node.node_children:
                 
@@ -407,10 +395,9 @@ class VirtualNode:
         self.tagger.virtual_nodes.append(self)
         
         self.depth = 0
+        
         if self.node_children:
             self.depth = max([child.depth + 1 for child in self.node_children])
-            
-        print("Depth: ", self.depth)
             
         self.tagger.arrange_nodes()
 
