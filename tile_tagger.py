@@ -269,22 +269,28 @@ class TileTagger:
             
                 if node.node_children and node.tile_children:
                 
-                    minimum_child_x = min([child.x for child in node.node_children])
+                    minimum_child_x = min([child.start_x for child in node.node_children])
                     minimum_tile_x = min([x * TILE_SIDE for x, y in node.tile_children])
                 
                     leftmost_x = min(minimum_child_x, minimum_tile_x)
                 
-                    maximum_child_x = max([child.x for child in node.node_children])
+                    maximum_child_x = max([child.start_x for child in node.node_children])
                     maximum_tile_x = max([x * TILE_SIDE for x, y in node.tile_children])
                 
                     rightmost_x = max(minimum_child_x, minimum_tile_x)
                     
                     upmost_tile_y = max([y * TILE_SIDE for x, y in node.tile_children])
-                    upmost_node_y = max([child.y for child in node.node_children])
+                    upmost_node_y = max([child.start_y for child in node.node_children])
                 
                     upmost_y = max(upmost_tile_y, upmost_node_y) + TILE_SIDE + TILE_SIDE // 2
                     
                     center_x = leftmost_x + (rightmost_x - leftmost_x) // 2
+                    
+                    print("Y: ", upmost_y )
+                    print("Delta y: ", self.scroll_shift_y)
+                    print("y - dy: ", upmost_y - self.scroll_shift_y)
+                    print("y + dy: ", upmost_y + self.scroll_shift_y)
+                    print("mx, my: ", self.mouse_x, self.mouse_y)
                 
                     node.set_position(center_x, upmost_y)
 
@@ -300,17 +306,29 @@ class TileTagger:
                 
                     node.set_position(center_x, upmost_y)
                     
+                    print("Y: ", upmost_y )
+                    print("Delta y: ", self.scroll_shift_y)
+                    print("y - dy: ", upmost_y - self.scroll_shift_y)
+                    print("y + dy: ", upmost_y + self.scroll_shift_y)
+                    print("mx, my: ", self.mouse_x, self.mouse_y)
+                    
                 if node.node_children and not node.tile_children:
                      
-                    leftmost_x = min([child.x for child in node.node_children])
+                    leftmost_x = min([child.start_x for child in node.node_children])
                 
-                    rightmost_x = max([child.x for child in node.node_children])
+                    rightmost_x = max([child.start_x for child in node.node_children])
                 
-                    upmost_y = max([child.y for child in node.node_children]) + TILE_SIDE + TILE_SIDE // 2
+                    upmost_y = max([child.start_y for child in node.node_children]) + TILE_SIDE + TILE_SIDE // 2
                 
                     center_x = leftmost_x + (rightmost_x - leftmost_x) // 2
                 
                     node.set_position(center_x, upmost_y)
+                    
+                    print("Y: ", upmost_y )
+                    print("Delta y: ", self.scroll_shift_y)
+                    print("y - dy: ", upmost_y - self.scroll_shift_y)
+                    print("y + dy: ", upmost_y + self.scroll_shift_y)
+                    print("mx, my: ", self.mouse_x, self.mouse_y)
                 
                 if not node.tile_children and not node.node_children:
                 
@@ -567,12 +585,8 @@ class VirtualNode:
         self.tagger.selected_virtual_nodes.remove(self)
         
     def set_position(self, x, y):
-        self.drag_shift_x = 0
-        self.drag_shift_x = 0
         self.start_x = x
         self.start_y = y
-        self.x = x
-        self.y = y
         self.adjust_to_scrolling()
 
 class ShortTextInput:
