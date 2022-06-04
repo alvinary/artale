@@ -124,3 +124,19 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
 - Use quadratic CYK-style tree embedding
 
 - Find out why sometimes type rules are unfolded and sometimes they are not
+
+- Tile Tagger UX
+  - Drag virtual nodes (if a virtual node is selected, press A to drag it around)
+  - Remove virtual nodes (select it and press d to delete it)
+  - Area select (select a corner, move to a corner, then add all tiles in that interval)
+  - Autoarrange (arrange al virtual nodes as a decent parse tree)
+
+- OOP
+  - Whenever an object is selected, it should trigger a 'mother object' behavior telling anyone to deselect
+  - Discard should be more general (every 'ux entity' should have a pyglet_object and linked entities.
+    Discarding a ux entity should delete all references to that object in all linked entities and get rid
+    of the entity's pyglet object decenty.
+
+    So: link, unlink, unpyglet
+    Since 'where' the reference is depends on the type of an object, uhhh, we should have a way to dynamically
+    pbtain the method or property we're talking about
