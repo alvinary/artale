@@ -463,6 +463,7 @@ class VirtualNode:
         elif right_click and control_mod and within_x and within_y and self.selected:
             self.unselect()
             self.tagger.selected_virtual_nodes.remove(self)
+            self.tagger.clear_label()
 
     def on_mouse_motion(self, x, y, dx, dy):
 
