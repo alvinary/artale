@@ -7,6 +7,7 @@ from constants import PROMPT_TOKEN
 
 SCROLL_SCALING = 40
 TILE_SIDE = 48
+HALFTILE = TILE_SIDE // 2
 SCROLLABLE_PANEL_TOP = 400
 TAG_SEPARATOR = 8
 TAG_HEIGHT = 16
@@ -35,7 +36,7 @@ color_batch = pyglet.graphics.Batch()
 
 index = lambda: defaultdict(lambda: set())
 
-tileset_resource = pyglet.image.load("./images/maps/kitchen.png")
+tileset_resource = pyglet.image.load("./images/maps/lil_house.png")
 
 
 class TileTagger:
@@ -76,6 +77,7 @@ class TileTagger:
     
         self.tilemap.y = self.tilemap.y - int(scroll_y * SCROLL_SCALING)
         self.scroll_shift_y -= int(scroll_y * SCROLL_SCALING)
+        self.update_camera()
 
     def on_key_press(self, symbol, modifiers):
 
@@ -132,7 +134,8 @@ class TileTagger:
 
             else: 
                 self.select_tile(tile_x, tile_y)
-                self.set_label() # Set new label at current tile
+                self.set_label(tile_x * TILE_SIDE,
+                               tile_y * TILE_SIDE) # Set new label at current tile
 
         if button == pyglet.window.mouse.RIGHT and not control_modifier:
             
@@ -144,6 +147,12 @@ class TileTagger:
             self.clear_label()
             
     def update_camera(self):
+    
+        if self.panel:
+            self.panel.adjust_to_scrolling()
+        
+        if self.label:
+            self.label.adjust_to_scrolling()
     
         for _, rect in self.selected_areas.items():
             rect.adjust_to_scrolling()
@@ -205,18 +214,24 @@ class TileTagger:
                 self.label.label_item.delete()
             self.label = None
             
-    def set_label(self):
+    def set_label(self, x, y):
         self.label = ShortTextInput(self, PROMPT_TOKEN, x, y)
         window.push_handlers(self.label)
             
     def make_node(self):
+        
         selected_nodes = [n for n in self.selected_virtual_nodes]
         selected_tiles = list(self.selected_tiles)
-        new_node = VirtualNode(self, x, y, list(selected_nodes),
-                                   list(selected_tiles))
+        
+        new_node = VirtualNode(self,
+                               self.tile_x * TILE_SIDE + HALFTILE,
+                               self.tile_y * TILE_SIDE + HALFTILE,
+                               list(selected_nodes),
+                               list(selected_tiles))
             
         new_node.update_edges()
         window.push_handlers(new_node)
+        
         self.virtual_nodes.append(new_node)
 
     def get_tile_x(self, x):
@@ -273,7 +288,7 @@ class TileTagger:
         start_y, end_y = min(last_y, new_y), max(last_y, new_y)
         for i in range(start_x, end_x):
             for j in range(start_y, end_y):
-                self.selected_tiles.append(i, j)
+                self.selected_tile(i, j)
             
     def arrange_nodes(self):
     
@@ -308,7 +323,7 @@ class TileTagger:
                     upmost_tile_y = max([y * TILE_SIDE for x, y in node.tile_children])
                     upmost_node_y = max([child.start_y for child in node.node_children])
                 
-                    upmost_y = max(upmost_tile_y, upmost_node_y) + TILE_SIDE + TILE_SIDE // 2
+                    upmost_y = max(upmost_tile_y, upmost_node_y) + TILE_SIDE + HALFTILE
                     
                     center_x = leftmost_x + (rightmost_x - leftmost_x) // 2
                 
@@ -320,7 +335,7 @@ class TileTagger:
                 
                     rightmost_x = max([x * TILE_SIDE for x, y in node.tile_children]) 
                     
-                    upmost_y = max([y * TILE_SIDE for x, y in node.tile_children]) + TILE_SIDE + TILE_SIDE // 2
+                    upmost_y = max([y * TILE_SIDE for x, y in node.tile_children]) + TILE_SIDE + HALFTILE
 
                     center_x = leftmost_x + (rightmost_x - leftmost_x) // 2
                 
@@ -332,7 +347,7 @@ class TileTagger:
                 
                     rightmost_x = max([child.start_x for child in node.node_children])
                 
-                    upmost_y = max([child.start_y for child in node.node_children]) + TILE_SIDE + TILE_SIDE // 2
+                    upmost_y = max([child.start_y for child in node.node_children]) + TILE_SIDE + HALFTILE
                 
                     center_x = leftmost_x + (rightmost_x - leftmost_x) // 2
                 
@@ -366,8 +381,14 @@ class AreaRectangle:
         self.panel = False
 
     def adjust_to_scrolling(self):
+    
         self.shape.x = self.x * TILE_SIDE + self.tagger.scroll_shift_x
         self.shape.y = self.y * TILE_SIDE + self.tagger.scroll_shift_y
+        
+        if self.panel:
+
+            self.panel.x = self.x * TILE_SIDE + self.tagger.scroll_shift_x
+            self.panel.y = self.y * TILE_SIDE + self.tagger.scroll_shift_y
 
     def discard(self):
         self.shape.delete()
@@ -431,14 +452,14 @@ class VirtualNode:
 
         self.edges = []
 
-        self_center_x = self.x + TILE_SIDE // 2
-        self_center_y = self.y + TILE_SIDE // 2
+        self_center_x = self.x + HALFTILE
+        self_center_y = self.y + HALFTILE
 
         if self.show_edges:
 
             for child in self.node_children:
-                child_center_x = child.x + TILE_SIDE // 2
-                child_center_y = child.y + TILE_SIDE // 2
+                child_center_x = child.x + HALFTILE
+                child_center_y = child.y + HALFTILE
                 new_edge = pyglet.shapes.Line(self_center_x, self_center_y,
                                             child_center_x, child_center_y,
                                             batch=hover_batch,
@@ -447,8 +468,8 @@ class VirtualNode:
                 self.edges.append(new_edge)
 
             for (child_x, child_y) in self.tile_children:
-                child_center_x = child_x * TILE_SIDE + TILE_SIDE // 2 + self.tagger.scroll_shift_x
-                child_center_y = child_y * TILE_SIDE + TILE_SIDE // 2 + self.tagger.scroll_shift_y
+                child_center_x = child_x * TILE_SIDE + HALFTILE + self.tagger.scroll_shift_x
+                child_center_y = child_y * TILE_SIDE + HALFTILE + self.tagger.scroll_shift_y
                 new_edge = pyglet.shapes.Line(self_center_x, self_center_y,
                                             child_center_x, child_center_y,
                                             batch=hover_batch,
@@ -470,7 +491,7 @@ class VirtualNode:
             self.select()
             self.tagger.selected_virtual_nodes.append(self)
             self.tagger.drop_label()
-            self.tagger.set_label()
+            self.tagger.set_label(x, y)
 
         elif right_click and control_mod and within_x and within_y and self.selected:
             self.unselect()
@@ -498,11 +519,15 @@ class VirtualNode:
             self.discard()
 
     def adjust_to_scrolling(self):
+        
         self.x = self.start_x + self.tagger.scroll_shift_x
         self.y = self.start_y + self.tagger.scroll_shift_y
         self.shape.x = self.x
         self.shape.y = self.y
         self.update_edges()
+        
+        if self.panel:
+            self.panel.adjust_to_scrolling()
 
     def select(self):
         self.selected = True
@@ -557,8 +582,8 @@ class VirtualNode:
 
     def show_panel(self):
         self.panel = TagPanel(self.tagger,
-                              0,
-                              0,
+                              self.start_x,
+                              self.start_y,
                               virtual_node=self)
         self.panel.update_labels()
 
@@ -692,6 +717,11 @@ class ShortTextInput:
 
         else:
             pass
+            
+    def adjust_to_scrolling(self):
+        self.x = self.tile_x * TILE_SIDE + self.tagger.scroll_shift_x
+        self.y = self.tile_y * TILE_SIDE + self.tagger.scroll_shift_y
+        self.update_label()
 
 
 class TagPanel:
@@ -703,8 +733,8 @@ class TagPanel:
         self.tile_y = tile_y
         self.tags = []
         self.label_panel = []
-        self.x = tagger.mouse_x
-        self.y = tagger.mouse_y
+        self.x = tile_x * TILE_SIDE
+        self.y = tile_y * TILE_SIDE
         self.panel_background = None
         self.virtual_node = virtual_node
 
@@ -714,6 +744,8 @@ class TagPanel:
 
         if not self.virtual_node and self.tagger.hovered_virtual_node:
             self.virtual_node = self.tagger.hovered_virtual_node
+            
+        self.adjust_to_scrolling()
 
     def update_tags(self):
         self.tags = []
@@ -755,6 +787,21 @@ class TagPanel:
                 height=bottom_y,
                 color=(60, 40, 40),
                 batch=foreground_batch)
+                
+    def adjust_to_scrolling(self):
+    
+        bottom_y = len(self.label_panel) * (TAG_HEIGHT + TAG_SEPARATOR)
+        
+        self.x = self.tile_x * TILE_SIDE + self.tagger.scroll_shift_x
+        self.y = self.tile_y * TILE_SIDE + self.tagger.scroll_shift_y
+    
+        if self.panel_background:
+            self.panel_background.x = self.tile_x * TILE_SIDE + self.tagger.scroll_shift_x
+            self.panel_background.y = self.tile_y * TILE_SIDE + self.tagger.scroll_shift_y
+            
+        for label in self.label_panel:
+            label.x = self.x
+            label.y = self.y
 
 
 @window.event
