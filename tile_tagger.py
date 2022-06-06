@@ -73,6 +73,7 @@ class TileTagger:
         self.drag = False
 
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
+    
         self.tilemap.y = self.tilemap.y - int(scroll_y * SCROLL_SCALING)
         self.scroll_shift_y -= int(scroll_y * SCROLL_SCALING)
 
@@ -92,27 +93,24 @@ class TileTagger:
         if symbol == pyglet.window.key.LEFT:
             self.scroll_shift_x += 6 * TILE_SIDE
             self.tilemap.x += 6 * TILE_SIDE
-            self.update_children()
+            self.update_camera()
 
         if symbol == pyglet.window.key.RIGHT:
             self.scroll_shift_x -= 6 * TILE_SIDE
             self.tilemap.x -= 6 * TILE_SIDE
-            self.update_children()
+            self.update_camera()
 
         if symbol == pyglet.window.key.UP:
             self.scroll_shift_y -= 6 * TILE_SIDE
             self.tilemap.y -= 6 * TILE_SIDE
-            self.update_children()
+            self.update_camera()
 
         if symbol == pyglet.window.key.DOWN:
             self.scroll_shift_y += 6 * TILE_SIDE
             self.tilemap.y += 6 * TILE_SIDE
-            self.update_children()
+            self.update_camera()
 
     def on_mouse_press(self, x, y, button, modifiers):
-
-        for node in self.selected_virtual_nodes:
-            node.drag = False
 
         modifiers = pyglet.window.key.modifiers_string(modifiers)
 
@@ -121,51 +119,31 @@ class TileTagger:
 
         simple = not shift_modifier and not control_modifier
         just_control = not shift_modifier and control_modifier
-
+        
         tile_x = self.tile_x
         tile_y = self.tile_y
 
         if button == pyglet.window.mouse.LEFT and simple:
-
-            if self.label:
-                if self.label.label_item:
-                    self.label.label_item.delete()
-                self.label = None
-
-            self.label = ShortTextInput(self, PROMPT_TOKEN, x, y)
+        
+            self.drop_label() # Drop current label at 'old' tile, if there is one
 
             if (tile_x, tile_y) in self.selected_tiles:
-                self.selected_tiles.discard((tile_x, tile_y))
-                rect = self.selected_areas.pop((tile_x, tile_y))
-                rect.discard()
+                self.unselect_tile(tile_x, tile_y)
 
             else: 
-            
-                self.selected_tiles.add((tile_x, tile_y))
-
-                self.selected_areas[tile_x, tile_y] = AreaRectangle(self.tile_x,
-                                                                    self.tile_y,
-                                                                    self)
-
-                window.push_handlers(self.label)
+                self.select_tile(tile_x, tile_y)
+                self.set_label() # Set new label at current tile
 
         if button == pyglet.window.mouse.RIGHT and not control_modifier:
+            
             self.drag = not self.drag
 
         if button == pyglet.window.mouse.LEFT and just_control:
 
-            selected_nodes = [n for n in self.selected_virtual_nodes]
-            selected_tiles = list(self.selected_tiles)
-            
-            new_node = VirtualNode(self, x, y, list(selected_nodes),
-                                   list(selected_tiles))
-            
-            new_node.update_edges()
-            window.push_handlers(new_node)
-            
+            self.make_node()
             self.clear_label()
             
-    def update_children(self):
+    def update_camera(self):
     
         for _, rect in self.selected_areas.items():
             rect.adjust_to_scrolling()
@@ -186,13 +164,30 @@ class TileTagger:
             self.scroll_shift_x += dx
             self.tilemap.x += dx
             self.tilemap.y += dy
-            self.update_children()
+            self.update_camera()
 
     def on_key_release(self, symbol, modifiers):
         if symbol == pyglet.window.key.LSHIFT and self.panel:
             self.drop_panel()
+            
+    def select_tile(self, x, y):
+        self.selected_tiles.add((x, y))
+        self.selected_areas[x, y] = AreaRectangle(x,
+                                                  y,
+                                                  self)
 
+        window.push_handlers(self.label)
+            
+    def unselect_tile(self, x, y):
+        self.selected_tiles.discard((x, y))
+        rect = self.selected_areas.pop((x, y))
+        rect.discard()
+        
     def clear_label(self):
+        self.unlink_label()
+        self.drop_label()
+
+    def unlink_label(self):
 
         for node in self.selected_virtual_nodes:
             node.unselect()
@@ -203,11 +198,26 @@ class TileTagger:
         while self.selected_areas:
             _, rect = self.selected_areas.popitem()
             rect.discard()
-        
+            
+    def drop_label(self):
         if self.label:
             if self.label.label_item:
                 self.label.label_item.delete()
             self.label = None
+            
+    def set_label(self):
+        self.label = ShortTextInput(self, PROMPT_TOKEN, x, y)
+        window.push_handlers(self.label)
+            
+    def make_node(self):
+        selected_nodes = [n for n in self.selected_virtual_nodes]
+        selected_tiles = list(self.selected_tiles)
+        new_node = VirtualNode(self, x, y, list(selected_nodes),
+                                   list(selected_tiles))
+            
+        new_node.update_edges()
+        window.push_handlers(new_node)
+        self.virtual_nodes.append(new_node)
 
     def get_tile_x(self, x):
         return (x - self.scroll_shift_x) // TILE_SIDE
@@ -255,6 +265,15 @@ class TileTagger:
             coordinates = tuple(line.split(":")[0].strip().split(", "))
             properties = {p.strip() for p in line.split(":")[1].split(",")}
             self.property_index[coordinates] |= properties
+            
+    def area_select(self):
+        last_x, last_y = self.selected_tiles[-2]
+        new_x, new_y = self.selected_tiles[-1]
+        start_x, end_x = min(last_x, new_x), max(last_x, new_x)
+        start_y, end_y = min(last_y, new_y), max(last_y, new_y)
+        for i in range(start_x, end_x):
+            for j in range(start_y, end_y):
+                self.selected_tiles.append(i, j)
             
     def arrange_nodes(self):
     
@@ -449,21 +468,14 @@ class VirtualNode:
         if right_click and control_mod and within_x and within_y and not self.selected:
             
             self.select()
-            
             self.tagger.selected_virtual_nodes.append(self)
-
-            if self.tagger.label:
-                if self.tagger.label.label_item:
-                    self.tagger.label.label_item.delete()
-                self.tagger.label = None
-
-            self.tagger.label = ShortTextInput(self.tagger, PROMPT_TOKEN, x, y)
-            window.push_handlers(self.tagger.label)
+            self.tagger.drop_label()
+            self.tagger.set_label()
 
         elif right_click and control_mod and within_x and within_y and self.selected:
             self.unselect()
             self.tagger.selected_virtual_nodes.remove(self)
-            self.tagger.clear_label()
+            self.tagger.clear_label() # drop or clear?
 
     def on_mouse_motion(self, x, y, dx, dy):
 
