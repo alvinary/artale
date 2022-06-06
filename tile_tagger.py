@@ -216,6 +216,7 @@ class TileTagger:
             
     def set_label(self, x, y):
         self.label = ShortTextInput(self, PROMPT_TOKEN, x, y)
+        self.label.adjust_to_scrolling()
         window.push_handlers(self.label)
             
     def make_node(self):
@@ -489,9 +490,9 @@ class VirtualNode:
         if right_click and control_mod and within_x and within_y and not self.selected:
             
             self.select()
-            self.tagger.selected_virtual_nodes.append(self)
             self.tagger.drop_label()
-            self.tagger.set_label(x, y)
+            self.tagger.set_label(self.start_x, self.start_y)
+            self.tagger.selected_virtual_nodes.append(self)
 
         elif right_click and control_mod and within_x and within_y and self.selected:
             self.unselect()
@@ -617,12 +618,14 @@ class VirtualNode:
 class ShortTextInput:
 
     def __init__(self, tagger, text, input_x, input_y):
+        
         self.tagger = tagger
         self.text = text
         self.x = input_x
         self.y = input_y
-        self.tile_x = self.tagger.tile_x
-        self.tile_y = self.tagger.tile_y
+        self.start_x = input_x
+        self.start_y = input_y
+        
         self.label_item = pyglet.text.Label(text=self.text,
                                             font_name="Go Mono",
                                             x=self.x,
@@ -633,6 +636,11 @@ class ShortTextInput:
                                             batch=hover_batch)
 
     def update_label(self):
+    
+        if self.label_item:
+            self.label_item.delete()
+            self.label_item = None
+            
         self.label_item = pyglet.text.Label(text=self.text,
                                             font_name="Go Mono",
                                             x=self.x,
@@ -664,12 +672,11 @@ class ShortTextInput:
 
             key_string = pyglet.window.key.symbol_string(symbol)
 
-            if self.text == ">":
+            if self.text == PROMPT_TOKEN:
                 self.text = key_string
 
             else:
                 self.text = self.text + key_string
-                self.label_item.delete()
                 self.update_label()
 
         elif as_ascii(symbol) in letters:
@@ -682,45 +689,38 @@ class ShortTextInput:
             
             else:
                 self.text = self.text + key_string.lower()
-                self.label_item.delete()
                 self.update_label()
 
         elif symbol == pyglet.window.key.BACKSPACE and len(self.text) > 0:
             self.text = self.text[:-1]
-            self.label_item.delete()
             self.update_label()
 
         elif symbol == pyglet.window.key.SPACE:
             self.text = self.text + ' '
-            self.label_item.delete()
             self.update_label()
 
         elif symbol == pyglet.window.key.PARENLEFT:
             self.text = self.text + '('
-            self.label_item.delete()
             self.update_label()
 
         elif symbol == pyglet.window.key.PARENRIGHT:
             self.text = self.text + ')'
-            self.label_item.delete()
             self.update_label()
 
         elif symbol == pyglet.window.key.COLON:
             self.text = self.text + ":"
-            self.label_item.delete()
             self.update_label()
 
         elif symbol == pyglet.window.key.COMMA:
             self.text = self.text + ","
-            self.label_item.delete()
             self.update_label()
 
         else:
             pass
             
     def adjust_to_scrolling(self):
-        self.x = self.tile_x * TILE_SIDE + self.tagger.scroll_shift_x
-        self.y = self.tile_y * TILE_SIDE + self.tagger.scroll_shift_y
+        self.x = self.start_x + self.tagger.scroll_shift_x
+        self.y = self.start_y + self.tagger.scroll_shift_y
         self.update_label()
 
 
@@ -799,9 +799,7 @@ class TagPanel:
             self.panel_background.x = self.tile_x * TILE_SIDE + self.tagger.scroll_shift_x
             self.panel_background.y = self.tile_y * TILE_SIDE + self.tagger.scroll_shift_y
             
-        for label in self.label_panel:
-            label.x = self.x
-            label.y = self.y
+        self.update_labels()
 
 
 @window.event
