@@ -63,6 +63,7 @@ class TileTagger:
 
         self.selected_tiles = set()
         self.selected_areas = {}
+        self.tile_sequence = []
 
         self.tilemap.scale_x = 3
         self.tilemap.scale_y = 3
@@ -119,13 +120,17 @@ class TileTagger:
         shift_modifier = 'MOD_SHIFT' in modifiers
         control_modifier = 'MOD_CTRL' in modifiers
 
+        left_click = button == pyglet.window.mouse.LEFT
+        right_click = button == pyglet.window.mouse.RIGHT
+
         simple = not shift_modifier and not control_modifier
         just_control = not shift_modifier and control_modifier
+        just_shift = shift_modifier and not control_modifier
         
         tile_x = self.tile_x
         tile_y = self.tile_y
 
-        if button == pyglet.window.mouse.LEFT and simple:
+        if left_click and simple:
         
             self.drop_label() # Drop current label at 'old' tile, if there is one
 
@@ -137,11 +142,28 @@ class TileTagger:
                 self.set_label(tile_x * TILE_SIDE,
                                tile_y * TILE_SIDE) # Set new label at current tile
 
-        if button == pyglet.window.mouse.RIGHT and not control_modifier:
+        if left_click and just_shift and (tile_x, tile_y) not in self.selected_tiles:
+
+            self.drop_label()
+
+            if len(self.tile_sequence) >= 1:
+                self.area_select(tile_x, tile_y)
+                
+            self.set_label(tile_x * TILE_SIDE,
+                           tile_y * TILE_SIDE)
+
+        if left_click and just_shift and (tile_x, tile_y) in self.selected_tiles:
+
+            self.drop_label()
+
+            if len(self.selected_tiles) >= 1:
+                self.area_unselect(tile_x, tile_y)
+                
+        if right_click and not control_modifier:
             
             self.drag = not self.drag
 
-        if button == pyglet.window.mouse.LEFT and just_control:
+        if left_click and just_control:
 
             self.make_node()
             self.clear_label()
@@ -180,6 +202,7 @@ class TileTagger:
             self.drop_panel()
             
     def select_tile(self, x, y):
+        self.tile_sequence.append((x, y))
         self.selected_tiles.add((x, y))
         self.selected_areas[x, y] = AreaRectangle(x,
                                                   y,
@@ -188,6 +211,7 @@ class TileTagger:
         window.push_handlers(self.label)
             
     def unselect_tile(self, x, y):
+        self.tile_sequence.remove((x, y))
         self.selected_tiles.discard((x, y))
         rect = self.selected_areas.pop((x, y))
         rect.discard()
@@ -282,14 +306,25 @@ class TileTagger:
             properties = {p.strip() for p in line.split(":")[1].split(",")}
             self.property_index[coordinates] |= properties
             
-    def area_select(self):
-        last_x, last_y = self.selected_tiles[-2]
-        new_x, new_y = self.selected_tiles[-1]
+    def area_select(self, new_x, new_y):
+        last_x, last_y = self.tile_sequence[-1]
         start_x, end_x = min(last_x, new_x), max(last_x, new_x)
         start_y, end_y = min(last_y, new_y), max(last_y, new_y)
-        for i in range(start_x, end_x):
-            for j in range(start_y, end_y):
-                self.selected_tile(i, j)
+        for i in range(start_x, end_x + 1):
+            for j in range(start_y, end_y + 1):
+                if (i, j) not in self.selected_tiles:
+                    print(i, j)
+                    self.select_tile(i, j)
+
+    def area_unselect(self, new_x, new_y):
+        last_x, last_y = self.tile_sequence[-1]
+        start_x, end_x = min(last_x, new_x), max(last_x, new_x)
+        start_y, end_y = min(last_y, new_y), max(last_y, new_y)
+        for i in range(start_x, end_x + 1):
+            for j in range(start_y, end_y + 1):
+                print(i, j)
+                if (i, j) in self.selected_tiles:
+                    self.unselect_tile(i, j)
             
     def arrange_nodes(self):
     
@@ -770,26 +805,20 @@ class TagPanel:
             bottom_y += TAG_HEIGHT + TAG_SEPARATOR
             self.label_panel.append(label)
 
-            bottom_x = 400
+        bottom_x = 400
 
-            self.panel_background = pyglet.shapes.Rectangle(
-                x=self.x,
-                y=self.y - int(bottom_y) + 15,
-                width=bottom_x,
-                height=bottom_y,
-                color=(60, 40, 40),
-                batch=foreground_batch)
+        self.panel_background = pyglet.shapes.Rectangle(
+            x=self.x,
+            y=self.y-int(bottom_y)+15,
+            width=bottom_x,
+            height=bottom_y,
+            color=(60, 40, 40),
+            batch=foreground_batch)
                 
     def adjust_to_scrolling(self):
-    
-        bottom_y = len(self.label_panel) * (TAG_HEIGHT + TAG_SEPARATOR)
         
         self.x = self.tile_x * TILE_SIDE + self.tagger.scroll_shift_x
         self.y = self.tile_y * TILE_SIDE + self.tagger.scroll_shift_y
-    
-        if self.panel_background:
-            self.panel_background.x = self.tile_x * TILE_SIDE + self.tagger.scroll_shift_x
-            self.panel_background.y = self.tile_y * TILE_SIDE + self.tagger.scroll_shift_y
             
         self.update_labels()
 
