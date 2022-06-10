@@ -319,7 +319,7 @@ class TileTagger:
                     maximum_child_x = max([child.start_x for child in node.node_children])
                     maximum_tile_x = max([x * TILE_SIDE for x, y in node.tile_children])
                 
-                    rightmost_x = max(minimum_child_x, minimum_tile_x)
+                    rightmost_x = max(maximum_child_x, maximum_tile_x)
                     
                     upmost_tile_y = max([y * TILE_SIDE for x, y in node.tile_children])
                     upmost_node_y = max([child.start_y for child in node.node_children])
@@ -333,25 +333,17 @@ class TileTagger:
                 if node.tile_children and not node.node_children:
 
                     leftmost_x = min([x * TILE_SIDE for x, y in node.tile_children])
-                
                     rightmost_x = max([x * TILE_SIDE for x, y in node.tile_children]) 
-                    
                     upmost_y = max([y * TILE_SIDE for x, y in node.tile_children]) + TILE_SIDE + HALFTILE
-
                     center_x = leftmost_x + (rightmost_x - leftmost_x) // 2
-                
                     node.set_position(center_x, upmost_y)
                     
                 if node.node_children and not node.tile_children:
                      
                     leftmost_x = min([child.start_x for child in node.node_children])
-                
                     rightmost_x = max([child.start_x for child in node.node_children])
-                
                     upmost_y = max([child.start_y for child in node.node_children]) + TILE_SIDE + HALFTILE
-                
-                    center_x = leftmost_x + (rightmost_x - leftmost_x) // 2
-                
+                    center_x = leftmost_x + (rightmost_x - leftmost_x) // 2                
                     node.set_position(center_x, upmost_y)
                 
                 if not node.tile_children and not node.node_children:
