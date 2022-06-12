@@ -2,7 +2,8 @@ from collections import defaultdict
 
 import pyglet
 import pyglet.window.key as keyboard
-from pyglet.gl import glTexParameteri, GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_NEAREST
+from pyglet.gl import glTexParameteri, GL_TEXTURE_2D, GL_NEAREST
+from pyglet.gl import GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER
 
 from constants import PROMPT_TOKEN
 
@@ -27,6 +28,14 @@ def as_ascii(s):
 cool_purple = (58, 58, 165)
 cool_coral = (192, 64, 64)
 cool_white = (248, 231, 231)
+blue = (0, 0, 255)
+light_blue = (0, 125, 255)
+orange = (255, 125, 0)
+green = (0, 255, 0)
+red = (255, 0, 0)
+sepia = (255, 0, 0)
+total_white = (255, 255, 255, 255)
+partial_white = (255, 255, 255, 220)
 
 window = pyglet.window.Window(1920, 1080)
 
@@ -363,7 +372,6 @@ class TileTagger:
             heights[depth].append(node)
         
         depths = sorted(list([k for k in heights.keys()]))
-        print(depths)
         
         for d in depths:
         
@@ -431,7 +439,7 @@ class AreaRectangle:
         self.shape = pyglet.shapes.Rectangle(x=abs_x, y=abs_y,
                                              width=TILE_SIDE,
                                              height=TILE_SIDE,
-                                             color=(0, 255, 0),
+                                             color=green,
                                              batch=hover_batch)
 
         self.shape.opacity = 100
@@ -479,7 +487,7 @@ class VirtualNode:
         self.shape = pyglet.shapes.Rectangle(x=self.x, y=self.y,
                                              width=TILE_SIDE,
                                              height=TILE_SIDE,
-                                             color=(0, 125, 255),
+                                             color=light_blue,
                                              batch=hover_batch)
         self.shape.opacity = 128
         self.edges = []
@@ -521,7 +529,7 @@ class VirtualNode:
                 new_edge = pyglet.shapes.Line(self_center_x, self_center_y,
                                             child_center_x, child_center_y,
                                             batch=hover_batch,
-                                            width=2, color=(255, 0, 0))
+                                            width=2, color=red)
                 new_edge.opacity = 100
                 self.edges.append(new_edge)
 
@@ -537,7 +545,7 @@ class VirtualNode:
                 new_edge = pyglet.shapes.Line(self_center_x, self_center_y,
                                             child_center_x, child_center_y,
                                             batch=hover_batch,
-                                            width=2, color=(255, 0, 0))
+                                            width=2, color=red)
                 new_edge.opacity = 100
 
                 self.edges.append(new_edge)
@@ -600,12 +608,12 @@ class VirtualNode:
 
     def select(self):
         self.selected = True
-        self.shape.color = (0, 0, 255)
+        self.shape.color = blue
         self.show_tree()
 
     def unselect(self):
         self.selected = False
-        self.shape.color = (0, 125, 255)
+        self.shape.color = light_blue
         self.hide_tree()
 
     def show_tree(self):
@@ -625,7 +633,7 @@ class VirtualNode:
                                               tile_y,
                                               self.tagger)
 
-                new_rectangle.shape.color = (255, 125, 0)
+                new_rectangle.shape.color = orange
 
                 self.tagger.selected_areas[tile_x, tile_y] = new_rectangle
 
@@ -641,14 +649,14 @@ class VirtualNode:
             if not node.selected:
                 node.hide_tree()
 
-        for tile_x, tile_y in self.tile_children:
+        for tile in self.tile_children:
 
-            if (tile_x, tile_y) in self.tagger.selected_areas:
+            if tile in self.tagger.selected_areas:
             
-                self.tagger.selected_areas[tile_x, tile_y].hide_panel()
+                self.tagger.selected_areas[tile].hide_panel()
 
-                if (tile_x, tile_y) not in self.tagger.selected_tiles:
-                    chomeur_tile = self.tagger.selected_areas.pop((tile_x, tile_y))
+                if tile not in self.tagger.selected_tiles:
+                    chomeur_tile = self.tagger.selected_areas.pop(tile)
                     chomeur_tile.discard()
 
     def show_panel(self):
@@ -704,7 +712,7 @@ class ShortTextInput:
                                             y=self.y,
                                             font_size=14,
                                             align="left",
-                                            color=(255, 255, 255, 255),
+                                            color=total_white,
                                             batch=hover_batch)
 
     def update_label(self):
@@ -719,7 +727,7 @@ class ShortTextInput:
                                             y=self.y,
                                             font_size=14,
                                             align="left",
-                                            color=(255, 255, 255, 255),
+                                            color=total_white,
                                             batch=hover_batch)
 
     def on_key_press(self, symbol, modifiers):
@@ -844,7 +852,7 @@ class TagPanel:
                                       y=self.y - int(bottom_y),
                                       font_size=11,
                                       align="left",
-                                      color=(255, 255, 255, 220),
+                                      color=partial_white,
                                       batch=hover_batch)
 
             bottom_y += TAG_HEIGHT + TAG_SEPARATOR
@@ -857,7 +865,7 @@ class TagPanel:
             y=self.y-int(bottom_y)+15,
             width=bottom_x,
             height=bottom_y,
-            color=(60, 40, 40),
+            color=sepia,
             batch=foreground_batch)
                 
     def adjust_to_scrolling(self):
