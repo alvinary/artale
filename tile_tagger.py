@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 import pyglet
+import pyglet.window.key as keyboard
 from pyglet.gl import glTexParameteri, GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_TEXTURE_MIN_FILTER, GL_NEAREST
 
 from constants import PROMPT_TOKEN
@@ -11,6 +12,7 @@ HALFTILE = TILE_SIDE // 2
 SCROLLABLE_PANEL_TOP = 400
 TAG_SEPARATOR = 8
 TAG_HEIGHT = 16
+EMPTY_STRING = ""
 
 letters = [
     l.upper()
@@ -19,7 +21,7 @@ letters = [
 
 
 def as_ascii(s):
-    return pyglet.window.key.symbol_string(s)
+    return keyboard.symbol_string(s)
 
 
 cool_purple = (58, 58, 165)
@@ -75,47 +77,49 @@ class TileTagger:
         self.drag = False
 
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
+
+        delta_y = int(scroll_y * SCROLL_SCALING)
     
-        self.tilemap.y = self.tilemap.y - int(scroll_y * SCROLL_SCALING)
-        self.scroll_shift_y -= int(scroll_y * SCROLL_SCALING)
+        self.tilemap.y = self.tilemap.y - delta_y
+        self.scroll_shift_y -= delta_y
         self.update_camera()
 
     def on_key_press(self, symbol, modifiers):
 
-        modifiers = pyglet.window.key.modifiers_string(modifiers)
+        modifiers = keyboard.modifiers_string(modifiers)
 
-        if symbol == pyglet.window.key.LSHIFT:
+        if symbol == keyboard.LSHIFT:
             self.set_panel()
 
-        if symbol == pyglet.window.key.TAB:
+        if symbol == keyboard.TAB:
             self.dump_string()
 
-        if symbol == pyglet.window.key.BACKSPACE and 'MOD_SHIFT' in modifiers:
+        if symbol == keyboard.BACKSPACE and 'MOD_SHIFT' in modifiers:
             self.clear_label()
 
-        if symbol == pyglet.window.key.LEFT:
+        if symbol == keyboard.LEFT:
             self.scroll_shift_x += 6 * TILE_SIDE
             self.tilemap.x += 6 * TILE_SIDE
             self.update_camera()
 
-        if symbol == pyglet.window.key.RIGHT:
+        if symbol == keyboard.RIGHT:
             self.scroll_shift_x -= 6 * TILE_SIDE
             self.tilemap.x -= 6 * TILE_SIDE
             self.update_camera()
 
-        if symbol == pyglet.window.key.UP:
+        if symbol == keyboard.UP:
             self.scroll_shift_y -= 6 * TILE_SIDE
             self.tilemap.y -= 6 * TILE_SIDE
             self.update_camera()
 
-        if symbol == pyglet.window.key.DOWN:
+        if symbol == keyboard.DOWN:
             self.scroll_shift_y += 6 * TILE_SIDE
             self.tilemap.y += 6 * TILE_SIDE
             self.update_camera()
 
     def on_mouse_press(self, x, y, button, modifiers):
 
-        modifiers = pyglet.window.key.modifiers_string(modifiers)
+        modifiers = keyboard.modifiers_string(modifiers)
 
         shift_modifier = 'MOD_SHIFT' in modifiers
         control_modifier = 'MOD_CTRL' in modifiers
@@ -130,19 +134,23 @@ class TileTagger:
         tile_x = self.tile_x
         tile_y = self.tile_y
 
+        tile_is_selected = (tile_x, tile_y) in self.selected_tiles
+
         if left_click and simple:
         
-            self.drop_label() # Drop current label at 'old' tile, if there is one
+            # Drop current label at 'old' tile, if there is one
+            self.drop_label()
 
-            if (tile_x, tile_y) in self.selected_tiles:
+            if tile_is_selected:
                 self.unselect_tile(tile_x, tile_y)
 
             else: 
                 self.select_tile(tile_x, tile_y)
+                # Set new label at current tile
                 self.set_label(tile_x * TILE_SIDE,
-                               tile_y * TILE_SIDE) # Set new label at current tile
+                               tile_y * TILE_SIDE)
 
-        if left_click and just_shift and (tile_x, tile_y) not in self.selected_tiles:
+        if left_click and just_shift and not tile_is_selected:
 
             self.drop_label()
 
@@ -152,7 +160,7 @@ class TileTagger:
             self.set_label(tile_x * TILE_SIDE,
                            tile_y * TILE_SIDE)
 
-        if left_click and just_shift and (tile_x, tile_y) in self.selected_tiles:
+        if left_click and just_shift and tile_is_selected:
 
             self.drop_label()
 
@@ -198,7 +206,7 @@ class TileTagger:
             self.update_camera()
 
     def on_key_release(self, symbol, modifiers):
-        if symbol == pyglet.window.key.LSHIFT and self.panel:
+        if symbol == keyboard.LSHIFT and self.panel:
             self.drop_panel()
             
     def select_tile(self, x, y):
@@ -285,22 +293,41 @@ class TileTagger:
             self.panel.update_labels()
 
     def dump_string(self):
+
+        blank = lambda: print(EMPTY_STRING)
+
         for k in self.property_index:
-            print(f"{k[0]}.{k[1]}: {', '.join(self.property_index[k])}")
-        print("")
+            tile_x = k[0]
+            tile_y = k[1]
+            tile_properties = ', '.join(self.property_index[k])
+            print(f"{tile_x}.{tile_y}: {tile_properties}")
+            blank()
+
         for node in self.virtual_nodes:
+
             node_properties = ', '.join(list(node.tags))
-            print(f"node at {node.x // TILE_SIDE}.{node.y // TILE_SIDE}: {node_properties}")
+            node_x = node.x // TILE_SIDE
+            node_y = node.y // TILE_SIDE
+
+            print(f"node at {node_x}.{node_y}: {node_properties}")
+
             for tile_x, tile_y in node.tile_children:
-                print(f"has child: node at {node.x}.{node.y}, tile {tile_x}.{tile_y}")
+                node_name = f"{node_x}.{node_y}"
+                tile_name = f"{tile_x}.{tile_y}"
+                print(f"has child: node at {node_name}, tile {tile_name}")
+
             for child_node in node.node_children:
                 child_x = child_node.x // TILE_SIDE
                 child_y = child_node.y // TILE_SIDE
-                print(f"has child: node at {node.x}.{node.y}, node at {child_x}.{child_y}")
-            print("")
-        print("")
+                child_name = f"{child_x}.{child_y}"
+                print(f"has child: node at {node_name}, node at {child_name}")
+
+            blank()
+        
+        blank()
 
     def load_string(self, text):
+        #TODO: now we have nodes, and nodes should be loaded properly!
         for line in text.split("\n"):
             coordinates = tuple(line.split(":")[0].strip().split(", "))
             properties = {p.strip() for p in line.split(":")[1].split(",")}
@@ -335,57 +362,59 @@ class TileTagger:
             depth = node.depth
             heights[depth].append(node)
         
-        new_positions = {}
-        
         depths = sorted(list([k for k in heights.keys()]))
         print(depths)
         
         for d in depths:
         
             for node in heights[d]:
-            
-                if node.node_children and node.tile_children:
-                
-                    minimum_child_x = min([child.start_x for child in node.node_children])
-                    minimum_tile_x = min([x * TILE_SIDE for x, y in node.tile_children])
-                
-                    leftmost_x = min(minimum_child_x, minimum_tile_x)
-                
-                    maximum_child_x = max([child.start_x for child in node.node_children])
-                    maximum_tile_x = max([x * TILE_SIDE for x, y in node.tile_children])
-                
-                    rightmost_x = max(maximum_child_x, maximum_tile_x)
-                    
-                    upmost_tile_y = max([y * TILE_SIDE for x, y in node.tile_children])
-                    upmost_node_y = max([child.start_y for child in node.node_children])
-                
-                    upmost_y = max(upmost_tile_y, upmost_node_y) + TILE_SIDE + HALFTILE
-                    
-                    center_x = leftmost_x + (rightmost_x - leftmost_x) // 2
-                
-                    node.set_position(center_x, upmost_y)
 
-                if node.tile_children and not node.node_children:
+                nodes_xs = [child.start_x for child in node.node_children]
+                tiles_xs = [x * TILE_SIDE for x, y in node.tile_children]
+                nodes_ys = [child.start_y for child in node.node_children]
+                tiles_ys = [y * TILE_SIDE for x, y in node.tile_children]
+                
+                min_xs = []
+                max_xs = []
+                max_ys = []
 
-                    leftmost_x = min([x * TILE_SIDE for x, y in node.tile_children])
-                    rightmost_x = max([x * TILE_SIDE for x, y in node.tile_children]) 
-                    upmost_y = max([y * TILE_SIDE for x, y in node.tile_children]) + TILE_SIDE + HALFTILE
-                    center_x = leftmost_x + (rightmost_x - leftmost_x) // 2
-                    node.set_position(center_x, upmost_y)
-                    
-                if node.node_children and not node.tile_children:
-                     
-                    leftmost_x = min([child.start_x for child in node.node_children])
-                    rightmost_x = max([child.start_x for child in node.node_children])
-                    upmost_y = max([child.start_y for child in node.node_children]) + TILE_SIDE + HALFTILE
-                    center_x = leftmost_x + (rightmost_x - leftmost_x) // 2                
-                    node.set_position(center_x, upmost_y)
-                
-                if not node.tile_children and not node.node_children:
-                
+                if not node.tile_children and not node.node_children:   
                     pass
+
+                else:
+            
+                    if node.node_children and node.tile_children:
+                        
+                        min_xs.append(min(nodes_xs))
+                        min_xs.append(min(tiles_xs))
+                        max_xs.append(max(nodes_xs))
+                        max_xs.append(max(tiles_xs))
+                        max_ys.append(max(nodes_ys))
+                        max_ys.append(max(tiles_ys))
+
+                    if node.tile_children and not node.node_children:
+                        
+                        min_xs.append(min(tiles_xs))
+                        max_xs.append(max(tiles_xs))
+                        max_ys.append(max(tiles_ys))
+                        
+                    if node.node_children and not node.tile_children:
+
+                        min_xs.append(min(nodes_xs))
+                        max_xs.append(max(nodes_xs))
+                        max_ys.append(max(nodes_ys))
+
+                    leftmost_x = min(min_xs)
+                    rightmost_x = max(max_xs)
                     
+                    upmost_y = max(max_ys)
+                    upmost_y += TILE_SIDE + HALFTILE
+                        
+                    center_x = leftmost_x
+                    center_x += (rightmost_x - leftmost_x) // 2
                     
+                    node.set_position(center_x, upmost_y)
+
 
 class AreaRectangle:
 
@@ -466,7 +495,8 @@ class VirtualNode:
         self.depth = 0
         
         if self.node_children:
-            self.depth = max([child.depth + 1 for child in self.node_children])
+            depths = [child.depth for child in self.node_children]
+            self.depth = max(depths) + 1
             
         self.tagger.arrange_nodes()
 
@@ -496,32 +526,42 @@ class VirtualNode:
                 self.edges.append(new_edge)
 
             for (child_x, child_y) in self.tile_children:
-                child_center_x = child_x * TILE_SIDE + HALFTILE + self.tagger.scroll_shift_x
-                child_center_y = child_y * TILE_SIDE + HALFTILE + self.tagger.scroll_shift_y
+
+                child_center_x = child_x * TILE_SIDE + HALFTILE
+                child_center_x += self.tagger.scroll_shift_x
+
+                child_center_y = child_y * TILE_SIDE + HALFTILE
+                child_center_y += self.tagger.scroll_shift_y
+
+
                 new_edge = pyglet.shapes.Line(self_center_x, self_center_y,
                                             child_center_x, child_center_y,
                                             batch=hover_batch,
                                             width=2, color=(255, 0, 0))
                 new_edge.opacity = 100
+
                 self.edges.append(new_edge)
 
     def on_mouse_press(self, x, y, button, modifiers):
 
-        modifiers_string = pyglet.window.key.modifiers_string(modifiers)
+        modifiers_string = keyboard.modifiers_string(modifiers)
 
         right_click = button == pyglet.window.mouse.RIGHT
         control_mod = 'MOD_CTRL' in modifiers_string
+        selection_combo = right_click and control_mod
+
         within_x = x >= self.x and self.x + TILE_SIDE >= x
         within_y = y >= self.y and self.y + TILE_SIDE >= y
+        tile_is_hovered = within_x and within_y
 
-        if right_click and control_mod and within_x and within_y and not self.selected:
+        if selection_combo and tile_is_hovered and not self.selected:
             
             self.select()
             self.tagger.drop_label()
             self.tagger.set_label(self.start_x, self.start_y)
             self.tagger.selected_virtual_nodes.append(self)
 
-        elif right_click and control_mod and within_x and within_y and self.selected:
+        elif selection_combo and tile_is_hovered and self.selected:
             self.unselect()
             self.tagger.selected_virtual_nodes.remove(self)
             self.tagger.clear_label() # drop or clear?
@@ -530,20 +570,21 @@ class VirtualNode:
 
         within_x = x >= self.x and self.x + TILE_SIDE >= x
         within_y = y >= self.y and self.y + TILE_SIDE >= y
+        tile_is_hovered = within_x and within_y
 
-        if within_x and within_y and not self.is_hovered:
+        if tile_is_hovered and not self.is_hovered:
             self.is_hovered = True
             if self.tagger.hovered_virtual_node:
                 self.tagger.hovered_virtual_node.is_hovered = False
             self.tagger.hovered_virtual_node = self
         
-        if not (within_x and within_y) and self.is_hovered:
+        if not tile_is_hovered and self.is_hovered:
             self.is_hovered = False
             self.tagger.hovered_virtual_node = False
 
     def on_key_press(self, symbol, modifiers):
 
-        if self.selected and symbol == pyglet.window.key.DELETE:
+        if self.selected and symbol == keyboard.DELETE:
             self.discard()
 
     def adjust_to_scrolling(self):
@@ -580,11 +621,13 @@ class VirtualNode:
 
             if (tile_x, tile_y) not in self.tagger.selected_areas:
 
-                self.tagger.selected_areas[tile_x, tile_y] = AreaRectangle(tile_x,
-                                                                           tile_y,
-                                                                           self.tagger)
+                new_rectangle = AreaRectangle(tile_x,
+                                              tile_y,
+                                              self.tagger)
 
-                self.tagger.selected_areas[tile_x, tile_y].shape.color = (255, 125, 0)
+                new_rectangle.shape.color = (255, 125, 0)
+
+                self.tagger.selected_areas[tile_x, tile_y] = new_rectangle
 
             self.tagger.selected_areas[tile_x, tile_y].show_panel()
 
@@ -609,10 +652,12 @@ class VirtualNode:
                     chomeur_tile.discard()
 
     def show_panel(self):
+
         self.panel = TagPanel(self.tagger,
                               self.start_x,
                               self.start_y,
                               virtual_node=self)
+
         self.panel.update_labels()
 
     def hide_panel(self):
@@ -679,9 +724,9 @@ class ShortTextInput:
 
     def on_key_press(self, symbol, modifiers):
 
-        modifiers = pyglet.window.key.modifiers_string(modifiers)
+        modifiers = keyboard.modifiers_string(modifiers)
 
-        if symbol == pyglet.window.key.ENTER:
+        if symbol == keyboard.ENTER:
         
             new_tags = set([s.strip() for s in self.text.split(",")])
 
@@ -697,7 +742,7 @@ class ShortTextInput:
 
         elif as_ascii(symbol) in letters and "MOD_SHIFT" in modifiers:
 
-            key_string = pyglet.window.key.symbol_string(symbol)
+            key_string = keyboard.symbol_string(symbol)
 
             if self.text == PROMPT_TOKEN:
                 self.text = key_string
@@ -708,7 +753,7 @@ class ShortTextInput:
 
         elif as_ascii(symbol) in letters:
 
-            key_string = pyglet.window.key.symbol_string(symbol)
+            key_string = keyboard.symbol_string(symbol)
 
             if self.text == PROMPT_TOKEN:
                 self.text = key_string.lower()
@@ -718,27 +763,27 @@ class ShortTextInput:
                 self.text = self.text + key_string.lower()
                 self.update_label()
 
-        elif symbol == pyglet.window.key.BACKSPACE and len(self.text) > 0:
+        elif symbol == keyboard.BACKSPACE and len(self.text) > 0:
             self.text = self.text[:-1]
             self.update_label()
 
-        elif symbol == pyglet.window.key.SPACE:
+        elif symbol == keyboard.SPACE:
             self.text = self.text + ' '
             self.update_label()
 
-        elif symbol == pyglet.window.key.PARENLEFT:
+        elif symbol == keyboard.PARENLEFT:
             self.text = self.text + '('
             self.update_label()
 
-        elif symbol == pyglet.window.key.PARENRIGHT:
+        elif symbol == keyboard.PARENRIGHT:
             self.text = self.text + ')'
             self.update_label()
 
-        elif symbol == pyglet.window.key.COLON:
+        elif symbol == keyboard.COLON:
             self.text = self.text + ":"
             self.update_label()
 
-        elif symbol == pyglet.window.key.COMMA:
+        elif symbol == keyboard.COMMA:
             self.text = self.text + ","
             self.update_label()
 
