@@ -108,7 +108,7 @@ print("Done")
 
 print("Unfolding...")
 
-solver.unfold_instance()
+solver.opt_unfold()
 solver.una_equality()
 
 print("Done")

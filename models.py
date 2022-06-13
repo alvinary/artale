@@ -58,7 +58,7 @@ class HornSolver:
             signature_rules = rule_groups[signature]
 
             for rule in signature_rules:
-                index_permutation = get_permutation(signature, rule)
+                index_permutation = get_permutation(signature, rule.sorts)
                 sort_mapping.append(index_permutation)
 
             assignment_iterator = product(*[self.sorts[s] for s in signature])
