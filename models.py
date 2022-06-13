@@ -52,7 +52,7 @@ class HornSolver:
 
         rule_groups = group_rules(self.rules)
 
-        for signature in rule_groups:
+        for signature in rule_groups.keys():
 
             sort_mapping = []
             signature_rules = rule_groups[signature]
@@ -61,7 +61,9 @@ class HornSolver:
                 index_permutation = get_permutation(signature, rule)
                 sort_mapping.append(index_permutation)
 
-            for signature_assignment in product():
+            assignment_iterator = product(*[self.sorts[s] for s in signature])
+
+            for signature_assignment in assignment_iterator:
 
                 for rule_index, rule in enumerate(signature_rules):
 
@@ -69,7 +71,23 @@ class HornSolver:
                     rule_assignment = map_on(signature_assignment,
                                              signature_mapping)
 
-                    # the res as usuañ
+                    clauses = rule.get_clauses(rule_assignment)
+
+                    pure_clauses = [self.evaluate_functions(c) for c in clauses]
+
+                    self.update_maps(pure_clauses)
+
+                    if IS_DISJUNCTION in rule.flags:
+                        cnf_clauses = [
+                            self.disjunction_dimacs(c) for c in pure_clauses
+                        ]
+
+                    else:
+                        cnf_clauses = [self.dimacs(c) for c in pure_clauses]
+
+                    for cnf_clause in cnf_clauses:
+                        self.solver.add_clause(cnf_clause)
+                        self.cnf_clauses.append(array("l", cnf_clause))
 
 
 
@@ -85,11 +103,11 @@ class HornSolver:
 
         '''
 
-        print("Rule: ", rule.body, rule.heads)
+        # print("Rule: ", rule.body, rule.heads)
 
         for assignment in product(*[self.sorts[s] for s in rule.sorts]):
 
-            print(assignment)
+            # print(assignment)
 
             clauses = rule.get_clauses(assignment)
 
@@ -371,7 +389,7 @@ def group_rules(rules):
     over a single variable of the same sort).
 
     '''
-    sorts_map = {}
+    sorts_map = index()
     for r in rules:
         sorts_tuple = tuple(sorted(r.sorts))
         sorts_map[sorts_tuple].append(r)
