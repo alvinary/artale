@@ -388,7 +388,10 @@ def get_permutation(ordered_sorts, assorted_sorts):
     return tuple(index_permutation)
 
 def map_on(assignment, index_permutation):
-    pass
+    assignment_permutation = []
+    for index in index_permutation:
+        assignment_permutation.append(assignment[index])
+    return tuple(assignment_permutation)
 
 @dataclass
 class Relation:
