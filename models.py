@@ -48,6 +48,32 @@ class HornSolver:
         self.reverse_literal_map = {}
         self.value_map = {}
 
+    def opt_unfold(self):
+
+        rule_groups = group_rules(self.rules)
+
+        for signature in rule_groups:
+
+            sort_mapping = []
+            signature_rules = rule_groups[signature]
+
+            for rule in signature_rules:
+                index_permutation = get_permutation(signature, rule)
+                sort_mapping.append(index_permutation)
+
+            for signature_assignment in product():
+
+                for rule_index, rule in enumerate(signature_rules):
+
+                    signature_mapping = sort_mapping[rule_index]
+                    rule_assignment = map_on(signature_assignment,
+                                             signature_mapping)
+
+                    # the res as usuañ
+
+
+
+
     def unfold_rule(self, rule):
         '''
 
@@ -350,6 +376,19 @@ def group_rules(rules):
         sorts_tuple = tuple(sorted(r.sorts))
         sorts_map[sorts_tuple].append(r)
     return sorts_map
+
+def get_permutation(ordered_sorts, assorted_sorts):
+    index_permutation = []
+    last_index = dict([(s, 0) for s in ordered_sorts])
+    for sort in assorted_sorts:
+        low_index = last_index[sort]
+        top_index = ordered_sorts.index(sort, low_index)
+        last_index[sort] = top_index + 1
+        index_permutation.append(top_index)
+    return tuple(index_permutation)
+
+def map_on(assignment, index_permutation):
+    pass
 
 @dataclass
 class Relation:
