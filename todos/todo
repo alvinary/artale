@@ -110,7 +110,18 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
 
   - In general, group rules with the same argument signature to avoid unfolding the same set of assignments more than once
      X - Group rules by argument signature
-     - Use that grouping when unfolding (that grouping above is a partition so it should be super straightforward).
+     X - Use that grouping when unfolding (that grouping above is a partition so it should be super straightforward).
+     - Test whether the embedding one get with opt_unfold() are the same one gets using "regular" unfold_instance()
+     X - Profile them to see if there is a significant change in elapsed time
+       X - On a first cprofile run with 13 nodes, opt_unfold() took 2 seconds, and unfold_instance() took 9.
+           On four other tests with 23 nodes, they both took the exact same ammount of time.
+           And when testing again with 13 nodes, opt_unfold was faster, again 2 secs vs 9.
+           Surprisingly, about half of the total execution time was spent executing lark.py, so I'll write
+           a silly script and avoid using lark altogether.
+           Printing was very expensive, as usual.
+           So I'm not sure
+           Apparently list comprehensions are visibly slow, so replace them with for loops.
+         - Run satisfactory tests
      
   - Limit unfolding to a subset of a sort (add a kwarg restricted_sorts={}, and if a sort s is in restricted_sorts.keys(),
     you use the contents of restricted_sorts[s] to unfold it, and not the whole sort)

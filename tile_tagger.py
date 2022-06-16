@@ -849,7 +849,7 @@ class TagPanel:
             label = pyglet.text.Label(text=t,
                                       font_name="Go Mono",
                                       x=self.x,
-                                      y=self.y - int(bottom_y),
+                                      y=self.y-int(bottom_y),
                                       font_size=11,
                                       align="left",
                                       color=partial_white,
@@ -878,6 +878,7 @@ class TagPanel:
 
 @window.event
 def on_draw():
+
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
 
