@@ -3,7 +3,7 @@ from models import Relation, Rule, Clause, HornSolver, TERM_SEPARATOR
 from scaffoldings import tree, binary_tree
 from constants import LEXICON
 
-SIZE_BOUND = 13
+SIZE_BOUND = 14
 TYPE_DEPTH = 2
 
 # Initialize solver object
@@ -108,7 +108,7 @@ print("Done")
 
 print("Unfolding...")
 
-solver.opt_unfold()
+solver.unfold_instance()
 solver.una_equality()
 
 print("Done")

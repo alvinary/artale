@@ -122,6 +122,7 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
            So I'm not sure
            Apparently list comprehensions are visibly slow, so replace them with for loops.
          - Run satisfactory tests
+       X - opt_unfold is much slower as instance size increases, so we're doing away with it
      
   - Limit unfolding to a subset of a sort (add a kwarg restricted_sorts={}, and if a sort s is in restricted_sorts.keys(),
     you use the contents of restricted_sorts[s] to unfold it, and not the whole sort)

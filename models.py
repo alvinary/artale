@@ -48,50 +48,6 @@ class HornSolver:
         self.reverse_literal_map = {}
         self.value_map = {}
 
-    def opt_unfold(self):
-
-        rule_groups = group_rules(self.rules)
-
-        for signature in rule_groups.keys():
-
-            sort_mapping = []
-            signature_rules = rule_groups[signature]
-
-            for rule in signature_rules:
-                index_permutation = get_permutation(signature, rule.sorts)
-                sort_mapping.append(index_permutation)
-
-            assignment_iterator = product(*[self.sorts[s] for s in signature])
-
-            for signature_assignment in assignment_iterator:
-
-                for rule_index, rule in enumerate(signature_rules):
-
-                    signature_mapping = sort_mapping[rule_index]
-                    rule_assignment = map_on(signature_assignment,
-                                             signature_mapping)
-
-                    clauses = rule.get_clauses(rule_assignment)
-
-                    pure_clauses = [self.evaluate_functions(c) for c in clauses]
-
-                    self.update_maps(pure_clauses)
-
-                    if IS_DISJUNCTION in rule.flags:
-                        cnf_clauses = [
-                            self.disjunction_dimacs(c) for c in pure_clauses
-                        ]
-
-                    else:
-                        cnf_clauses = [self.dimacs(c) for c in pure_clauses]
-
-                    for cnf_clause in cnf_clauses:
-                        self.solver.add_clause(cnf_clause)
-                        self.cnf_clauses.append(array("l", cnf_clause))
-
-
-
-
     def unfold_rule(self, rule):
         '''
 
