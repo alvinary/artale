@@ -59,8 +59,6 @@ class HornSolver:
 
         '''
 
-        # print("Rule: ", rule.body, rule.heads)
-
         for assignment in product(*[self.sorts[s] for s in rule.sorts]):
 
             # print(assignment)
@@ -82,6 +80,7 @@ class HornSolver:
             for cnf_clause in cnf_clauses:
                 self.solver.add_clause(cnf_clause)
                 self.cnf_clauses.append(array("l", cnf_clause))
+                
 
     def unfold_instance(self):
         '''
@@ -335,6 +334,20 @@ class HornSolver:
             'values': value_triples
         })
 
+    def rule_from_parts(self, body, head, variable_sort_pairs, flags):
+
+        head_atoms = [Relation([term for term in atom]) for atom in head]
+        body_atoms = [Relation([term for term in atom]) for atom in body]
+        sorts = [s for _, s in variable_sort_pairs]
+        variables = [v for v, _ in variable_sort_pairs]
+
+        new_rule = Rule(head_atoms,
+                        body_atoms,
+                        sorts, variables,
+                        self, {}, flags)
+
+        self.rules.append(new_rule)
+
 def group_rules(rules):
     '''
 
@@ -371,7 +384,7 @@ def map_on(assignment, index_permutation):
 class Relation:
     parts: List[str]
 
-    def get_string_encoding(self):
+    def as_string(self):
         return TERM_SEPARATOR.join([p.strip() for p in self.parts])
 
 
@@ -414,8 +427,8 @@ class Rule:
             heads = [r for h in nested_heads for r in h]
             body = [r for b in nested_body for r in b]
 
-        string_heads = [r.get_string_encoding() for r in heads]
-        string_body = [r.get_string_encoding() for r in body]
+        string_heads = [r.as_string() for r in heads]
+        string_body = [r.as_string() for r in body]
 
         if string_heads:
             return [Clause(h, string_body) for h in string_heads]
@@ -450,7 +463,7 @@ class Rule:
                 self.bindings[n] = b
 
             new_relation = Relation([self.replace(s) for s in relation.parts])
-            hashable_new_relation = new_relation.get_string_encoding()
+            hashable_new_relation = new_relation.as_string()
 
             if hashable_new_relation not in checked:
                 relations.append(new_relation)
@@ -478,3 +491,19 @@ class Rule:
 
     def rename_any(self):
         raise NotImplementedError
+
+    def as_string(self):
+
+        body_atoms = [b.as_string() for b in self.body]
+        rule_body = ", ".join(body_atoms)
+
+        head_atoms = [h.as_string() for h in self.heads]
+        rule_head = ", ".join(head_atoms)
+
+        if not head_atoms:
+            rule_head = "False"
+
+        rule_string = f"{rule_body} => {rule_head}"
+        rule_string = rule_string.replace(TERM_SEPARATOR, " ")
+
+        return rule_string
