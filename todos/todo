@@ -152,6 +152,13 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
       print(f"We have {len(rule_declarations)} rules")
       ```
 
+  - Define a custom parser (cProfile showed parsing took about ten seconds, so this
+    is a useful thing to do anyway)
+
+  - Test it
+
+  - Check if these issues cease to occur with the custom parser
+
 - Tile Tagger UX
   X - Drag virtual nodes (if a virtual node is selected, press A to drag it around)
   X - Remove virtual nodes (select it and press d to delete it)
