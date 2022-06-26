@@ -1,3 +1,12 @@
+from numpy import split
+
+
+IMPLICATION = "=>"
+DISJUNCTION = " v "
+ASSERTION = "."
+CONTRADICTION = "False"
+CONJUNCTION = " , "
+
 def read_program(text):
     text = filter_comments(text)
     sorts = read_sorts(text)
@@ -105,7 +114,74 @@ def read_rules(text):
     return rules
 
 def check_part(text):
+    # Exactly one =>
+    # One predicate
+    # n predicates, n > 1, and n - 1 vees
+    # => and False
+    # head is well formed
+    # body is well formed
     pass
 
 def read_rule(text):
-    pass
+    is_disjunction = " v " in text
+    is_contradiction = "=> False" in text
+    is_implication = "=>" in text and not is_contradiction
+    is_assertion = "=>" not in text and not is_disjunction
+
+    if is_implication:
+        body_part, head_part = tuple(text.split("=>"))
+        body = split_predicates(body_part)
+        head = split_predicates(head_part)
+        return (IMPLICATION, body, head)
+
+    if is_contradiction:
+        body_part = text[:-8]
+        body = split_predicates(body_part)
+        return (CONTRADICTION, body)
+
+    if is_disjunction:
+        head = split_predicates(text)
+        return (DISJUNCTION, head)
+
+    # Assertions with variables are allowed
+
+    if is_assertion:
+        head = split_predicates(text)
+        return (ASSERTION, head)
+
+
+def split_predicates(text):
+
+    predicates = []
+
+    while text:
+        predicate, text = chunk_predicate(text)
+        predicates.append(predicate)
+
+    return predicates
+        
+def chunk_predicate(text):
+
+    terms = []
+
+    lparen_index = text.index("(")
+    rparen_index = text.index(")")
+
+    predicate_term = text[:lparen_index]
+    term_segment = text[lparen_index + 1, rparen_index]
+    terms = [predicate_term]
+    terms = terms + term_segment.split(", ") # Make sure spacing is right
+
+    text = text[rparen_index + 1:]
+
+    if DISJUNCTION in text:
+        skip_index = text.index(DISJUNCTION)
+        skip_index += len(DISJUNCTION)
+
+    if CONJUNCTION in text:
+        skip_index = text.index(CONJUNCTION)
+        skip_index += len(CONJUNCTION)
+
+    text = text[skip_index:]
+
+    return terms, text
