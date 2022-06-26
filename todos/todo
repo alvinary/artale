@@ -142,6 +142,16 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
 
 - Find out why sometimes type rules are unfolded and sometimes they are not
 
+  X - After printing each rule before it is unfolded, and the number of rules,
+      it turns out sometimes parsing yields 91 rules, and sometimes 128. So
+      the problem is not in the unfolding function, but in the parser.
+
+      ```
+      sort_declarations, rule_declarations = Parser().parse(theory_program)
+
+      print(f"We have {len(rule_declarations)} rules")
+      ```
+
 - Tile Tagger UX
   X - Drag virtual nodes (if a virtual node is selected, press A to drag it around)
   X - Remove virtual nodes (select it and press d to delete it)
