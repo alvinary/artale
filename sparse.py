@@ -4,6 +4,24 @@ def read_program(text):
     rules = read_rules(text)
     return sorts, rules
 
+def filter_comments(text):
+
+    separator = "---"
+    separator_length = len(separator)
+
+    separator_count = text.count(separator)
+
+    if separator_count % 2 == 1:
+        pass # Raise parity error
+
+    while "---" in text:
+        begin = text.index("---")
+        end = text[begin + separator_length:].index("---")
+        end = end + separator_length
+        text = text[:begin] + text[end:]
+
+    return text
+
 def read_sorts(text):
 
     cardinals = []
@@ -62,9 +80,32 @@ def read_sorts(text):
                 functions.add((domain, f, image))
 
             else:
-                pass
+                pass # Raise ill-formed sort declaration error, show line
 
         if is_sort and not is_distinguished and not is_cardinal and not is_function:
-            pass
+            pass # Raise ill-formed sort declaration error, show line
 
     return (cardinals, extensions, functions)
+
+def read_rules(text):
+
+    text = text.replace("\n", " ")
+    rule_parts = text.split(".")
+
+    rules = []
+
+    for rule_part in rule_parts:
+
+        if check_part(rule_part):
+            rules.append(read_rule(rule_part))
+
+        else:
+            pass # Raise ill-formed rule error
+
+    return rules
+
+def check_part(text):
+    pass
+
+def read_rule(text):
+    pass
