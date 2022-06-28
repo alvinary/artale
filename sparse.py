@@ -1,16 +1,71 @@
-from numpy import split
+from string import punctuation
 
 
 IMPLICATION = "=>"
 DISJUNCTION = " v "
 ASSERTION = "."
 CONTRADICTION = "False"
-CONJUNCTION = " , "
+CONJUNCTION = ", "
+
+EQUALS = "="
+NEQUALS = "!="
+
+PUNCTUATION = "( ) ."
+
+def normalize(text):
+    '''
+    Rewrite a program so it can be suitably processed by
+    read_program()
+    '''
+
+    # Normalize whitespace (this is actually done 
+    # at the end, but it is done now to ensure
+    # the preconditions for the rest of this function
+    # are met)
+
+    while "  " in text:
+        text = text.replace("  ", " ")
+
+    # Make sure no dot or parenthesis is followed
+    # or preceded by spurious whitespace
+
+    for punct in punctuation:
+        space_before = " " + punct
+        space_after = punct + " "
+        text = text.replace(space_before, punct)
+        text = text.replace(space_after, punct)
+
+    # Make sure all commas immediately follow
+    # predicates or terms
+
+    text.replace(" ,", ",")
+
+    # Make sure all statement-delimiting line breaks
+    # leave exactly one blank line, and replace single
+    # line breaks with spaces
+
+    lines = text.split("\n\n")
+    lines = [l.replace("\n", " ") for l in lines]
+
+    text = "\n\n".join(lines)
+
+    # Normalize whitespace again (since
+    # double whitespace might have been
+    # introduced when normalizing line breaks)
+
+    while "  " in text:
+        text = text.replace("  ", " ")
+
+    return text
 
 def read_program(text):
+
+    text = normalize(text)
     text = filter_comments(text)
+    
     sorts = read_sorts(text)
     rules = read_rules(text)
+
     return sorts, rules
 
 def filter_comments(text):
@@ -37,7 +92,7 @@ def read_sorts(text):
     extensions = []
     functions = []
     
-    lines = text.split("\n")
+    lines = text.split("\n\n")
     
     for line in lines:
 
@@ -115,38 +170,47 @@ def read_rules(text):
 
 def check_part(text):
     # Exactly one =>
-    # One predicate
     # n predicates, n > 1, and n - 1 vees
+    # n predicates, n > 1, and n - 1 conjunctions
     # => and False
     # head is well formed
     # body is well formed
     pass
 
 def read_rule(text):
+
     is_disjunction = " v " in text
     is_contradiction = "=> False" in text
     is_implication = "=>" in text and not is_contradiction
     is_assertion = "=>" not in text and not is_disjunction
 
     if is_implication:
+
         body_part, head_part = tuple(text.split("=>"))
         body = split_predicates(body_part)
         head = split_predicates(head_part)
+
         return (IMPLICATION, body, head)
 
     if is_contradiction:
+
         body_part = text[:-8]
         body = split_predicates(body_part)
+
         return (CONTRADICTION, body)
 
     if is_disjunction:
+
         head = split_predicates(text)
+
         return (DISJUNCTION, head)
 
     # Assertions with variables are allowed
 
     if is_assertion:
+
         head = split_predicates(text)
+
         return (ASSERTION, head)
 
 
@@ -162,26 +226,37 @@ def split_predicates(text):
         
 def chunk_predicate(text):
 
-    terms = []
+    has_comparison = EQUALS in text or NEQUALS in text
 
-    lparen_index = text.index("(")
-    rparen_index = text.index(")")
+    if has_comparison:
+        is_comparison = text.index(EQUALS) < text.index(",")
 
-    predicate_term = text[:lparen_index]
-    term_segment = text[lparen_index + 1, rparen_index]
-    terms = [predicate_term]
-    terms = terms + term_segment.split(", ") # Make sure spacing is right
+    if not is_comparison:
 
-    text = text[rparen_index + 1:]
+        terms = []
 
-    if DISJUNCTION in text:
-        skip_index = text.index(DISJUNCTION)
-        skip_index += len(DISJUNCTION)
+        lparen_index = text.index("(")
+        rparen_index = text.index(")")
 
-    if CONJUNCTION in text:
-        skip_index = text.index(CONJUNCTION)
-        skip_index += len(CONJUNCTION)
+        predicate_term = text[:lparen_index]
+        term_segment = text[lparen_index + 1, rparen_index]
+        terms = [predicate_term]
+        terms = terms + term_segment.split(CONJUNCTION)
 
-    text = text[skip_index:]
+        text = text[rparen_index + 1:]
+
+        if DISJUNCTION in text:
+            skip_index = text.index(DISJUNCTION)
+            skip_index += len(DISJUNCTION)
+
+        if DISJUNCTION not in text:
+            skip_index = text.index(CONJUNCTION)
+            skip_index += len(CONJUNCTION)
+
+        text = text[skip_index:]
+
+    if is_comparison:
+
+        pass
 
     return terms, text
