@@ -7,7 +7,9 @@ X - Add 'distinct' macro
 X - Add HornSolver.add_rule() method (which adds a rule and updates the two literal
     maps)
 
-- Test programs with errors to find relevant cases for Parser.check()
+X - Test programs with errors to find relevant cases for Parser.check()
+    X - Errors will be reported by the custom parser by extending the error 
+        and/or exception classes
 
 X - Add negation macro (a or not a) and (a and not a => False)
    -> only necessary for some predicates and quick to write in a program.
@@ -17,7 +19,9 @@ X - Add equality macro (each constant is equal to itself and unequal to the rest
 
 - Add order and equivalence operators to grammar
 
-- Change the 'bodge' model enumaration strategy for something more complete or something complete
+X - Change the 'bodge' model enumaration strategy for something more complete or something complete
+     X - This should not be necessary after finishing this prototype implementation, since
+         gophersat enumerates n models "out of the box"
 
 - Add parser for lexical items
 
@@ -105,7 +109,9 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
   That requires less typing and will make embeddings faster, I think (the same number of clauses are added, but
   all n clauses are created for each set of assignments, and you don't have to allocate and cycle through assignments n times)
 
-  - Figure out how to deal with rules using only a subset of variables (i.e. don't add the same clause on a and c |b| times)
+  X - Figure out how to deal with rules using only a subset of variables (i.e. don't add the same clause on a and c |b| times)
+    X - This is what opt_unfold did and it does not improve resource use
+  
   - Write the parser
 
   - In general, group rules with the same argument signature to avoid unfolding the same set of assignments more than once
@@ -154,6 +160,8 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
 
   - Define a custom parser (cProfile showed parsing took about ten seconds, so this
     is a useful thing to do anyway)
+    X - Define outline
+      - Draft
 
   - Test it
 
@@ -167,8 +175,15 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
   - Add child (select a node, press something, click something, and add it as child)
   X - Fix error in positions yielded by auto_arrange when scroll shifts are nonzero
   - What should we do when two virtual nodes overlap?
-    - ok, we will now group by depth, y height, and center_x. If there are collisions,
-      we will shuffle everyone around so that everyone is above their 'cosito'
+    X - ok, we will now group by depth, y height, and center_x. If there are collisions,
+        we will shuffle everyone around so that everyone is above their 'cosito'
+      - This still does not prevent two distinct virtual nodes from having the same position
+        (like when there is a parse for a nine tile map portion, and another for the top three
+        tiles).
+        It will be best to check if two tiles share the same position, assign them some deterministic
+        order, and sort them left to right, if there is enough space (maybe displace them a bit, so as
+        to visually stack them. This should be recursive, since "watcha gonna do when the tile
+        you displaced to avoid a collision collides with some other tile, huh?"
 
 - OOP
   - Whenever an object is selected, it should trigger a 'mother object' behavior telling anyone to deselect
