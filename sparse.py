@@ -264,7 +264,7 @@ def chunk(text):
 
     return chunk, text
 
-def get_terms(chunk):
+def get_terms(text):
 
     sorts = {}
 
