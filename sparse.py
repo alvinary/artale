@@ -12,6 +12,11 @@ NEQUALS = "!="
 
 PUNCTUATION = "( ) ."
 
+HORN_SEPARATOR = "), "
+
+LPAREN = "("
+RPAREN = ")"
+
 def normalize(text):
     '''
     Rewrite a program so it can be suitably processed by
@@ -187,51 +192,92 @@ def read_rule(text):
     if is_implication:
 
         body_part, head_part = tuple(text.split("=>"))
-        body = split_predicates(body_part)
-        head = split_predicates(head_part)
+        body, body_sorts = split_predicates(body_part)
+        head, head_sorts = split_predicates(head_part)
+        sorts = body_sorts | head_sorts
 
-        return (IMPLICATION, body, head)
+        return (IMPLICATION, sorts, body, head)
 
     if is_contradiction:
 
         body_part = text[:-8]
-        body = split_predicates(body_part)
+        body, sorts = split_predicates(body_part)
 
-        return (CONTRADICTION, body)
+        return (CONTRADICTION, sorts, body)
 
     if is_disjunction:
 
-        head = split_predicates(text)
+        head, sorts = split_predicates(text)
 
-        return (DISJUNCTION, head)
+        return (DISJUNCTION, sorts, head)
 
     # Assertions with variables are allowed
 
     if is_assertion:
 
-        head = split_predicates(text)
+        head, sorts = split_predicates(text)
 
-        return (ASSERTION, head)
+        return (ASSERTION, sorts, head)
 
 
 def split_predicates(text):
 
     predicates = []
+    sorts = []
 
     while text:
-        predicate, text = chunk_predicate(text)
+        predicate, chunk_sorts, text = chunk_predicate(text)
         predicates.append(predicate)
+        sorts |= chunk_sorts
 
-    return predicates
-        
+    return predicates, sorts
+
+
 def chunk_predicate(text):
 
-    has_comparison = EQUALS in text or NEQUALS in text
+    chunk, text = chunk(text)
+    terms, sorts = get_terms(chunk)
 
-    if has_comparison:
-        is_comparison = text.index(EQUALS) < text.index(",")
+    return terms, sorts, text
 
-    if not is_comparison:
+
+def chunk(text):
+    
+    is_disjunction = DISJUNCTION in text
+    is_horn = HORN_SEPARATOR in text # Check if this is the right spacing
+    is_last = not is_disjunction and not is_horn
+
+    if is_horn:
+        chunk_end = text.index(HORN_SEPARATOR)
+        connective_skip = chunk_end + len(HORN_SEPARATOR) # Check if this is the right spacing
+
+    if is_disjunction:
+        chunk_end = text.index(DISJUNCTION)
+        connective_skip = chunk_end + len(DISJUNCTION)
+
+    if is_last:
+        chunk_end = len(text)
+        connective_skip = 0
+
+    chunk = text[:chunk_end]
+    text = text[connective_skip:]
+
+    return chunk, text
+
+def get_terms(chunk):
+
+    sorts = {}
+
+    is_comparison = EQUALS in text or NEQUALS in text
+    is_predicate = LPAREN in text and RPAREN in text
+
+    # Make sure you never have an overlap
+    # between these conditions
+
+    if is_comparison:
+        terms = text.split()
+
+    if is_predicate: 
 
         terms = []
 
@@ -243,20 +289,7 @@ def chunk_predicate(text):
         terms = [predicate_term]
         terms = terms + term_segment.split(CONJUNCTION)
 
-        text = text[rparen_index + 1:]
+    return terms, sorts
 
-        if DISJUNCTION in text:
-            skip_index = text.index(DISJUNCTION)
-            skip_index += len(DISJUNCTION)
-
-        if DISJUNCTION not in text:
-            skip_index = text.index(CONJUNCTION)
-            skip_index += len(CONJUNCTION)
-
-        text = text[skip_index:]
-
-    if is_comparison:
-
-        pass
-
-    return terms, text
+def strip_sorts(chunk):
+    pass
