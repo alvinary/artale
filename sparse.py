@@ -223,7 +223,7 @@ def read_rule(text):
 def split_predicates(text):
 
     predicates = []
-    sorts = []
+    sorts = {}
 
     while text:
         predicate, chunk_sorts, text = chunk_predicate(text)
