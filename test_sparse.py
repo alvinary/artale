@@ -24,6 +24,8 @@ from sparse import *
 # Syntax errors after normalization (line is neither a sort,
 # rule, assertion, comment or disjunction)
 
+# Multiple comparisons in a single predicate (e.g. p(a, b), a = b != c => False)
+
 complete = '''
 sort number 40
 sort character 40
@@ -122,12 +124,17 @@ horse (animal :   character)   => precocious (animal), hoofy (animal)
 '''
 
 def test_normalize():
+
     assert True
 
 def test_get_terms():
+
     chunk_a = "p (a, b)"
     chunk_b = "pred (b, c)"
     chunk_c = "long pred (long const, const.dot)"
+    chunk_d = "a != b"
+    chunk_e = "const.fun = other const.fun"
+    # Names with spaces are rather questionable
     
     terms_a = "p a b".split()
     sorts_a = {}
@@ -138,18 +145,32 @@ def test_get_terms():
     terms_c = "long pred, long const, const.dot".split(", ")
     sorts_c = {}
 
+    terms_d = "a != b".split()
+    sorts_d = {}
+
+    terms_e = "const.fun, =, other const.fun".split(", ")
+    sorts_e = {}
+
     ta, sa = get_terms(chunk_a)
     tb, sb = get_terms(chunk_b)
     tc, sc = get_terms(chunk_c)
+    td, sd = get_terms(chunk_d)
+    te, _se = get_terms(chunk_e)
 
     assert terms_a == ta
-    assert sorts_a == sa 
+    assert sorts_a == sa
 
     assert terms_b == tb
     assert sorts_b == sb
 
     assert terms_c == tc
-    assert sorts_c == sc 
+    assert sorts_c == sc
+
+    assert terms_d == td
+    assert sorts_d == sd
+
+    assert terms_e == te
+    assert sorts_e == _se
 
 
 def test_chunk_predicate():
