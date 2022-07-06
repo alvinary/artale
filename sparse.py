@@ -270,9 +270,6 @@ def get_terms(text):
         lparen_index = text.index("(")
         rparen_index = text.index(")")
 
-        print("LPAREN INDEX: ", lparen_index)
-        print("RPAREN INDEX: ", rparen_index)
-
         predicate_term = text[:lparen_index]
         term_segment = text[lparen_index + 1 : rparen_index]
         terms = [predicate_term]
