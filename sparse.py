@@ -1,20 +1,21 @@
 from string import punctuation
 
 
-IMPLICATION = "=>"
+IMPLICATION = " => "
 DISJUNCTION = " v "
 ASSERTION = "."
 CONTRADICTION = "False"
 CONJUNCTION = ", "
+SORT_ASSIGNMENT = " : "
 
 EQUALS = "="
 NEQUALS = "!="
 
-PUNCTUATION = "( ) ."
+PUNCTUATION = ") .".split()
 
 HORN_SEPARATOR = "), "
 
-LPAREN = "("
+LPAREN = " ("
 RPAREN = ")"
 
 def normalize(text):
@@ -23,16 +24,11 @@ def normalize(text):
     read_program()
     '''
 
-    # Normalize whitespace (this is actually done 
-    # at the end, but it is done now to ensure
-    # the preconditions for the rest of this function
-    # are met)
+    lines = text.split("\n\n")
+    lines = [l.strip() for l in lines]
+    lines = [l.replace("\n", " ") for l in lines]
 
-    while "  " in text:
-        text = text.replace("  ", " ")
-
-    # Make sure no dot or parenthesis is followed
-    # or preceded by spurious whitespace
+    text = "\n\n".join(lines)
 
     for punct in punctuation:
         space_before = " " + punct
@@ -40,26 +36,15 @@ def normalize(text):
         text = text.replace(space_before, punct)
         text = text.replace(space_after, punct)
 
-    # Make sure all commas immediately follow
-    # predicates or terms
-
-    text.replace(" ,", ",")
-
-    # Make sure all statement-delimiting line breaks
-    # leave exactly one blank line, and replace single
-    # line breaks with spaces
-
-    lines = text.split("\n\n")
-    lines = [l.replace("\n", " ") for l in lines]
-
-    text = "\n\n".join(lines)
-
-    # Normalize whitespace again (since
-    # double whitespace might have been
-    # introduced when normalizing line breaks)
+    text = text.replace("=>", IMPLICATION)
+    text = text.replace(",", CONJUNCTION)
+    text = text.replace("(", LPAREN)
+    text = text.replace(":", SORT_ASSIGNMENT)
 
     while "  " in text:
         text = text.replace("  ", " ")
+
+    text = text.replace(" ,", ",")
 
     return text
 
