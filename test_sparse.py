@@ -122,7 +122,17 @@ horse (animal :   character)   => precocious (animal), hoofy (animal)
 '''
 
 def test_normalize():
-    pass
+    assert True
+
+def test_chunk_predicate():
+    test_text = "p(b, a), q(b, a), r(b) => s(a)"
+    test_terms = ["p", "b", "a"]
+    test_remainder = "q(b, a), r(b) => s(a)"
+    test_sorts = {}
+    terms, sorts, text = chunk_predicate(test_text)
+    assert terms == test_terms
+    assert sorts == test_sorts
+    assert text == test_remainder
 
 def test_check_part():
 
@@ -132,8 +142,4 @@ def test_check_part():
     wrong_part_d = "" # mixed v and ,
     wrong_part_e = "" # terms with dot and spurious spaces
 
-    try:
-        check_part(wrong_part_a)
-        
-    except:
-        pass
+    assert True

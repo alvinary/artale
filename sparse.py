@@ -220,8 +220,8 @@ def split_predicates(text):
 
 def chunk_predicate(text):
 
-    chunk, text = chunk(text)
-    terms, sorts = get_terms(chunk)
+    _chunk, text = chunk(text)
+    terms, sorts = get_terms(_chunk)
 
     return terms, sorts, text
 
