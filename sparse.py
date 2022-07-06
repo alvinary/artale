@@ -260,8 +260,13 @@ def get_terms(text):
     # Make sure you never have an overlap
     # between these conditions
 
-    if is_comparison:
-        terms = [t.strip() for t in text.split()]
+    if is_comparison and NEQUALS in text:
+        left_term, right_term = [t.strip() for t in text.split(NEQUALS)]
+        terms = [left_term, NEQUALS, right_term]
+
+    elif is_comparison:
+        left_term, right_term = [t.strip() for t in text.split(EQUALS)]
+        terms = [left_term, EQUALS, right_term]
 
     elif is_predicate: 
 
