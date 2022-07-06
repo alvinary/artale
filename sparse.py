@@ -261,7 +261,7 @@ def get_terms(text):
     # between these conditions
 
     if is_comparison:
-        terms = [t.strip for t in text.split()]
+        terms = [t.strip() for t in text.split()]
 
     elif is_predicate: 
 
