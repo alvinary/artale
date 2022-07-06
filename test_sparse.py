@@ -125,11 +125,30 @@ def test_normalize():
     assert True
 
 def test_chunk_predicate():
-    test_text = "p(b, a), q(b, a), r(b) => s(a)"
+    test_conjunction = normalize("p(b, a), q(b, a), r(b) => s(a)")
+    
+    print(test_conjunction)
+
     test_terms = ["p", "b", "a"]
-    test_remainder = "q(b, a), r(b) => s(a)"
+    test_remainder = "q (b, a), r (b) => s (a)"
     test_sorts = {}
-    terms, sorts, text = chunk_predicate(test_text)
+    
+    terms, sorts, text = chunk_predicate(test_conjunction)
+    
+    assert terms == test_terms
+    assert sorts == test_sorts
+    assert text == test_remainder
+
+    test_disjunction = normalize("p (b, a) v q (b, a) v r (b) v s (a)")
+    
+    print(test_disjunction)
+
+    test_terms = ["p", "b", "a"]
+    test_remainder = "q (b, a) v r (b) v s (a)"
+    test_sorts = {}
+    
+    terms, sorts, text = chunk_predicate(test_disjunction)
+    
     assert terms == test_terms
     assert sorts == test_sorts
     assert text == test_remainder
