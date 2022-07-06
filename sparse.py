@@ -45,6 +45,7 @@ def normalize(text):
         text = text.replace("  ", " ")
 
     text = text.replace(" ,", ",")
+    text = text.replace(")v", ") v")
 
     return text
 
@@ -229,12 +230,12 @@ def chunk_predicate(text):
 def chunk(text):
     
     is_disjunction = DISJUNCTION in text
-    is_horn = HORN_SEPARATOR in text # Check if this is the right spacing
+    is_horn = HORN_SEPARATOR in text
     is_last = not is_disjunction and not is_horn
 
     if is_horn:
-        chunk_end = text.index(HORN_SEPARATOR)
-        connective_skip = chunk_end + len(HORN_SEPARATOR) # Check if this is the right spacing
+        chunk_end = text.index(HORN_SEPARATOR) + 1 # Add one to make up for the ')' in '), '
+        connective_skip = chunk_end + len(HORN_SEPARATOR) - 1
 
     if is_disjunction:
         chunk_end = text.index(DISJUNCTION)
@@ -260,19 +261,27 @@ def get_terms(text):
     # between these conditions
 
     if is_comparison:
-        terms = text.split()
+        terms = [t.strip for t in text.split()]
 
-    if is_predicate: 
+    elif is_predicate: 
 
         terms = []
 
         lparen_index = text.index("(")
         rparen_index = text.index(")")
 
+        print("LPAREN INDEX: ", lparen_index)
+        print("RPAREN INDEX: ", rparen_index)
+
         predicate_term = text[:lparen_index]
-        term_segment = text[lparen_index + 1, rparen_index]
+        term_segment = text[lparen_index + 1 : rparen_index]
         terms = [predicate_term]
         terms = terms + term_segment.split(CONJUNCTION)
+        terms = [t.strip() for t in terms]
+
+    else:
+        print(text)
+        assert False
 
     return terms, sorts
 
