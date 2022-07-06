@@ -124,6 +124,34 @@ horse (animal :   character)   => precocious (animal), hoofy (animal)
 def test_normalize():
     assert True
 
+def test_get_terms():
+    chunk_a = "p (a, b)"
+    chunk_b = "pred (b, c)"
+    chunk_c = "long pred (long const, const.dot)"
+    
+    terms_a = "p a b".split()
+    sorts_a = {}
+
+    terms_b = "pred b c".split()
+    sorts_b = {}
+
+    terms_c = "long pred, long const, const.dot".split(", ")
+    sorts_c = {}
+
+    ta, sa = get_terms(chunk_a)
+    tb, sb = get_terms(chunk_b)
+    tc, sc = get_terms(chunk_c)
+
+    assert terms_a == ta
+    assert sorts_a == sa 
+
+    assert terms_b == tb
+    assert sorts_b == sb
+
+    assert terms_c == tc
+    assert sorts_c == sc 
+
+
 def test_chunk_predicate():
     test_conjunction = normalize("p(b, a), q(b, a), r(b) => s(a)")
     
