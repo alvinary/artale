@@ -166,6 +166,7 @@ def check_part(text):
     # => and False
     # head is well formed
     # body is well formed
+    # Exactly one = or !=
     pass
 
 def read_rule(text):
@@ -263,10 +264,12 @@ def get_terms(text):
     if is_comparison and NEQUALS in text:
         left_term, right_term = [t.strip() for t in text.split(NEQUALS)]
         terms = [left_term, NEQUALS, right_term]
+        sorts |= get_sorts(terms)
 
     elif is_comparison:
         left_term, right_term = [t.strip() for t in text.split(EQUALS)]
         terms = [left_term, EQUALS, right_term]
+        sorts |= get_sorts(terms)
 
     elif is_predicate: 
 
@@ -280,6 +283,7 @@ def get_terms(text):
         terms = [predicate_term]
         terms = terms + term_segment.split(CONJUNCTION)
         terms = [t.strip() for t in terms]
+        sorts |= get_sorts(terms)
 
     else:
         print(text)
@@ -287,5 +291,12 @@ def get_terms(text):
 
     return terms, sorts
 
-def strip_sorts(chunk):
-    pass
+def get_sorts(terms):
+    sorts = []
+    sorted_terms = [t for t in terms if SORT_ASSIGNMENT in t]
+
+    for t in sorted_terms:
+        parts = t.split(SORT_ASSIGNMENT)
+        sorts.append(tuple(parts))
+
+    return dict(sorts)
