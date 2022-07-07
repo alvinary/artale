@@ -38,8 +38,8 @@ def clear_sorts(term_string):
 def test_string_encoding():
     relation_a = Relation(["weaves", "spider", "spiderweb"])
     relation_b = Relation(["weaves", "spider . mother", "spiderweb"])
-    assert relation_a.get_string_encoding() == "weaves--spider--spiderweb"
-    assert relation_b.get_string_encoding() == "weaves--spider . mother--spiderweb"
+    assert relation_a.as_string() == "weaves--spider--spiderweb"
+    assert relation_b.as_string() == "weaves--spider . mother--spiderweb"
 
 def test_unfolding():
 
