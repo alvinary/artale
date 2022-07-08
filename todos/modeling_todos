@@ -1,1 +1,29 @@
-- Una situacion de equilibrio (a lo ucrania, rusia, china, usa, india... etc, o a lo ueu franja bis agra mnr)
+- CFG string parsing
+	X - Draft
+	- Test to see what kinds of unexpected models show up
+
+- Mesh / relation parsing
+	X - Pencial-and-paper draft
+	- Draft
+	- Test
+
+- PDL
+	- Planning (rocks, boulders and keys)
+	- Planning (resource expenditure, knowledge gain, knowledge diffusion)
+	- Equilibrium (when local preferences and context dictate a "lock")
+	- Watzlawick (situation where some event normally interpreted as a
+          'contract' means different things to different people and
+          misunderstanding arises)
+
+- Relational learning
+	- Text and paratext case (reddit dataset - predicting type of
+	  user engagement from textual and paratextual information)
+	- Agus neuro dataset
+
+- Traditional supervised tasks
+	(Same features, different tasks)
+	- Sentiment
+	- Text type (n classes)
+	
+
+- Populations

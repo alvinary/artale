@@ -158,14 +158,13 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
       print(f"We have {len(rule_declarations)} rules")
       ```
 
-  - Define a custom parser (cProfile showed parsing took about ten seconds, so this
-    is a useful thing to do anyway)
-    X - Define outline
-      - Draft
+    - Define a custom parser (cProfile showed parsing took about ten seconds, so this
+      is a useful thing to do anyway)
+      X - Define outline
+        - (Draft ; test)* until convergence
+        - Define some f : Parser output -> models.py objects
 
-  - Test it
-
-  - Check if these issues cease to occur with the custom parser
+    - Check if these issues cease to occur with the custom parser
 
 - Tile Tagger UX
   X - Drag virtual nodes (if a virtual node is selected, press A to drag it around)
