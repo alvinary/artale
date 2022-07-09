@@ -28,7 +28,6 @@ class HornSolver:
         self.sorts = index()
         self.rules = []
         self.literals = set()
-        self.clauses = []
         self.value_map = {}
         self.literal_map = {}
         self.reverse_literal_map = {}
@@ -59,6 +58,9 @@ class HornSolver:
 
         '''
 
+        print("Unfolding rule: ", rule.as_string())
+        clause_count = 0
+
         for assignment in product(*[self.sorts[s] for s in rule.sorts]):
 
             # print(assignment)
@@ -80,7 +82,10 @@ class HornSolver:
             for cnf_clause in cnf_clauses:
                 self.solver.add_clause(cnf_clause)
                 self.cnf_clauses.append(array("l", cnf_clause))
-                
+
+            clause_count += 1
+
+        print(f"Done, added {clause_count} clauses\n")
 
     def unfold_instance(self):
         '''

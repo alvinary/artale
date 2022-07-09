@@ -1,6 +1,3 @@
-from string import punctuation
-
-
 IMPLICATION = " => "
 DISJUNCTION = " v "
 ASSERTION = "."
@@ -19,6 +16,7 @@ LPAREN = " ("
 RPAREN = ")"
 
 def normalize(text):
+    
     '''
     Rewrite a program so it can be suitably processed by
     read_program()
@@ -30,7 +28,7 @@ def normalize(text):
 
     text = "\n\n".join(lines)
 
-    for punct in punctuation:
+    for punct in PUNCTUATION:
         space_before = " " + punct
         space_after = punct + " "
         text = text.replace(space_before, punct)
@@ -50,6 +48,11 @@ def normalize(text):
     return text
 
 def read_program(text):
+
+    '''
+    Input a program and return a list of sort specifications
+    and a list of rule specifications.
+    '''
 
     text = normalize(text)
     text = filter_comments(text)
@@ -292,6 +295,7 @@ def get_terms(text):
     return terms, sorts
 
 def get_sorts(terms):
+
     sorts = []
     sorted_terms = [t for t in terms if SORT_ASSIGNMENT in t]
 
