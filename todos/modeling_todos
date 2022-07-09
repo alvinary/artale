@@ -3,7 +3,7 @@
 	- Test to see what kinds of unexpected models show up
 
 - Mesh / relation parsing
-	X - Pencial-and-paper draft
+	X - Pencil-and-paper draft
 	- Draft
 	- Test
 
@@ -13,7 +13,7 @@
 	- Equilibrium (when local preferences and context dictate a "lock")
 	- Watzlawick (situation where some event normally interpreted as a
           'contract' means different things to different people and
-          misunderstanding arises)
+          misunderstandings arise)
 
 - Relational learning
 	- Text and paratext case (reddit dataset - predicting type of
@@ -24,6 +24,7 @@
 	(Same features, different tasks)
 	- Sentiment
 	- Text type (n classes)
-	
 
 - Populations
+	- Distribution of a propositional trait, and the kinds of global
+	  behaviors that arise
