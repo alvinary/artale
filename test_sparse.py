@@ -1,6 +1,7 @@
 import pytest
 
 from sparse import *
+from models import HornSolver, Relation
 
 # TODO:
 
@@ -8,6 +9,8 @@ from sparse import *
 # Conflicting sort declarations (e.g. sort animal.species in taxa, 
 # sort animal.species in onto)
 # Conflicting sort assignment to constant in rule
+
+# Unpaired comment delimiters
 
 # Assigned entity to nonexistent sort
 
@@ -211,3 +214,36 @@ def test_check_part():
     wrong_part_e = "" # terms with dot and spurious spaces
 
     assert True
+
+def test_split_predicates():
+    pass
+
+from models import HornSolver
+
+def get_rule(rule_text):
+
+    solver = HornSolver()
+    
+    rule_data = read_rule(normalize(rule_text))
+    rulo = make_rule(rule_data, solver)
+
+    return rulo
+
+def test_make_rule():
+    
+    r1 = get_rule("p (a : sort a, b : sort b), q (b) => r (a)")
+    r2 = get_rule("pepa (char : character), pig (char) => pepa pig (char)")
+    r3 = get_rule("holy (t : thing) v neutral (t) v unholy (t)")
+    r4 = get_rule("unholy (brad the unholy)")
+
+    assert "sort a" in r1.sorts
+    assert "sort b" in r1.sorts
+    assert 'a' in r1.variables
+    assert Relation(["q", "b"]) in r1.body
+    assert Relation(['r', 'a']) in r1.heads
+
+    assert 'character' in r2.sorts
+    assert "char" in r2.variables
+    assert Relation(['pepa pig', 'char']) in r2.heads
+    assert Relation(['pig', 'char']) in r2.body
+    assert Relation(['pepa', 'char']) in r2.body
