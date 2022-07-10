@@ -1,3 +1,6 @@
+from models import Relation, Rule
+from models import IS_DISJUNCTION as DISJUNCTION_FLAG
+
 IMPLICATION = " => "
 DISJUNCTION = " v "
 ASSERTION = "."
@@ -300,7 +303,59 @@ def get_sorts(terms):
     sorted_terms = [t for t in terms if SORT_ASSIGNMENT in t]
 
     for t in sorted_terms:
-        parts = t.split(SORT_ASSIGNMENT)
+        parts = [r.strip() for r in t.split(SORT_ASSIGNMENT)]
         sorts.append(tuple(parts))
 
     return dict(sorts)
+
+def make_rule(rule_tuple, solver):
+
+    rule_type = rule_tuple[0]
+
+    is_implication = rule_type == IMPLICATION
+    is_assertion = rule_type == ASSERTION
+    is_disjunction  = rule_type = DISJUNCTION
+    is_contradiction = rule_type == CONTRADICTION
+
+    sorts = {}
+    body = []
+    head = []
+    flags = {}
+
+    if is_implication:
+
+        _, sorts, body, head = rule_tuple
+
+    if is_assertion:
+
+        _, sorts, head = rule_tuple
+
+    if is_disjunction:
+
+        _, sorts, head = rule_tuple
+
+        flags = {DISJUNCTION_FLAG}
+
+    if is_contradiction:
+
+        sorts, body = rule_tuple
+
+    body_relations = [Relation(terms) for terms in body]
+    head_relations = [Relation(terms) for terms in head]
+
+    sorts_items = list(sorts.items())
+
+    rule_sorts = [v for k, v in sorts_items]
+    rule_variables = [k for k, v in sorts_items]
+        # Is this the right order?
+        # p(k : v)?
+
+    bindings = {}
+
+    return Rule(head_relations,
+                body_relations,
+                rule_sorts,
+                rule_variables,
+                solver,
+                bindings,
+                flags)
