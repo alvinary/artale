@@ -231,6 +231,8 @@ def chunk_predicate(text):
     _chunk, text = chunk(text)
     terms, sorts = get_terms(_chunk)
 
+    print(f"chunk: {_chunk}, text: {text}")
+
     return terms, sorts, text
 
 
@@ -250,7 +252,7 @@ def chunk(text):
 
     if is_last:
         chunk_end = len(text)
-        connective_skip = 0
+        connective_skip = chunk_end
 
     chunk = text[:chunk_end]
     text = text[connective_skip:]
@@ -326,17 +328,17 @@ def make_rule(rule_tuple, solver):
 
         _, sorts, body, head = rule_tuple
 
-    if is_assertion:
+    elif is_assertion:
 
         _, sorts, head = rule_tuple
 
-    if is_disjunction:
+    elif is_disjunction:
 
         _, sorts, head = rule_tuple
 
         flags = {DISJUNCTION_FLAG}
 
-    if is_contradiction:
+    elif is_contradiction:
 
         sorts, body = rule_tuple
 
