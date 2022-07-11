@@ -1,3 +1,5 @@
+import re
+
 from artale.models import Relation, Rule
 from artale.models import IS_DISJUNCTION as DISJUNCTION_FLAG
 
@@ -25,9 +27,14 @@ def normalize(text):
     read_program()
     '''
 
+    text = filter_comments(text)
+
     lines = text.split("\n\n")
     lines = [l.strip() for l in lines]
     lines = [l.replace("\n", " ") for l in lines]
+
+    while "\n\n\n" in text:
+        text = text.replace("\n\n\n", "\n\n")
 
     text = "\n\n".join(lines)
 
@@ -58,7 +65,8 @@ def read_program(text):
     '''
 
     text = normalize(text)
-    text = filter_comments(text)
+
+    print("Program text: ", text)
     
     sorts = read_sorts(text)
     rules = read_rules(text)
@@ -66,22 +74,7 @@ def read_program(text):
     return sorts, rules
 
 def filter_comments(text):
-
-    separator = "---"
-    separator_length = len(separator)
-
-    separator_count = text.count(separator)
-
-    if separator_count % 2 == 1:
-        pass # Raise parity error
-
-    while "---" in text:
-        begin = text.index("---")
-        end = text[begin + separator_length:].index("---")
-        end = end + separator_length
-        text = text[:begin] + text[end:]
-
-    return text
+    return re.sub("--.*--", "", text)
 
 def read_sorts(text):
 
@@ -150,8 +143,10 @@ def read_sorts(text):
 
 def read_rules(text):
 
-    text = text.replace("\n", " ")
-    rule_parts = text.split(".")
+    rule_parts = [t.strip() for t in text.split("\n\n")]
+
+    for r in rule_parts:
+        print(r)
 
     rules = []
 
@@ -173,7 +168,17 @@ def check_part(text):
     # head is well formed
     # body is well formed
     # Exactly one = or !=
-    pass
+
+    checks = True
+    
+    checks = checks and len(text) > 0
+
+    if not checks:
+        return checks
+
+    checks = checks and text[0:5] != "sort "
+
+    return checks
 
 def read_rule(text):
 
@@ -371,11 +376,17 @@ def make_rule(rule_tuple, solver):
                 flags)
                 
 def read_into(program, solver):
+
+    print("Program: ", program)
     
     normalized_program = normalize(program)
     _, rules = read_program(normalized_program)
     
+    for r in rules:
+        print("Rule: ", r)
+    
     for rule_data in rules:
         new_rule = make_rule(rule_data, solver)
+        print(new_rule)
         solver.rules.append(new_rule)
 
