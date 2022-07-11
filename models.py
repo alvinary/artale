@@ -36,7 +36,7 @@ class HornSolver:
         self.name_counter = 0
         self.cnf_clauses = list()
 
-    def add_n_elements(self, sort, n):
+    def fill_sort(self, sort, n):
         '''
 
         Add n constants named '{sort} 1', '{sort} 2', '{sort} 3', ... ,

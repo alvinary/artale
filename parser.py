@@ -1,304 +1,372 @@
-from lark import Lark, Tree, Token
-from string import digits as digits
+from artale.models import Relation, Rule
+from artale.models import IS_DISJUNCTION as DISJUNCTION_FLAG
 
-IS_DISJUNCTION = "vee"
-IS_ASSERTION = "wedge"
-IS_CLAUSE = "arrow"
+IMPLICATION = " => "
+DISJUNCTION = " v "
+ASSERTION = "."
+CONTRADICTION = "False"
+CONJUNCTION = ", "
+SORT_ASSIGNMENT = " : "
 
-grammar = ""
+EQUALS = "="
+NEQUALS = "!="
 
-with open("grammar") as grammar_file:
-    for line in grammar_file:
-        grammar = grammar + line
+PUNCTUATION = ") .".split()
 
+HORN_SEPARATOR = "), "
 
-def normalize(term_string):
-    '''Remove all excess whitespace from a string encoding a term and remove
-    its sort, if present (e.g. 'my   sample term   : some sort') maps
-    to 'my sample term').'''
+LPAREN = " ("
+RPAREN = ")"
 
-    while "  " in term_string:
-        term_string = term_string.replace("  ", " ")
-
-    return clear_sorts(term_string).strip()
-
-
-def clear_sorts(term_string):
-    '''Remove a term's sort from its string encoding (e.g. 'some pony : pony'
-    maps to 'some pony').'''
-
-    if ":" in term_string:
-        colon_index = term_string.index(":")
-        return term_string[:colon_index].strip()
-
-    else:
-        return term_string
-
-
-def get_preterminal(lark_tree):
-    '''Given a Lark Tree object, return the name of the corresponding 
-    preterminal symbol in the grammar as a string (e.g. if a parse 
-    was derived from the rule many_as -> a _many_as, return the string 
-    'many_as').'''
-    return lark_tree.data
-
-
-def get_head(rule_tree):
-    '''Given a Lark Tree object matching the preterminal 'rule', return
-    the Lark object matching its head, and return None if the rule does
-    not have any positive literal/atom (e.g. a parse of the rule 
-    'p(x), q(x, y) => r(x)' maps to the parse of 'r(x)', and 'r(x) => False'
-    maps to None).'''
-
-    atomic_children = [
-        c for c in rule_tree.children if not isinstance(c, Token)
-    ]
-    if len(atomic_children) >= 2:
-        return atomic_children[1]
-    else:
-        return None
-
-
-def get_body(rule_tree):
-    '''Given a Lark Tree object matching the preterminal 'rule', return
-    the Lark object matching its body (e.g. a parse of the rule 
-    'p(x, y), q(y, x) => r(x, y)' maps to the parse of 'p(x, y), q(y, x)').'''
+def normalize(text):
     
-    atomic_children = [
-        c for c in rule_tree.children if not isinstance(c, Token)
-    ]
-    return atomic_children[0]
+    '''
+    Rewrite a program so it can be suitably processed by
+    read_program()
+    '''
 
-def get_disjuncts(rule_tree):
-    disjuncts = [
-        c for c in rule_tree.children if not isinstance(c, Token)
-    ]
-    return [d for d in disjuncts if get_preterminal(d) == "atom"]
+    lines = text.split("\n\n")
+    lines = [l.strip() for l in lines]
+    lines = [l.replace("\n", " ") for l in lines]
 
-def get_atoms(atoms_tree):
-    '''Return all atoms in the parse of a programs segment matching
-    the 'atoms' preterminal (i.e. all of its children that are not
-    terminals/tokens, which should be newlines or whitespaces).
-    For instance, 'p(x, y), q(x), r(y)' maps to the parses of
-    each of its atoms ('p(x, y)', 'q(x)' and 'r(y)').'''
-    return [c for c in atoms_tree.children if isinstance(c, Tree)]
+    text = "\n\n".join(lines)
 
+    for punct in PUNCTUATION:
+        space_before = " " + punct
+        space_after = punct + " "
+        text = text.replace(space_before, punct)
+        text = text.replace(space_after, punct)
 
-def get_terms(atom_tree):
-    '''Return a list containing all parse trees matching a term
-    given an atom tree (this function is identical to get_atoms(), but
-    was defined and named differently to favor clarity by making
-    the purpose of each call explicit).'''
-    return [c for c in atom_tree.children if isinstance(c, Tree)]
+    text = text.replace("=>", IMPLICATION)
+    text = text.replace(",", CONJUNCTION)
+    text = text.replace("(", LPAREN)
+    text = text.replace(":", SORT_ASSIGNMENT)
 
+    while "  " in text:
+        text = text.replace("  ", " ")
 
-def get_tokens(term_tree):
-    '''Given the parse tree of a term, return a string encoding that
-    term (e.g. a term resulting from parsing 'a.f.g' maps directly to
-    'a.f.g').'''
-    tokens = []
-    for i, c in enumerate(
-        [t for t in term_tree.children if isinstance(t, Tree)]):
-        if i != 0:
-            tokens.append(".")
-        tokens = tokens + (
-            [_c.strip() for _c in c.children if isinstance(_c, Token)])
-    return tokens
+    text = text.replace(" ,", ",")
+    text = text.replace(")v", ") v")
 
-def read_sort_token(sort_token):
-    return "".join([c.value for c in sort_token.children])
+    return text
 
+def read_program(text):
 
-def get_variables(term_lists):
-    '''Given a list of terms encoded as strings, return a set
-    of (variable name, variable sort) pairs. All variables 
-    mentioned in terms from the input list are included.
+    '''
+    Input a program and return a list of sort specifications
+    and a list of rule specifications.
+    '''
 
-    If a term has function applications, the part considered
-    to be a variable is the first, so 'a.f.g : A' results
-    in the name 'a' being taken as a variable drawn from sort
-    A.
-    Only terms where the sort membership symbol ':' is included
-    are considered variables. All other terms are treated as
-    constants.
-    If two different sorts are assigned to the same variable symbol
-    -as in p(a: A, a: B)-, behavior is undefined.'''
-    variables = set()
-
-    for terms in term_lists:
-        new_variables = {
-            tuple([s.strip() for s in t.split(":")])
-            for t in terms if ":" in t
-        }
-        variables |= new_variables
-
-    variables = {(normalize(v), normalize(s)) for v, s in variables}
-    return sorted(list(variables))
-
-def get_sorts(term_lists):
-    '''Return a list containing all distinct sort names included
-    in sort membership declarations in terms from the input list. '''
-    return [s for v, s in get_variables(term_lists)]
-
-def read_sort(sort_tree):
-    ''''''
+    text = normalize(text)
+    text = filter_comments(text)
     
-    sort_actions = []
+    sorts = read_sorts(text)
+    rules = read_rules(text)
 
-    is_filling = set(sort_tree.pretty()) & set(digits)
-    is_addition = not is_filling
+    return sorts, rules
 
-    if is_filling:
-        target_sort = read_sort_token(sort_tree.children[1])
-        no_constants = sort_tree.children[3].value
-        filling = ("fill", target_sort, int(no_constants))
-        sort_actions.append(filling)
+def filter_comments(text):
 
-    if is_addition:
-        target_sort = read_sort_token(sort_tree.children[1])
-        for child in [c for c in sort_tree.children[1:] if isinstance(c, Tree)]:
-            addition = ("add", target_sort, read_sort_token(child))
-            sort_actions.append(addition)
-        
-    return sort_actions
+    separator = "---"
+    separator_length = len(separator)
 
-class Parser:
+    separator_count = text.count(separator)
 
-    def __init__(self):
+    if separator_count % 2 == 1:
+        pass # Raise parity error
 
-        self.parser = Lark(grammar)
+    while "---" in text:
+        begin = text.index("---")
+        end = text[begin + separator_length:].index("---")
+        end = end + separator_length
+        text = text[:begin] + text[end:]
 
-    def preprocess(self, program):
-        '''Preprocess an input program to match the preconditions of the parser (by
-        removing duplicate whitespace and whitespace before newlines, and adding
-        whitespace after or before some punctuation symbols -',', '(' and ')'-, and
-        making sure instances of the '=>' symbol are surrounded by whitespace). '''
+    return text
 
-        program = program.replace("=>", " => ")
-        program = program.replace(",", ", ")
+def read_sorts(text):
 
-        while " \n" in program:
-            program = program.replace(" \n", "\n")
+    cardinals = []
+    extensions = []
+    functions = []
+    
+    lines = text.split("\n\n")
+    
+    for line in lines:
 
-        while "  " in program:
-            program = program.replace("  ", " ")
+        tokens = line.split(" ")
+        is_sort = "sort " == line[0:5]
+        three_tokens = len(tokens) == 3
 
-        while " ," in program:
-            program = program.replace(" ,", ",")
+        if len(tokens) >= 3:
 
-        while " )" in program:
-            program = program.replace(" )", ")")
+            has_number = tokens[2].isdigit()
+            has_add = tokens[2] == "add"
+            has_dot = "." in tokens[1]
+            has_in = tokens[2] == "in" 
+            many_tokens = len(tokens) > 3
 
-        while "( " in program:
-            program = program.replace("( ", "(")
+        else:
 
-        parts = [part.strip() for part in program.split("\n")]
+            has_number = False
+            has_add = False
+            many_tokens = False
+            has_in = False
+            has_dot = False
 
-        return "\n".join(parts)
+        is_cardinal = is_sort and three_tokens and has_number
+        is_distinguished = is_sort and has_add and many_tokens
+        is_function = is_sort and has_dot and has_in
 
-    def parse(self, program):
-        '''Given a program, return a pair '(sorts_part, rules_part)`, provided parsing succeeds.
-        'rules_part' is a list of tuples containing the data necessary to create a Rule object
-        in the 'models' module, which is
- 
-       * The body of a rule and its head, both represented as lists
-        of atoms, which are lists of strings where each string encodes a term,
+        if is_cardinal:
 
-       * The list of variables in the rule, with their sorts, and
+            sort_name = tokens[1]
+            size = int(tokens[2])
+            cardinals.append((sort_name, size))
 
-       * The second component of each element on the previous list.
+        if is_distinguished:
 
-       Sorts are not yet implemented.'''
+            sort_name = tokens[1]
+            distinguished_elements = tokens[3:]
+            for elem in distinguished_elements:
+                extensions.append((sort_name, elem))
 
-        program = self.preprocess(program)
-        parsed_program = self.parser.parse(program)
-        statements = [
-            s for s in parsed_program.children if isinstance(s, Tree)
-        ]
-        sorts = [s for s in statements if get_preterminal(s) == "sort"]
-        rules = [s for s in statements if get_preterminal(s) == "rule"]
-        assertions = [
-            s for s in statements if get_preterminal(s) == "assertion"
-        ]
-        disjunctions = [
-            s for s in statements if get_preterminal(s) == "disjunction"
-        ]
+        if is_function:
 
-        # Fillings are sort declarations of the form 'sort name nat',
-        # intended for users to define a sort populated by uniform constants
+            dot_parts = tuple(tokens[1].split("."))
 
-        # Additions are sort delcarations of the form 'sort name add c1, c2, c3, ...',
-        # intended for users to define distinguished elements of a sort
+            if len(dot_parts) == 2:
 
-        sorts_parts = []
-        rule_parts = []
+                domain, f = dot_parts
+                image = tokens[2]
+                functions.add((domain, f, image))
 
-        for sort in sorts:
-            sorts_parts = sorts_parts + read_sort(sort)
-
-        for rule in rules:
-
-            head = get_head(rule)
-
-            if not head:
-                head_atoms = []
             else:
-                head_atoms = get_atoms(get_head(rule))
+                pass # Raise ill-formed sort declaration error, show line
 
-            body_atoms = get_atoms(get_body(rule))
+        if is_sort and not is_distinguished and not is_cardinal and not is_function:
+            pass # Raise ill-formed sort declaration error, show line
 
-            body = [[" ".join(get_tokens(t)).strip() for t in get_terms(a)]
-                    for a in body_atoms]
-            head = [[" ".join(get_tokens(t)).strip() for t in get_terms(a)]
-                    for a in head_atoms]
+    return (cardinals, extensions, functions)
 
-            variables = get_variables(body + head)
-            sorts = get_sorts(body + head)
+def read_rules(text):
 
-            body = [[normalize(s) for s in a] for a in body]
-            head = [[normalize(s) for s in a] for a in head]
+    text = text.replace("\n", " ")
+    rule_parts = text.split(".")
 
-            rule_parts.append((body, head, variables, sorts, {IS_CLAUSE}))
+    rules = []
 
-        for assertion in assertions:
+    for rule_part in rule_parts:
 
-            head_atoms = get_atoms(get_body(assertion))
+        if check_part(rule_part):
+            rules.append(read_rule(rule_part))
 
-            head = [[" ".join(get_tokens(t)).strip() for t in get_terms(a)]
-                    for a in head_atoms]
+        else:
+            pass # Raise ill-formed rule error
 
-            variables = get_variables(head)
-            sorts = get_sorts(head)
+    return rules
 
-            head = [[normalize(s) for s in a] for a in head]
+def check_part(text):
+    # Exactly one =>
+    # n predicates, n > 1, and n - 1 vees
+    # n predicates, n > 1, and n - 1 conjunctions
+    # => and False
+    # head is well formed
+    # body is well formed
+    # Exactly one = or !=
+    pass
 
-            rule_parts.append(([], head, variables, sorts, {IS_ASSERTION}))
+def read_rule(text):
 
-        for disjunction in disjunctions:
+    is_disjunction = " v " in text
+    is_contradiction = "=> False" in text
+    is_implication = "=>" in text and not is_contradiction
+    is_assertion = "=>" not in text and not is_disjunction
 
-            disjunction_atoms = get_disjuncts(disjunction)
+    if is_implication:
 
-            body = [[" ".join(get_tokens(t)).strip() for t in get_terms(a)]
-                    for a in disjunction_atoms]
+        body_part, head_part = tuple(text.split("=>"))
+        body, body_sorts = split_predicates(body_part)
+        head, head_sorts = split_predicates(head_part)
+        sorts = body_sorts | head_sorts
 
-            variables = get_variables(body)
-            sorts = get_variables(body)
+        return (IMPLICATION, sorts, body, head)
 
-            body = [[normalize(s) for s in a] for a in body]
+    if is_contradiction:
 
-            rule_parts.append((body, [], variables, sorts, {IS_DISJUNCTION}))
-        
-        return sorts_parts, rule_parts
+        body_part = text[:-8]
+        body, sorts = split_predicates(body_part)
 
-    def check(program):
-        '''Return True if a program is recognized by the parser's grammar, False
-        otherwise.'''
-        # Should check if the program is valid semantically too!
-        # - No variable is declared as being a member of two separate sorts 
-        
-        try:
-            pass
+        return (CONTRADICTION, sorts, body)
 
-        except:
-            pass
+    if is_disjunction:
 
+        head, sorts = split_predicates(text)
+
+        return (DISJUNCTION, sorts, head)
+
+    # Assertions with variables are allowed
+
+    if is_assertion:
+
+        head, sorts = split_predicates(text)
+
+        return (ASSERTION, sorts, head)
+
+
+def split_predicates(text):
+
+    predicates = []
+    sorts = {}
+
+    while text:
+        predicate, chunk_sorts, text = chunk_predicate(text)
+        predicates.append(predicate)
+        sorts |= chunk_sorts
+
+    return predicates, sorts
+
+
+def chunk_predicate(text):
+
+    _chunk, text = chunk(text)
+    terms, sorts = get_terms(_chunk)
+
+    print(f"chunk: {_chunk}, text: {text}")
+
+    return terms, sorts, text
+
+
+def chunk(text):
+    
+    is_disjunction = DISJUNCTION in text
+    is_horn = HORN_SEPARATOR in text
+    is_last = not is_disjunction and not is_horn
+
+    if is_horn:
+        chunk_end = text.index(HORN_SEPARATOR) + 1 # Add one to make up for the ')' in '), '
+        connective_skip = chunk_end + len(HORN_SEPARATOR) - 1
+
+    if is_disjunction:
+        chunk_end = text.index(DISJUNCTION)
+        connective_skip = chunk_end + len(DISJUNCTION)
+
+    if is_last:
+        chunk_end = len(text)
+        connective_skip = chunk_end
+
+    chunk = text[:chunk_end]
+    text = text[connective_skip:]
+
+    return chunk, text
+
+def get_terms(text):
+
+    sorts = {}
+
+    is_comparison = EQUALS in text or NEQUALS in text
+    is_predicate = LPAREN in text and RPAREN in text
+
+    # Make sure you never have an overlap
+    # between these conditions
+
+    if is_comparison and NEQUALS in text:
+        left_term, right_term = [t.strip() for t in text.split(NEQUALS)]
+        terms = [left_term, NEQUALS, right_term]
+        sorts |= get_sorts(terms)
+
+    elif is_comparison:
+        left_term, right_term = [t.strip() for t in text.split(EQUALS)]
+        terms = [left_term, EQUALS, right_term]
+        sorts |= get_sorts(terms)
+
+    elif is_predicate: 
+
+        terms = []
+
+        lparen_index = text.index("(")
+        rparen_index = text.index(")")
+
+        predicate_term = text[:lparen_index]
+        term_segment = text[lparen_index + 1 : rparen_index]
+        terms = [predicate_term]
+        terms = terms + term_segment.split(CONJUNCTION)
+        terms = [t.strip() for t in terms]
+        sorts |= get_sorts(terms)
+
+    else:
+        print(text)
+        assert False
+
+    terms = [strip_sort(t) for t in terms]
+
+    return terms, sorts
+
+def get_sorts(terms):
+
+    sorts = []
+    sorted_terms = [t for t in terms if SORT_ASSIGNMENT in t]
+
+    for t in sorted_terms:
+        parts = [r.strip() for r in t.split(SORT_ASSIGNMENT)]
+        sorts.append(tuple(parts))
+
+    return dict(sorts)
+
+def strip_sort(term):
+
+    if SORT_ASSIGNMENT not in term:
+        return term
+    
+    else:
+        return term.split(SORT_ASSIGNMENT).pop(0).strip()
+
+def make_rule(rule_tuple, solver):
+
+    rule_type = rule_tuple[0]
+
+    is_implication = rule_type == IMPLICATION
+    is_assertion = rule_type == ASSERTION
+    is_disjunction  = rule_type = DISJUNCTION
+    is_contradiction = rule_type == CONTRADICTION
+
+    sorts = {}
+    body = []
+    head = []
+    flags = {}
+
+    if is_implication:
+
+        _, sorts, body, head = rule_tuple
+
+    elif is_assertion:
+
+        _, sorts, head = rule_tuple
+
+    elif is_disjunction:
+
+        _, sorts, head = rule_tuple
+
+        flags = {DISJUNCTION_FLAG}
+
+    elif is_contradiction:
+
+        sorts, body = rule_tuple
+
+    body_relations = [Relation(terms) for terms in body]
+    head_relations = [Relation(terms) for terms in head]
+
+    sorts_items = list(sorts.items())
+
+    rule_sorts = [v for k, v in sorts_items]
+    rule_variables = [k for k, v in sorts_items]
+
+    bindings = {}
+
+    return Rule(head_relations,
+                body_relations,
+                rule_sorts,
+                rule_variables,
+                solver,
+                bindings,
+                flags)
+                
