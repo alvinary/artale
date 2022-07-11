@@ -9,19 +9,15 @@ specified on a program or perform bounded model checking.
 
 - The class in charge of finding models satisfying a specification is in `models.py` 
 - The class in charge of parsing programs is in `parser.py`
-- A class for displaying relations as trees can be found in `ui.py`
 - The `./specs` folder contains some example programs
-- The `grammar` file specifies the grammar of the input language
 
 ### Dependencies
-The scripts in this repository depend on [Pyglet](http://pyglet.org), [Lark](https://github.com/lark-parser/lark)
-and [PySAT](https://pysathq.github.io/). 
+The scripts in this repository depend on [Pyglet](http://pyglet.org) and [PySAT](https://pysathq.github.io/). 
 
-Pyglet and Lark are fairly portable and should be easy to install on most Linux distributions, Windows and MacOS by using pip.
+Pyglet is portable and should be easy to install on most Linux distributions, Windows and MacOS by using pip.
 
 ```
 pip install pyglet
-pip install lark
 ```
 
 PySAT relies on external SAT solvers, and can be installed directly on Ubuntu, but I'm not sure about other distributions
