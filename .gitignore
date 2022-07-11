@@ -1,0 +1,5 @@
+# Ignore python cache
+__pycache__/
+test/__pycache__/
+taggers/__pycache__/
+interfaces/__pycache__/
