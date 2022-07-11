@@ -272,12 +272,12 @@ def get_terms(text):
     if is_comparison and NEQUALS in text:
         left_term, right_term = [t.strip() for t in text.split(NEQUALS)]
         terms = [left_term, NEQUALS, right_term]
-        sorts |= get_sorts(terms)
+        sorts |= get_term_sorts(terms)
 
     elif is_comparison:
         left_term, right_term = [t.strip() for t in text.split(EQUALS)]
         terms = [left_term, EQUALS, right_term]
-        sorts |= get_sorts(terms)
+        sorts |= get_term_sorts(terms)
 
     elif is_predicate: 
 
@@ -291,7 +291,7 @@ def get_terms(text):
         terms = [predicate_term]
         terms = terms + term_segment.split(CONJUNCTION)
         terms = [t.strip() for t in terms]
-        sorts |= get_sorts(terms)
+        sorts |= get_term_sorts(terms)
 
     else:
         print(text)
@@ -301,7 +301,7 @@ def get_terms(text):
 
     return terms, sorts
 
-def get_sorts(terms):
+def get_term_sorts(terms):
 
     sorts = []
     sorted_terms = [t for t in terms if SORT_ASSIGNMENT in t]
@@ -370,3 +370,12 @@ def make_rule(rule_tuple, solver):
                 bindings,
                 flags)
                 
+def read_into(program, solver):
+    
+    normalized_program = normalize(program)
+    _, rules = read_program(normalized_program)
+    
+    for rule_data in rules:
+        new_rule = make_rule(rule_data, solver)
+        solver.rules.append(new_rule)
+
