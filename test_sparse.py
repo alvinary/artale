@@ -218,8 +218,6 @@ def test_check_part():
 def test_split_predicates():
     pass
 
-from models import HornSolver
-
 def get_rule(rule_text):
 
     solver = HornSolver()
