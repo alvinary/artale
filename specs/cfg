@@ -1,31 +1,26 @@
 sort string 600
-sort string add empty
+sort string add emptyString
 sort string.next in string
 
 sort rule 30
-sort preterminal 599
+sort preterminal 30
 
 sort character 128
-sort name 20
 
-parses (p, s) if
-	parses segment (p, s, empty)
+parses segment (A, s, emptyString) =>
+parses (A, s)
 
-parses segment (p, s1, s2), is (p, A) <=
-	parses segment (l, s1, s3),
-	parses segment (r, s2, s3),
-	left in (r, A, B),
-	right in (r, A, C),
-	is (l, B),
-	is (r, C)
+parses segment (B, s1, s2),
+parses segment (C, s2, s3),
+left in (r, A, B),
+right in (r, A, C) =>
+parses segment (A, s1, s3)
 
-parses segment (p, s, s.next) <=
-	parses symbol (p, s)
+parses symbol (p, s) =>
+parses segment (p, s, s.next)
 
-parses symbol (p, s) <=
-	is (s, S),
-	parses terminal (r, A, S),
-	is (p, A)
+is (s, char),
+parses terminal (r, A, char) =>
+parses symbol (A, s)
 
-is (p, A), is (p, B), B != A => False
-is (s, A), is (s, B), A != B => False
+is (s, char a), is (s, char b), char a != char b => False
