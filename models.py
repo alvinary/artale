@@ -36,6 +36,26 @@ class HornSolver:
         self.name_counter = 0
         self.cnf_clauses = list()
 
+    def add_n_elements(self, sort, n):
+        '''
+
+        Add n constants named '{sort} 1', '{sort} 2', '{sort} 3', ... ,
+        '{sort} n' to the sort provided as argument.
+        
+        '''
+        
+        for i in range(n):
+            self.sorts[sort].append(f"{sort} {i + 1}")
+
+    def add_element(self, sort, name):
+        '''
+        
+        Add a constant named 'name' to the sort provided as argument
+        
+        '''
+        
+        self.sorts[sort].append(name)
+
     def reset_maps(self):
         '''
 
