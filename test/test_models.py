@@ -1,12 +1,10 @@
 import pytest
 
-from artale.parser import Parser
+from artale.parser import read_into
 from artale.models import Relation, Rule, HornSolver
-from artale.constants import TEMPLATE
-from test_old_parser import complete as program
+from artale.test.test_old_parser import complete as program
 
-sorts_part, rules_part = Parser().parse(program)
-heavy_sorts, heavy_rules = Parser().parse(TEMPLATE)
+solver = HornSolver()
 
 rules = []
 
@@ -45,25 +43,7 @@ def test_unfolding():
 
     solver = HornSolver()
 
-    rules = []
-
-    for rule in rules_part:
-
-        body, head, variables, sorts, flags = rule
-
-        print(body)
-        print(variables)
-        print(sorts)
-        print(flags)
-
-        models_module_rule = Rule([Relation([term for term in atom]) for atom in head],
-                                  [Relation([term for term in atom]) for atom in body],
-                                  [s for v, s in variables], [v for v, s in variables],
-                                  solver, {}, flags)
-
-        rules.append(models_module_rule)
-
-    solver.rules = rules
+    read_into(program, solver)
 
     solver.sorts["pony"] = [f"pony{i}" for i in range(30)]
     solver.sorts["island"] = [f"island{i}" for i in range(30)]
@@ -82,7 +62,6 @@ def test_unfolding():
         print(solver.show_model(m))
 
 def test_una_equality():
-    rules = []
     
     solver = HornSolver()
 
