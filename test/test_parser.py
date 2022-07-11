@@ -130,6 +130,10 @@ def test_normalize():
 
     assert True
 
+def test_strip_comments():
+
+    pass
+
 def test_get_terms():
 
     chunk_a = "p (a, b)"

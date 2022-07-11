@@ -3,19 +3,19 @@ import pytest
 from artale.interfaces.ui import Node, NODE_HEIGHT, NODE_WIDTH
 
 def make_test_tree_a():
-    root = Node("a")
-    root.spawn_child("b")
-    c_node = Node("c")
-    c_node.spawn_child("d")
-    c_node.spawn_child("e")
+    root = Node("a", "")
+    root.spawn_child("b", "")
+    c_node = Node("c", "")
+    c_node.spawn_child("d", "")
+    c_node.spawn_child("e", "")
     root.add_child(c_node)
     return root
 
 def make_test_tree_b():
-    a = Node("a")
-    b = Node("b")
-    c = Node("c")
-    d = Node("d")
+    a = Node("a", "")
+    b = Node("b", "")
+    c = Node("c", "")
+    d = Node("d", "")
     a.add_child(b)
     a.add_child(c)
     c.add_child(d)
