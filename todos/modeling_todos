@@ -28,3 +28,13 @@
 - Populations
 	- Distribution of a propositional trait, and the kinds of global
 	  behaviors that arise
+
+
+Consider adding functions of sorts to limit the size of embeddings without
+appeal to hardcoding. That could look something like
+
+node (c : treeNode),
+leaf (t : c.typeNodes),
+leaf (s : c.typeNodes),
+n (t), n (s) => 
+matches (t, s)
