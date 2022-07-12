@@ -149,14 +149,13 @@ class HornSolver:
         '''
 
         for s in self.sorts:
-            for c1 in self.sorts[s]:
-                for c2 in self.sorts[s]:
-                    equality = f"{c1} = {c2}"
-                    inequality = f"{c1} != {c2}"
-                    if c1 != c2:
-                        self.add_assertion(inequality)
-                    elif c1 == c2 and equality not in self.literal_map:
-                        self.add_assertion(equality)
+            for c1, c2 in product(self.sorts[s], self.sorts[s]):
+                equality = f"{c1} = {c2}"
+                inequality = f"{c1} != {c2}"
+                if c1 != c2:
+                    self.add_assertion(inequality)
+                elif c1 == c2 and equality not in self.literal_map:
+                    self.add_assertion(equality)
 
     def is_functional(self, term_string):
         '''
