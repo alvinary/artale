@@ -381,13 +381,15 @@ def make_rule(rule_tuple, solver):
 
     is_implication = rule_type == IMPLICATION
     is_assertion = rule_type == ASSERTION
-    is_disjunction  = rule_type = DISJUNCTION
+    is_disjunction  = rule_type == DISJUNCTION
     is_contradiction = rule_type == CONTRADICTION
 
-    sorts = {}
+    conditions = [is_implication, is_disjunction, is_assertion, is_contradiction]
+
+    sorts = set({})
     body = []
     head = []
-    flags = {}
+    flags = set({})
 
     if is_implication:
 
@@ -396,16 +398,16 @@ def make_rule(rule_tuple, solver):
     elif is_assertion:
 
         _, sorts, head = rule_tuple
+        
+    elif is_contradiction:
+
+        _, sorts, body = rule_tuple
 
     elif is_disjunction:
 
         _, sorts, head = rule_tuple
 
         flags = {DISJUNCTION_FLAG}
-
-    elif is_contradiction:
-
-        sorts, body = rule_tuple
 
     body_relations = [Relation(terms) for terms in body]
     head_relations = [Relation(terms) for terms in head]
