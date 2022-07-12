@@ -257,8 +257,8 @@ def read_contradiction(line):
     return (CONTRADICTION, sorts, body)
 
 def read_disjunction(line):
-    head, sorts = split_predicates(line)
-    return (DISJUNCTION, sorts, head)
+    body, sorts = split_predicates(line)
+    return (DISJUNCTION, sorts, body)
 
 def read_assertion(line):
     head, sorts = split_predicates(line)
@@ -405,7 +405,7 @@ def make_rule(rule_tuple, solver):
 
     elif is_disjunction:
 
-        _, sorts, head = rule_tuple
+        _, sorts, body = rule_tuple
 
         flags = {DISJUNCTION_FLAG}
 
