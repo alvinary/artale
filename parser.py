@@ -1,3 +1,4 @@
+from ctypes.wintypes import DOUBLE
 import re
 
 from artale.models import Relation, Rule
@@ -20,6 +21,12 @@ HORN_SEPARATOR = "), "
 LPAREN = " ("
 RPAREN = ")"
 
+DOUBLE_SPACES = "  "
+SINGLE_SPACE = " "
+
+TRIPLE_LINE_BREAKS = "\n\n\n"
+DOUBLE_LINE_BREAKS = "\n\n"
+
 def normalize(text):
     
     '''
@@ -33,8 +40,8 @@ def normalize(text):
     lines = [l.strip() for l in lines]
     lines = [l.replace("\n", " ") for l in lines]
 
-    while "\n\n\n" in text:
-        text = text.replace("\n\n\n", "\n\n")
+    while TRIPLE_LINE_BREAKS in text:
+        text = text.replace(TRIPLE_LINE_BREAKS, DOUBLE_LINE_BREAKS)
 
     text = "\n\n".join(lines)
 
@@ -49,8 +56,8 @@ def normalize(text):
     text = text.replace("(", LPAREN)
     text = text.replace(":", SORT_ASSIGNMENT)
 
-    while "  " in text:
-        text = text.replace("  ", " ")
+    while DOUBLE_SPACES in text:
+        text = text.replace(DOUBLE_SPACES, SINGLE_SPACE)
 
     text = text.replace(" ,", ",")
     text = text.replace(")v", ") v")
@@ -86,137 +93,176 @@ def read_sorts(text):
     
     for line in lines:
 
-        tokens = line.split(" ")
-        is_sort = "sort " == line[0:5]
-        three_tokens = len(tokens) == 3
+        new_cardinals, new_extensions, new_functions = read_sort(line)
 
-        if len(tokens) >= 3:
-
-            has_number = tokens[2].isdigit()
-            has_add = tokens[2] == "add"
-            has_dot = "." in tokens[1]
-            has_in = tokens[2] == "in" 
-            many_tokens = len(tokens) > 3
-
-        else:
-
-            has_number = False
-            has_add = False
-            many_tokens = False
-            has_in = False
-            has_dot = False
-
-        is_cardinal = is_sort and three_tokens and has_number
-        is_distinguished = is_sort and has_add and many_tokens
-        is_function = is_sort and has_dot and has_in
-
-        if is_cardinal:
-
-            sort_name = tokens[1]
-            size = int(tokens[2])
-            cardinals.append((sort_name, size))
-
-        if is_distinguished:
-
-            sort_name = tokens[1]
-            distinguished_elements = tokens[3:]
-            for elem in distinguished_elements:
-                extensions.append((sort_name, elem))
-
-        if is_function:
-
-            dot_parts = tuple(tokens[1].split("."))
-
-            if len(dot_parts) == 2:
-
-                domain, f = dot_parts
-                image = tokens[2]
-                functions.add((domain, f, image))
-
-            else:
-                pass # Raise ill-formed sort declaration error, show line
-
-        if is_sort and not is_distinguished and not is_cardinal and not is_function:
-            pass # Raise ill-formed sort declaration error, show line
+        cardinals = cardinals + new_cardinals
+        extensions = extensions + new_extensions
+        functions = functions + new_functions
 
     return (cardinals, extensions, functions)
 
+def read_sort(line):
+
+    cardinals = []
+    extensions = []
+    functions = []
+
+    tokens = line.split(" ")
+    is_sort = "sort " == line[0:5]
+    three_tokens = len(tokens) == 3
+
+    if len(tokens) >= 3:
+
+        has_number = tokens[2].isdigit()
+        has_add = tokens[2] == "add"
+        has_dot = "." in tokens[1]
+        has_in = tokens[2] == "in" 
+        many_tokens = len(tokens) > 3
+
+    else:
+
+        has_number = False
+        has_add = False
+        many_tokens = False
+        has_in = False
+        has_dot = False
+
+    is_cardinal = is_sort and three_tokens and has_number
+    is_distinguished = is_sort and has_add and many_tokens
+    is_function = is_sort and has_dot and has_in
+
+    if is_cardinal:
+        cardinals = cardinals + read_filling(tokens)
+
+    if is_distinguished:
+        extensions = extensions + read_distinguished_element(tokens)
+
+    if is_function:
+        functions = functions + read_functions(tokens)
+
+    if is_sort and not is_distinguished and not is_cardinal and not is_function:
+        pass # Raise ill-formed sort declaration error, show line
+
+    return cardinals, extensions, functions
+
+def read_filling(tokens):
+
+    sort_name = tokens[1]
+    size = int(tokens[2])
+    filling = (sort_name, size)
+
+    return [filling]
+
+def read_distinguished_element(tokens):
+
+    extensions = []
+
+    sort_name = tokens[1]
+    distinguished_elements = tokens[3:]
+    for elem in distinguished_elements:
+        extensions.append((sort_name, elem))
+
+    return extensions
+
+def read_functions(tokens):
+
+    functions = []
+
+    dot_parts = tuple(tokens[1].split("."))
+
+    if len(dot_parts) == 2:
+
+        domain, f = dot_parts
+        image = tokens[2]
+        functions.add((domain, f, image))
+
+    else:
+        pass # Raise ill-formed sort declaration error, show line
+
+    return functions
+
 def read_rules(text):
 
-    rule_parts = [t.strip() for t in text.split("\n\n")]
-
-    for r in rule_parts:
-        print(r)
+    lines = [t.strip() for t in text.split("\n\n")]
 
     rules = []
 
-    for rule_part in rule_parts:
+    for rule_candidate in lines:
 
-        if check_part(rule_part):
-            rules.append(read_rule(rule_part))
+        if check_line(rule_candidate):
+            rules.append(read_rule(rule_candidate))
 
         else:
             pass # Raise ill-formed rule error
 
     return rules
 
-def check_part(text):
+def check_line(text):
     # Exactly one =>
     # n predicates, n > 1, and n - 1 vees
     # n predicates, n > 1, and n - 1 conjunctions
     # => and False
     # head is well formed
     # body is well formed
-    # Exactly one = or !=
+    # Exactly one = or != per clause predicate
 
     checks = True
     
-    checks = checks and len(text) > 0
+    not_empty = len(text) > 0
+    checks = checks and not_empty
 
     if not checks:
         return checks
 
-    checks = checks and text[0:5] != "sort "
+    not_a_sort = text[0:5] != "sort "
+    checks = checks and not_a_sort
+
+    implies = re.findall("=>", text)
+    only_one_imply = len(implies) <= 1
+    checks = checks and only_one_imply
 
     return checks
 
-def read_rule(text):
+def read_rule(line):
 
-    is_disjunction = " v " in text
-    is_contradiction = "=> False" in text
-    is_implication = "=>" in text and not is_contradiction
-    is_assertion = "=>" not in text and not is_disjunction
+    is_disjunction = " v " in line
+    is_contradiction = "=> False" in line
+    is_implication = "=>" in line and not is_contradiction
+    is_assertion = "=>" not in line and not is_disjunction
 
     if is_implication:
-
-        body_part, head_part = tuple(text.split("=>"))
-        body, body_sorts = split_predicates(body_part)
-        head, head_sorts = split_predicates(head_part)
-        sorts = body_sorts | head_sorts
-
-        return (IMPLICATION, sorts, body, head)
+        return read_implication(line)
 
     if is_contradiction:
-
-        body_part = text[:-8]
-        body, sorts = split_predicates(body_part)
-
-        return (CONTRADICTION, sorts, body)
+        return read_contradiction(line)
 
     if is_disjunction:
-
-        head, sorts = split_predicates(text)
-
-        return (DISJUNCTION, sorts, head)
+        return read_disjunction(line)
 
     # Assertions with variables are allowed
 
     if is_assertion:
+        return read_assertion(line)
 
-        head, sorts = split_predicates(text)
+def read_implication(line):
+    body_part, head_part = tuple(line.split("=>")) # Shouldn't this be stripped?
+    body, body_sorts = split_predicates(body_part)
+    head, head_sorts = split_predicates(head_part)
+    sorts = body_sorts | head_sorts
+    return (IMPLICATION, sorts, body, head)
 
-        return (ASSERTION, sorts, head)
+def read_contradiction(line):
+    body_part = line[:-8]
+    body, sorts = split_predicates(body_part)
+    return (CONTRADICTION, sorts, body)
 
+def read_disjunction(line):
+    head, sorts = split_predicates(line)
+    return (DISJUNCTION, sorts, head)
+
+def read_assertion(line):
+    head, sorts = split_predicates(line)
+    return (ASSERTION, sorts, head)
 
 def split_predicates(text):
 
@@ -232,12 +278,8 @@ def split_predicates(text):
 
 
 def chunk_predicate(text):
-
     _chunk, text = chunk(text)
     terms, sorts = get_terms(_chunk)
-
-    print(f"chunk: {_chunk}, text: {text}")
-
     return terms, sorts, text
 
 
@@ -266,6 +308,7 @@ def chunk(text):
 
 def get_terms(text):
 
+    terms = []
     sorts = {}
 
     is_comparison = EQUALS in text or NEQUALS in text
@@ -274,35 +317,42 @@ def get_terms(text):
     # Make sure you never have an overlap
     # between these conditions
 
-    if is_comparison and NEQUALS in text:
-        left_term, right_term = [t.strip() for t in text.split(NEQUALS)]
-        terms = [left_term, NEQUALS, right_term]
-        sorts |= get_term_sorts(terms)
+    if is_comparison:
+        terms, sorts = get_comparison_parts(text)
 
-    elif is_comparison:
-        left_term, right_term = [t.strip() for t in text.split(EQUALS)]
-        terms = [left_term, EQUALS, right_term]
-        sorts |= get_term_sorts(terms)
-
-    elif is_predicate: 
-
-        terms = []
-
-        lparen_index = text.index("(")
-        rparen_index = text.index(")")
-
-        predicate_term = text[:lparen_index]
-        term_segment = text[lparen_index + 1 : rparen_index]
-        terms = [predicate_term]
-        terms = terms + term_segment.split(CONJUNCTION)
-        terms = [t.strip() for t in terms]
-        sorts |= get_term_sorts(terms)
+    elif is_predicate:
+        terms, sorts = get_predicate_parts(text)
 
     else:
         print(text)
         assert False
 
     terms = [strip_sort(t) for t in terms]
+
+    return terms, sorts
+
+def get_predicate_parts(text):
+    lparen_index = text.index("(")
+    rparen_index = text.index(")")
+    predicate_term = text[:lparen_index]
+    term_segment = text[lparen_index + 1 : rparen_index]
+    terms = [predicate_term]
+    terms = terms + term_segment.split(CONJUNCTION)
+    terms = [t.strip() for t in terms]
+    sorts = get_term_sorts(terms)
+    return terms, sorts
+
+def get_comparison_parts(text):
+
+    if NEQUALS in text:
+        left_term, right_term = [t.strip() for t in text.split(NEQUALS)]
+        terms = [left_term, NEQUALS, right_term]
+        sorts = get_term_sorts(terms)
+
+    elif EQUALS in text:
+        left_term, right_term = [t.strip() for t in text.split(EQUALS)]
+        terms = [left_term, EQUALS, right_term]
+        sorts = get_term_sorts(terms)
 
     return terms, sorts
 
