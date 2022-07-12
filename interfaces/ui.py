@@ -1,8 +1,8 @@
 import pyglet
 
-from ttag import solver as solver
-from ttag import right_facts as right_facts
-from constants import *
+from artale.taggers.trees import solver
+from artale.taggers.trees import right_facts
+from artale.constants import *
 
 window = pyglet.window.Window(1200, 900)
 
@@ -402,6 +402,10 @@ class TreeViewer:
     def on_key_press(self, symbol, modifiers):
 
         satisfiability_check = False
+        
+        if self.index + 1 > self.model_length:
+            print("AHHHHH!!!")
+            return None
 
         if symbol == pyglet.window.key.RIGHT:
             index_shift = 1
