@@ -45,7 +45,7 @@ class HornSolver:
         '''
         
         for i in range(n):
-            self.sorts[sort].append(f"{sort} {i + 1}")
+            self.sorts[sort].append(f"{sort}{i + 1}")
 
     def add_element(self, sort, name):
         '''
@@ -81,8 +81,6 @@ class HornSolver:
 
         for assignment in product(*[self.sorts[s] for s in rule.sorts]):
 
-            # print(assignment)
-
             clauses = rule.get_clauses(assignment)
 
             pure_clauses = [self.evaluate_functions(c) for c in clauses]
@@ -96,6 +94,8 @@ class HornSolver:
 
             else:
                 cnf_clauses = [self.dimacs(c) for c in pure_clauses]
+
+            cnf_clauses = [c for c in cnf_clauses if len(c) > 0]
 
             for cnf_clause in cnf_clauses:
                 self.solver.add_clause(cnf_clause)
@@ -113,6 +113,7 @@ class HornSolver:
 
         for rule in self.rules:
             self.unfold_rule(rule)
+
 
     def reset_instance(self):
         '''
@@ -149,12 +150,16 @@ class HornSolver:
         '''
 
         for s in self.sorts:
+        
             for c1, c2 in product(self.sorts[s], self.sorts[s]):
+            
                 equality = f"{c1} = {c2}"
                 inequality = f"{c1} != {c2}"
-                if c1 != c2:
+                
+                if c1 != c2 and inequality not in self.literal_map:
                     self.add_assertion(inequality)
-                elif c1 == c2 and equality not in self.literal_map:
+                    
+                if c1 == c2 and equality not in self.literal_map:
                     self.add_assertion(equality)
 
     def is_functional(self, term_string):
@@ -273,6 +278,23 @@ class HornSolver:
             self.name_counter += 1
             self.literal_map[s] = self.name_counter
             self.reverse_literal_map[self.name_counter] = s
+            
+    def get_model(self):
+        solvable = self.solver.solve()
+        if solvable:
+            model = self.solver.get_model()
+            return (True, model)
+        else:
+            return (False, [])
+            
+    def model_with(self, statements):
+        literals = [self.literal_map[s] for s in statements]
+        solvable = self.solver.solve(literals)
+        if solvable:
+            model = self.solver.get_model()
+            return (True, model)
+        else:
+            return (False, [])
 
     def show_model(self, model, show_false=False):
         '''
@@ -285,11 +307,11 @@ class HornSolver:
         '''
 
         readable_model = ""
-        counter = 1
 
         if not show_false:
             atoms = [self.reverse_literal_map[a] for a in model if a > 0]
             atoms = [a for a in atoms if "=" not in a]
+            atoms = [a for a in atoms if "not " != a[:4]]
 
         if show_false:
             atoms = []
@@ -299,14 +321,29 @@ class HornSolver:
                 else:
                     atoms.append(f"- {self.reverse_literal_map[abs(a)]}")
 
+        readable_model = ""
+        line = ""
+        
         for atom in atoms:
-            readable_model = f"{readable_model}, {atom}"
-            counter += 1
-            counter = counter % 9
-            if counter == 0:
-                readable_model = readable_model + "\n"
+        
+            line = f"{line}{atom}, "
+            line_length = len(line)
+            
+            if line_length > 60:
+                readable_model = readable_model + line + "\n"
+                line = ""
 
         return readable_model
+        
+    def show_clauses(self):
+        clauses = []
+        for c in self.cnf_clauses:
+            head = [self.reverse_literal_map[a] for a in c if a > 0]
+            body = [self.reverse_literal_map[abs(a)] for a in c if a < 0]
+            body = [f"- {b}" for b in body]
+            literals = [str(a) for a in c]
+            clauses.append((", ".join(literals), ", ".join(body + head)))
+        return clauses
 
     def get_relations(self, model, target_relations):
         '''
