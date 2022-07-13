@@ -114,3 +114,91 @@ direction a != direction b
 
 '''
 
+trees = '''sort node 13
+
+sort type 13
+
+left (n : node, m : node) v not left (n, m)
+
+left (n : node, m : node), not left (n, m) => False
+
+right (n : node, m : node) v not right (n : node, m : node)
+
+right (n : node, m : node), not right (n, m) => False
+
+-- Nodes are either leaves or phrases --
+
+leaf (n : node) v phrase (n)
+
+leaf (n : node), phrase (n) => False
+
+-- Leaves do not have children --
+
+leaf (n : node), left (n, m : node) => False
+
+leaf (n : node), right (n, m : node) => False
+
+-- A node's left child is always successor (I)  --
+
+phrase (n : node), next (n : node, m : node) => left (n, m)
+
+-- No node is left or right of itself --
+
+left (n : node, n) => False
+
+right (n : node, n) => False
+
+-- No node is either a left or right of another, not both --
+
+left (a : node, b : node), right (a, b) => False
+
+-- Before --
+
+left (n : node, m : node), before (m, n) => False
+
+right (n : node, m : node), before (m, n) => False
+
+-- A node's left child is always successor (II)  --
+
+left (n : node, m : node) => next (n, m)
+
+-- If left child is a leaf, the right child is its successor --
+
+left (a : node, b : node), leaf (b), right (a, c : node) => next(b, c)
+
+-- Nodes left of another are always "smaller" --
+
+left of (a : node, b : node), before (b, a) => False
+
+-- Left childs are left of right childs --
+
+left (a : node, b : node), right (a, c : node) => left of (b, c)
+
+-- "left of" is transitive --
+
+left of (a : node, b : node), left of (b : node, c : node) => left of (a, c)
+
+-- "left of" is antisymmetric --
+
+left of (a : node, b : node), left of (b, a) => False
+
+-- Two different nodes cannot parent the same child -- 
+
+right (a : node, b : node), right (c : node, b), a != c => False
+
+right (a : node, b : node), left (c : node, b), a != c => False
+
+left (a : node, b : node), left (c : node, b), a != c => False
+
+-- The same node cannot parent different childs in the same direction --
+
+right (a : node, b : node), right (a, c : node), b != c => False
+
+left (a : node, b : node), left (a, c : node), b != c => False
+'''
+
+'''
+phrase (a : node), not left (a, any : node) => False
+
+phrase (a : node), not right (a, any : node) => False
+'''
