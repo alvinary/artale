@@ -138,7 +138,9 @@ class HornSolver:
 
         assertion_clause = Clause(predicate_string, [])
         self.update_maps([assertion_clause])
-        self.solver.add_clause(self.dimacs(assertion_clause))
+        dimacs_clause = self.dimacs(assertion_clause)
+        self.solver.add_clause(dimacs_clause)
+        self.cnf_clauses.append(dimacs_clause)
 
     def una_equality(self):
         '''
