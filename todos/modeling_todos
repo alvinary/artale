@@ -10,6 +10,10 @@
 - PDL
 	- Planning (rocks, boulders and keys)
 	- Planning (resource expenditure, knowledge gain, knowledge diffusion)
+		- Model a community with some needs, some actions, and some 
+resources
+		- Model the resource cost of an experiment
+		- Model "tell" behavior
 	- Equilibrium (when local preferences and context dictate a "lock")
 	- Watzlawick (situation where some event normally interpreted as a
           'contract' means different things to different people and
@@ -18,7 +22,35 @@
 - Relational learning
 	- Text and paratext case (reddit dataset - predicting type of
 	  user engagement from textual and paratextual information)
+	  	- Clustering users based on heterogeneous data (text, 
+	  	friend-of / follows, likes/upvotes, has likes/upvotes 
+	  	from, etc)
 	- Agus neuro dataset
+
+	- Tasks amenable to weakly-supervised versions and "user interaction" 
+	versions
+		- ("Fred opened the door", "Thge door is now open")
+		  ("Sally and Martha are friends", "Sally knows Martha")
+		  ("Sally is Tiffany's cousin", "Sally and Tiffany are 
+		  relatives") ("Consquence" paradigm)
+		- Cloze ("Oclusion paradigm")
+		- Next sentence ("Actual part, fake part paradigm")
+		
+	- Unsupervised
+		- Minimize Description size, minimize similarity within 
+		subconcepts
+		- Same as Raúl / Carlos with referring expressions (minimizing
+		the number of models that are not relevant)
+		
+	- More traditional
+		- Fingerprinting / "wide" feature sets, with realational 
+		features
+
+	- Iterative refinement with user interaction (20 questions with nature)
+			- Compressed sensing (minimum number of queries 
+			necessary to figure out which B^n cube, knowing
+			the cube is "Horn" / column-sparse)
+
 
 - Traditional supervised tasks
 	(Same features, different tasks)
@@ -38,3 +70,9 @@ leaf (t : c.typeNodes),
 leaf (s : c.typeNodes),
 n (t), n (s) => 
 matches (t, s)
+
+
+Review decent / accepted ways of doing relational learning with 
+description logics (LCS - least common subsumer, classication  
+/ terminology induction), etc
+
