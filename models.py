@@ -153,16 +153,20 @@ class HornSolver:
 
         for s in self.sorts:
         
+            checked_assertions = set()
+        
             for c1, c2 in product(self.sorts[s], self.sorts[s]):
             
                 equality = f"{c1} = {c2}"
                 inequality = f"{c1} != {c2}"
                 
-                if c1 != c2 and inequality not in self.literal_map:
+                if c1 != c2 and inequality not in checked_assertions:
                     self.add_assertion(inequality)
+                    checked_assertions.add(inequality)
                     
-                if c1 == c2 and equality not in self.literal_map:
+                if c1 == c2 and equality not in checked_assertions:
                     self.add_assertion(equality)
+                    checked_assertions.add(equality)
 
     def is_functional(self, term_string):
         '''
