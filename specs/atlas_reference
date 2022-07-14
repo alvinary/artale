@@ -1,0 +1,41 @@
+4, 6: boulder, wall, cavey, NAME boulder
+3, 6: NAME R rock wall, rock, right, wall
+11, 6: NAME L rock wall, wall, left, rock
+7, 2: wall, NAME U rock wall, up, rock
+6, 13: NAME dirt, dirt
+14, 58: NAME LD sea rock, wall, sea
+14, 59: wall, NAME LU sea rock, sea
+15, 59: wall, sea, NAME RU sea rock
+15, 58: wall, sea, NAME RD sea rock
+13, 58: NAME RD sea boulder, wall, sea, rock
+12, 58: wall, NAME LD sea boulder, sea, rock
+12, 59: NAME LU sea boulder, wall, sea, rock
+13, 59: wall, NAME RU sea boulder, sea, rock
+18, 62: NAME sea water, sea, water
+6, 69: grass, NAME grass, greeny, mid
+5, 69: rock, surface, NAME L soft rock wall, wall, left
+14, 64: surface, wall, NAME R soft rock wall, rock
+20, 76: NAME U sea water, sea, water, up
+17, 76: NAME LU sea water coast, sea, water, up, left
+25, 76: NAME RU sea water coast, sea, water, up, right
+20, 88: NAME pink and orange flowers, flowers, grassy, warm
+30, 88: grassy, NAME yellow and purple flowers, cold, flower
+12, 100: surface, wall, rock, NAME LU soft rock wall, left, up
+15, 100: surface, wall, NAME RU soft rock wall, rock, right, up
+14, 100: surface, wall, NAME U soft rock wall, rock, up
+18, 106: cave entrance, entrance, NAME U cave entrance, up
+18, 105: entrance, cave entrance, cavey, NAME D cave entrance, down
+23, 106: surface, NAME D soft rock wall, wall, rock, down
+23, 107: grassy, ugly, bright, NAME single bright bush
+31, 127: surface, wall, NAME R soft rock wall, rock
+15, 72: NAME LU waterfall, sea, water, wall, left, up
+15, 71: NAME M waterfall, sea, water, wall
+15, 64: NAME D waterfall, sea, water, wall, down
+16, 72: NAME U waterfall, sea, water, wall, up
+18, 84: grass, wild, messy, NAME messy grass
+19, 81: stairs, sober, marble, NAME marble stairs
+26, 0: NAME D cave exit, rock, wall, cavey, down
+25, 0: NAME L cave exit, rock, wall, cavey, left
+27, 0: NAME R cave exit, rock, wall, cavey, right
+15, 73: sea water, sea, NAME L sea water coast, left
+26, 73: NAME R sea water coast, sea, water, right

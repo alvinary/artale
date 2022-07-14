@@ -1,14 +1,16 @@
 sort string 600
+
 sort string add emptyString
+
 sort string.next in string
 
 sort rule 30
+
 sort preterminal 30
 
 sort character 128
 
-parses segment (A, s, emptyString) =>
-parses (A, s)
+parses segment (A, s, emptyString) => parses (A, s)
 
 parses segment (B, s1, s2),
 parses segment (C, s2, s3),

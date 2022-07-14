@@ -1,0 +1,234 @@
+
+complement (t : type) v adjunct (t)
+
+complement (t : type), adjunct (t) => False
+
+not head (a : node, b : node) v head (a, b)
+
+not head (a : node, b : node), head (a, b) => False
+
+not head (a : node, b : node) v head (a, b)
+
+not head (a : node, b : node), head (a, b) => False
+
+head (a : node, b : node), head (a : node, c : node), b != c => False
+
+left (a : node, b : node), right (a : node, c : node), not head (a, b), not head (a, c), b != c => False
+
+right (a : node, b : node), head (a, b) => rightHeaded (a)
+
+left (a : node, b : node), head (a, b) => leftHeaded (a)
+
+not left (a : node, b : node), not right (a, b), child (a, b) => False
+
+left (a : node, b : node) => child(a, b)
+
+right (a : node, b : node) => child(a, b)
+
+child(a : node, b : node), not left (a, b), not right(a, b) => False
+
+-- Complementation and adjunction rules --
+
+head (a : node, b : node), not child (a, b) => False
+
+leftHeaded (a : node), right (a : node, b : node) => modifier (a, b)
+
+rightHeaded (a : node), left (a : node, b : node) => modifier (a, b)
+
+right head (b : node), right (a : node, b) => rightHeaded(a)
+
+left head (b : node), left (a : node, b) => leftHeaded(a)
+
+right modifier (b.type : node), right (a : node, b : node) => leftHeaded(a)
+
+left modifier (b.type : node), left (a : node, b : node) => rightHeaded(a)
+
+head (a : node, b : node), complement (b.type : node) => match (a.type, b.type.output)
+
+head (a : node, b : node), modifier (a : node, c : node), complement (b.type) => match (a.type, b.type.input)
+
+modifier (a : node, b : node), adjunct (b.type : node) => match (a.type, b.type.output)
+
+head (a : node, b : node), modifier (a : node, c : node), adjunct (c.type) => match (a.type, b.type.input)
+
+modifies to right (t : type) => adjunct (t : type)
+
+modifies to left (t : type) => adjunct (t : type)
+
+complements to left (t : type) => complement(t : type)
+
+complements to right (t : type) => complement(t : type)
+
+modifies to right (a.type : node), child (b : node, a : node) => left (b, a)
+
+modifies to left (a.type : node), child (b : node, a : node) => right (b, a)
+
+complements to right (a.type : node), child (b : node, a : node) => left (b, a)
+
+complements to left (a.type : node), child (b : node, a : node) => right (b, a)
+
+-- CCG-style typing rules --
+
+nodetype (t : type) v not nodetype (t : type)
+
+nodetype (t : type), not nodetype (t : type) => False
+
+leaftype (t : type) v not leaftype (t : type)
+
+leaftype (t : type), not leaftype (t : type) => False
+
+nodetype (t : type), leaftype (t : type) => False
+
+full (t : type), not leaftype (t : type), not nodetype (t : type) => False
+
+leaftype (t : type) => blank (t.output), blank (t.input)
+
+sentential (t : type), nominal (t : type) => bitype (t)
+
+leaftype (t : type), bitype (t : type) => False
+
+nodetype (t : type), sentential (t : type) => False
+
+nodetype (t : type), nominal (t : type) => False
+
+full (t : type) v blank (t : type)
+
+full (t : type), blank (t) => False
+
+match (s : type, t : type) v not match (s, t)
+
+match (s : type, t : type), not match(s, t) => False
+
+match (s : type, t : type) => match (t, s)
+
+blank (t : type), blank (s : type) => match (t, s)
+
+blank (t : type), full (s : type) => not match (t, s)
+
+leaftype (t : type), leaftype (s : type), nominal (t), nominal (s) => match (t, s)
+
+leaftype (t : type), leaftype (s : type), sentential (t), sentential (s) => match (t, s)
+
+leaftype (t : type), leaftype (s : type), nominal (t), sentential (s) => not match (t, s)
+
+nodetype (t : type), nodetype (s: type), match (t.input, s.input), match(t.output, s.output) => match (t, s)
+
+nodetype (t : type), nodetype (s: type), not match (t.input, s.input) => not match (t, s)
+
+nodetype (t : type), nodetype (s: type), not match (t.output, s.output) => not match (t, s)
+
+blank (t : type) => blank (t.output), blank (t.input)
+
+nodetype (t : type), blank (t.input) => False
+
+nodetype (t : type), blank (t.output) => False
+
+nodetype (t : type) => full (t.input)
+
+nodetype (t : type) => full (t.output)
+
+phrase(a : node) => full(a.type)
+
+leaf(a: node) => full(a.type)
+
+blank (t: type), nodetype (t : type) => False
+
+blank (t: type), leaftype (t : type) => False
+
+-- Assert the whole tree is a sentence by forcing roots to be of type sentence
+   Lexical item rules
+   If a word is a word node, it has to be a leaf --
+
+word (a : node) => leaf (a)
+
+word (a : node), phrase(a) => False
+
+l : litem (a : node), phrase (a : node) => False
+
+-- Semantic complementation and adjunction rules --
+
+head (a : node, b : node), complement(b.type : node) => bind up (b.drs.self, a.drs.self)
+
+head (a : node, b : node), complement(b.type : node) => bind up (b.drs.2, a.drs.1)
+
+head (a : node, b : node), complement(b.type : node) => bind up (b.drs.3, a.drs.2)
+
+head (a : node, b : node), complement(b.type : node) => bind up (b.drs.4, a.drs.3)
+
+modifier (a : node, b : node), adjunct(b.type : node) => bind up (b.drs.1, a.drs.self)
+
+bind up (sa: semitem, sb : semitem), physical thing (sa) => p(sb)
+
+bind up (sa: semitem, sb : semitem), person (sa) => p(sb)
+
+bind up (sa: semitem, sb : semitem), fully referring (sa) => p(sb)
+
+-- We define several common word types
+   Common nouns, or n, are nodes whose type is a leaftype nominal type node --
+
+n (a : node) => word(a), nominal (a.type), leaftype (a.type)
+
+-- Common transitive verbs, or nns, are word nodes
+   taking a noun as an input and returning
+   a function from yet another noun to a sentence --
+
+nns (a : node) => word(a)
+
+nns (a : node) => nominal (a.type.input), nominal (a.type.output.input), sentential (a.type.output.output)
+
+nns (a : node) => leaftype (a.type.input), leaftype (a.type.output.input), leaftype (a.type.output.output)
+
+nns (a: node) => complements to right (a.type), complements to left (a.type.output)
+
+-- Common noun adjuncts, or nn, are word nodes taking a noun as an argument and returning a noun
+   phrase (a : node), root (a) => sentential (a.type), leaftype (a.type) --
+
+root (a : node) => sentential (a.type)
+
+nn (a : node) => word(a)
+
+nn (a : node) => nominal (a.type.input), nominal (a.type.output)
+
+nn (a : node) => leaftype (a.type.input), leaftype (a.type.output)
+
+nn (a : node) => modifies to right (a.type)
+
+l : litem (a : node), r : litem (a : word), l != r => False
+
+chair (a : node) => n (a)
+
+chair (a : node) => physical thing (a.drs.self)
+
+vase (a : node) => n(a)
+
+vase (a : node) => physical thing (a.drs.self)
+
+broke (a : node) => nns(a)
+
+broke (a : node) => person (a.drs.1), physical thing (a.drs.2), event (a.drs.self)
+
+steven (a : node) => n(a)
+
+steven (a : node) => person(a.drs.self), fully referring (a.drs.self)
+
+marygold (a : node) => n(a)
+
+marygold (a : node) => person(a.drs.self), fully referring (a.drs.self)
+
+person (s : semitem), physical thing (s : semitem) => False
+
+fully referring (s : semitem) v not fully referring (s : semitem)
+
+fully referring (s : semitem), not fully referring (s : semitem) => False
+
+is (a : node) => word (a), nominal (a.type.input), nominal (a.type.output.input), sentential (a.type.output.output)
+
+is (a : node) => leaftype (a.type.input), leaftype (a.type.output.input), leaftype (a.type.output.output)
+
+the (a : node) => nn(a)
+
+the (a : node) => leaftype (a.type.input), leaftype (a.type.output)
+
+the (a : node) => fully referring (a.drs.1)
+
+is (a : node) v the (a : node) v broke (a : node) v vase (a : node) v chair (a : node) v steven (a : node) v marygold (a : node) v not leaf (a : node)
