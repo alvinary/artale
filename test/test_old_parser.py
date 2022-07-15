@@ -1,7 +1,5 @@
 import pytest
 
-from parser import Parser
-
 # test case: Könisberg Ponies
 
 sample_program = '''
@@ -133,6 +131,7 @@ complete = '''-- A fairly complete program, useful for testing model unfolding -
 -- There are ten ponies and ten islands --
 
 sort pony 10
+
 sort island 10
 
 -- No pony can be nowhere, and no pony can be somehwere and nowhere simultaneously --
@@ -153,9 +152,7 @@ at(p: pony, i : island), at(p, j : island), i != j => False
 
 -- Ponies who hate each other can't be at the same island --
 
-loathes (p : pony, q : pony),
-loathes(q, p), at(p, i : island),
-at(q, i) => False
+loathes (p : pony, q : pony), loathes(q, p), at(p, i : island), at(q, i) => False
 
 -- Hatred is symmetrical for ponnies --
 
@@ -194,7 +191,7 @@ rel: relation (c.left : component, d : component), virtual(c.left) => rel(c, d)
 rel: relation (c.right : component, d : component), virtual(c.right) => rel(c, d)
 '''
 
-def test_preprocessing_a():
+def preprocessing_a():
     raw_program = '''
         sort pony 5
         sort island 12
@@ -217,41 +214,8 @@ bridge(a, b), bridge(b, c) => access(a, c)
 
 '''
 
-    parser = Parser()
-    result_program = parser.preprocess(raw_program)
-
-    print(result_program)
-
-    assert parser.preprocess(raw_program) == target_program
-
-def test_parse():
-    parser = Parser()
-
-    jorge = parser.parse(sample_program)
-    manuel = parser.parse(complex_terms_program)
-    rogelio = parser.parse(sorted_program)
-    egberto = parser.parse(complex_terms_program)
-    jonacio = parser.parse(comments)
-    anucio = parser.parse(disjunctions)
-    joelo = (parser.parser.parse(complete)).pretty()
-    gerbacio = parser.parse(comparisons)
-    ambulo = parser.parser.parse(complete).pretty()
-    potoño = parser.parse(sample)
-    polis = parser.parse(complete)
-
-    for r in rogelio[1]:
-        print(f"head {r[0]} \nbody {r[1]}\nvariables {r[2]}\nsorts {r[3]}", "")
-
-    print(ambulo)
-    
-    for r in potoño[1]:
-        print(r[0])
-
-def test_sort_parsing():
+def sort_parsing():
     pass
 
-
-if __name__ == "__main__":
-    test_parse()
 
 

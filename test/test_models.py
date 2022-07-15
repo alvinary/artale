@@ -44,12 +44,14 @@ def test_unfolding():
     solver = HornSolver()
 
     read_into(program, solver)
+    
+    print("No. rules: ", len(solver.rules))
 
     solver.sorts["pony"] = [f"pony{i}" for i in range(30)]
     solver.sorts["island"] = [f"island{i}" for i in range(30)]
 
     solver.unfold_instance()
-    solver.una_equality()
+    solver.unfold_una()
 
     models = []
 
@@ -58,8 +60,11 @@ def test_unfolding():
         if res:
             models.append(solver.solver.get_model())
 
+    print("No. models: ", len(models))
+
     for m in models:
         print(solver.show_model(m))
+
 
 def test_una_equality():
     
@@ -67,7 +72,7 @@ def test_una_equality():
 
     solver.sorts["pony"] = [f"p{i}" for i in range(4)]
 
-    solver.una_equality()
+    solver.unfold_una()
 
     models = []
 

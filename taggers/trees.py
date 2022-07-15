@@ -1,11 +1,13 @@
-from constants import *
+from artale.constants import *
 
-from artale.parser import read_into
+from artale.parser import read_into, normalize
 from artale.models import Relation, Rule, Clause, HornSolver, TERM_SEPARATOR
 from artale.scaffoldings import tree, binary_tree
+from artale.specs import trees as trees_spec
+from artale.specs import types as types_spec
 
-SIZE_BOUND = 14
-TYPE_DEPTH = 2
+SIZE_BOUND = 8
+TYPE_DEPTH = 3
 
 NODE_PREFIX = "node"
 
@@ -15,32 +17,60 @@ solver = HornSolver()
 
 # Read program specification from file and parse it
 
-theory_program = ""
+trees_spec = normalize(trees_spec + types_spec)
+print(trees_spec)
+read_into(trees_spec, solver)
 
-with open("./specs/trees") as theory_file:
-    for line in theory_file:
-        theory_program = theory_program + line
+'''
 
-read_into(theory_program, solver)
+trees_lines = trees_spec.split("\n\n")
+tree_programs = []
+
+for i in range(3, len(trees_lines)):
+    tree_programs.append("\n\n".join(trees_lines[:i]))
+
+solvers = []
+
+for i in range(3, len(trees_lines)):
+    solvers.append(HornSolver())
+
+ccc = 0
+for i, ts in enumerate(tree_programs):
+    read_into(ts, solvers[i])
+    solvers[i].fill_sort("node", SIZE_BOUND)
+    solvers[i].unfold_instance()
+    solvers[i].una_equality()
+    res = solvers[i].solver.solve()
+    if res:
+        print("!")
+        ccc += 1
+
+print("ccc", ccc)
+
+'''
    
 # Ground rules / clauses and apply tree scaffolding
 
-print("Assembling tree scaffolding...")
+print("\nAssembling tree scaffolding...")
+
 
 tree_constants, tree_facts = tree(NODE_PREFIX, SIZE_BOUND)
+
+solver.sorts["node"] = list(tree_constants)
+solver.sorts["litem"] = LEXICON
 
 paired_constants = []
 
 for i in range(SIZE_BOUND):
     for j in range(i + 1, SIZE_BOUND):
-        paired_constants.append((f"c{i}", f"c{j}"))
+        paired_constants.append((f"node{i + 1}", f"node{j + 1}"))
 
 right_facts = [f"right {a} {b}" for a, b in paired_constants]
 
-solver.sorts["node"] = list(tree_constants)
-solver.sorts["litem"] = LEXICON
+for r in right_facts:
+    solver.add_assertion(r)
 
-solver.add_assertion("root c0")
+solver.add_assertion("root node1")
 
 for f in tree_facts:
 
@@ -56,6 +86,8 @@ for f in tree_facts:
     
     # If it's not, add it as a negative assertion /
     # headless clause with just one body atom.
+    
+    print("clause literal: ", clause_literal)
 
     if is_assertion:
 
@@ -90,8 +122,8 @@ for tree_node in tree_constants:
 
     # Make sure they are assigned to their node in the value map
     
-    solver.value_map[tree_node, "drs"] = drs_node
-    solver.value_map[tree_node, "type"] = type_node
+    solver.value_map["drs", tree_node] = drs_node
+    solver.value_map["type", tree_node] = type_node
 
     # Add them to their respective sort in the solver's record
 
@@ -106,7 +138,7 @@ for tree_node in tree_constants:
         new_argument = f"{drs_node}.{argument}"
 
         # Assign it to its DRS
-        solver.value_map[drs_node, argument] = new_argument
+        solver.value_map[argument, drs_node] = new_argument
 
         # Add it to its corresponding sort
         solver.sorts["semitem"].append(new_argument)
@@ -116,18 +148,18 @@ for tree_node in tree_constants:
     for i in range(1, 3):
         pred = prefix + str(i)
         succ = prefix + str(i + 1)
-        solver.value_map[pred, "next"] = succ
-        solver.value_map[succ, "previous"] = pred
+        solver.value_map["next", pred] = succ
+        solver.value_map["previous", succ] = pred
 
     # Handle corners (the first and last arguments)
     
     first = prefix + "1"
     last = prefix + "4"
-    solver.value_map[first, "previous"] = "blanksemitem"
-    solver.value_map[last, "next"] = "blanksemitem"
+    solver.value_map["previous", first] = "blanksemitem"
+    solver.value_map["next", last] = "blanksemitem"
 
     # Assign drs_node.self as self to drs_node
-    solver.value_map[drs_node, "self"] = f"{drs_node}.self"
+    solver.value_map["self", drs_node] = f"{drs_node}.self"
 
     # Assemble a small binary tree
     type_constants, type_tree = binary_tree("", ["input", "output"], TYPE_DEPTH, prefix=type_node)
@@ -152,24 +184,43 @@ for tree_node in tree_constants:
     chomeur = set(type_constants)
 
     for f, k, v in type_tree:
-        solver.value_map[k, f] = v
+        solver.value_map[f, k] = v
         chomeur.discard(k)
 
     # Assign dummy image to chomeur type nodes
-    for k in chomeur:
+    for k in sorted(chomeur):
         for f in ["input", "output"]:
-            solver.value_map[k, f] = "blanktype"
+            solver.value_map[f, k] = "blanktype"
+            
+    solver.value_map["input", "blanktype"] = "blanktype"
+    solver.value_map["output", "blanktype"] = "blanktype"
+            
+            
+print("Done\n")
 
-print("Done")
+solver.fill_sort(NODE_PREFIX, SIZE_BOUND)
 
-print("Unfolding...")
+print("Unfolding instance...")
 
 solver.unfold_instance()
-solver.una_equality()
 
-print("Done")
+print("Done\n")
 
-print("Looking for models...")
+print("Unfolding equality...")
+
+solver.unfold_una()
+
+print("Done\n")
+
+
+for c in solver.cnf_clauses:
+    print(c)
+    neg = [solver.reverse_literal_map[abs(a)] for a in c if a < 0]
+    pos = [solver.reverse_literal_map[abs(a)] for a in c if a > 0]
+    print(", ".join(neg) + " => " + ", ".join(pos))
+
+
+print("Looking for models...\n")
 
 # If the program is run as main, print a few models, provided
 # some are found when fixing any of the literals from 1 to 300

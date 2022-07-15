@@ -1,8 +1,14 @@
 import pyglet
 
 from artale.taggers.trees import solver
-from artale.taggers.trees import right_facts
 from artale.constants import *
+
+
+facts = [f for f in solver.literal_map.keys()]
+for f in facts:
+    print(f)
+
+right_facts = [f for f in solver.literal_map.keys() if "right" in f]
 
 window = pyglet.window.Window(1200, 900)
 
@@ -391,21 +397,16 @@ class TreeViewer:
         self.nodes_map = {}
         self.tree = []
 
-        self.right_facts = right_facts
+        self.right_literals = [solver.literal_map[fact] for fact in right_facts]
+        self.model_length = len(self.right_literals)
 
         self.tree_nodes, self.tree_relations = [], {}
         
         self.update_tree_view([])
 
-        self.model_length = len(self.right_facts)
-
     def on_key_press(self, symbol, modifiers):
 
         satisfiability_check = False
-        
-        if self.index + 1 > self.model_length:
-            print("AHHHHH!!!")
-            return None
 
         if symbol == pyglet.window.key.RIGHT:
             index_shift = 1
@@ -422,7 +423,7 @@ class TreeViewer:
 
         print("Current model index: ", self.index)
 
-        fact_literal = solver.literal_map[self.right_facts[self.index]]
+        fact_literal = self.right_literals[self.index]
         satisfiability_check = solver.solver.solve([fact_literal])
         found_a_model = False
 
@@ -431,7 +432,7 @@ class TreeViewer:
             absolute_index = self.index + index_shift
 
             self.index = (self.index + index_shift) % self.model_length
-            fact_literal = solver.literal_map[self.right_facts[self.index]]
+            fact_literal = self.right_literals[self.index]
 
             print(f"Skipping to index {self.index}...")
 
@@ -447,10 +448,6 @@ class TreeViewer:
         if satisfiability_check:
 
             model = solver.solver.get_model()
-
-            if self.model_length == 1:
-                self.model_length = max([abs(atlit) for atlit in model])
-                print(f"Updated model length: {self.model_length}")
 
             model_as_set = solver.get_relations(model, ["left", "right"])
 

@@ -215,7 +215,7 @@ class MapTagger:
 
         distinct_atoms = {atom for atom in self.solver.literal_map.keys()}
 
-        self.solver.una_equality()
+        self.solver.unfold_una()
 
         for m in range(1, 101):
             res = self.solver.solver.solve([m])

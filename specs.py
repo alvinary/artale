@@ -1,34 +1,3 @@
-cfg = '''
-
-sort string 600
-sort string add emptyString
-sort string.next in string
-
-sort rule 30
-sort preterminal 30
-
-sort character 128
-
-parses segment (A, s, emptyString) =>
-parses (A, s)
-
-parses segment (B, s1, s2),
-parses segment (C, s2, s3),
-left in (r, A, B),
-right in (r, A, C) =>
-parses segment (A, s1, s3)
-
-parses symbol (p, s) =>
-parses segment (p, s, s.next)
-
-is (s, char),
-parses terminal (r, A, char) =>
-parses symbol (A, s)
-
-is (s, char a), is (s, char b), char a != char b => False
-
-'''
-
 boulders = '''
 
 -- Boulders test
@@ -138,19 +107,37 @@ leaf (n : node), left (n, m : node) => False
 
 leaf (n : node), right (n, m : node) => False
 
--- A node's left child is always successor (I)  --
-
-phrase (n : node), next (n : node, m : node) => left (n, m)
-
--- No node is left or right of itself --
+-- No node is its own child --
 
 left (n : node, n) => False
 
 right (n : node, n) => False
 
--- No node is either a left or right of another, not both --
+-- A node cannot be a child of two other differet nodes -- 
 
-left (a : node, b : node), right (a, b) => False
+left (n : node, m : node) => has child (n, m)
+
+right (n : node, m : node) => has child (n, m)
+
+has child (n : node, m : node), has child (o : node, m), n != o => False
+
+-- No node can have two different nodes as left children (or right children)  --
+
+left (n : node, m : node), left (n : node, o : node), m != o => False
+
+right (n : node, m : node), right (n : node, o : node), m != o => False
+
+-- No node can be both a left and right child --
+
+left (n : node, m : node), right (n : node, m : node) => False
+
+phrase (a : node), not left (a, any : node) => False
+
+phrase (a : node), not right (a, any : node) => False
+
+-- A node's left child is always its successor (I)  --
+
+phrase (n : node), next (n : node, m : node) => left (n, m)
 
 -- Before --
 
@@ -158,11 +145,11 @@ left (n : node, m : node), before (m, n) => False
 
 right (n : node, m : node), before (m, n) => False
 
--- A node's left child is always successor (II)  --
+-- A node's left child is always its successor (II)  --
 
 left (n : node, m : node) => next (n, m)
 
--- If left child is a leaf, the right child is its successor --
+-- If a left child is a leaf, the right child is its successor --
 
 left (a : node, b : node), leaf (b), right (a, c : node) => next(b, c)
 
@@ -182,23 +169,59 @@ left of (a : node, b : node), left of (b : node, c : node) => left of (a, c)
 
 left of (a : node, b : node), left of (b, a) => False
 
--- Two different nodes cannot parent the same child -- 
+-- Descendent is the transitive closure of has child --
 
-right (a : node, b : node), right (c : node, b), a != c => False
+has child (n : node, m : node) => descendent (n, m)
 
-right (a : node, b : node), left (c : node, b), a != c => False
+phrase (n: node) => descendent (n, n)
 
-left (a : node, b : node), left (c : node, b), a != c => False
+descendent (n : node, m : node), descendent (m, o : node) => descendent (n, o)
 
--- The same node cannot parent different childs in the same direction --
+descendent (n : node, m : node) v not descendent (n, m)
 
-right (a : node, b : node), right (a, c : node), b != c => False
+descendent (n : node, m : node), not descendent (n, m) => False
 
-left (a : node, b : node), left (a, c : node), b != c => False
+-- Every phrase node is a descendent of root --
+
+phrase (n), not descendent (node1, n) => False
+
 '''
 
-'''
-phrase (a : node), not left (a, any : node) => False
+cfg = '''
 
-phrase (a : node), not right (a, any : node) => False
+sort S 600
+
+sort S.next in S
+
+sort rule 30
+
+sort T 30
+
+sort T add start
+
+sort C
+
+sort C add a, b, c, d, e, f, g, h, i, j, k, l, m,
+
+sort C add n, o, p, q, r, s, t, u, v, x, y, z
+
+parses segment (A : T, s1 : S, s2 : S), empty (s2) => parses (A, s)
+
+parses segment (B : T, s1 : S, s2 : S),
+parses segment (C : T, s2, s3 : S),
+left in (r : rule, A : T, B),
+right in (r, A, C) =>
+parses segment (A, s1, s3)
+
+parses symbol (p : T, s : S) =>
+parses segment (p, s, s.next)
+
+is (s : S, char : C),
+parses terminal (r : rule, A : T, char) =>
+parses symbol (A, s)
+
+is (s : S, c1 : C), is (s, c2 : C), c1 a != c2 => False
+
+empty (s : S) => empty (s.next)
+
 '''

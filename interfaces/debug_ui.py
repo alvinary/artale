@@ -2,6 +2,7 @@ import pyglet
 
 from artale.taggers.phrases import solver
 from artale.taggers.phrases import rights as right_facts
+from artale.taggers.phrases import lefts as left_facts
 from artale.constants import *
 
 window = pyglet.window.Window(1200, 900)
@@ -99,9 +100,13 @@ class Node:
         else:
             return 1 + self.parent.depth()
 
-    def add_child(self, node):
-        self.children.append(node)
-        node.parent = self
+    def add_child(self, rel, node):
+        if rel == "right":
+            self.children = self.children + [node]
+            node.parent = self
+        if rel == "left":
+            self.children = [node] + self.children
+            node.parent = self
 
     def root(self):
         candidate, roof = self, self.parent
@@ -267,8 +272,9 @@ class TreeViewer:
         self.index = 0
         self.nodes_map = {}
         self.tree = []
-
-        self.right_literals = [solver.literal_map[fact] for fact in right_facts]
+        
+        positional = right_facts + left_facts
+        self.right_literals = [solver.literal_map[fact] for fact in positional]
         self.model_length = len(self.right_literals)
 
         self.tree_nodes, self.tree_relations = [], {}
@@ -344,9 +350,10 @@ class TreeViewer:
 
         for triple in self.tree_relations:
             r, a, b = triple
-            self.nodes_map[b].parent = self.nodes_map[a]
-            self.nodes_map[b].tags = {r}
-            self.nodes_map[a].children.append(self.nodes_map[b])
+            node_a = self.nodes_map[a]
+            node_b = self.nodes_map[b]
+            node_b.tags = {r}
+            node_a.add_child(r, node_b)
 
         self.tree = {self.nodes_map[k].root().text for k in self.nodes_map}
         self.tree = [self.nodes_map[k] for k in self.tree]
