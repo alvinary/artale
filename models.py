@@ -55,12 +55,20 @@ class HornSolver:
         '''
         
         self.sorts[sort].append(name)
+        
+    def assign(self, f, x, v):
+        '''
+        
+        Assign value 'v' to 'f(x)' (i.e. x.f will evaluate to v)
+        
+        '''
+        self.value_map[f, x] = v
 
     def reset_maps(self):
         '''
 
-        Assign empty dictionaries to self.literal_map, self.value_map and
-        self.value_map.
+        Assign empty dictionaries to self.literal_map, 
+        self.reverse_literal_map and self.value_map.
 
         '''
 
@@ -142,7 +150,7 @@ class HornSolver:
         self.solver.add_clause(dimacs_clause)
         self.cnf_clauses.append(dimacs_clause)
 
-    def una_equality(self):
+    def unfold_una(self):
         '''
 
         Embed equality as defined when making the unique-name assumption into
@@ -171,9 +179,8 @@ class HornSolver:
     def is_functional(self, term_string):
         '''
 
-        Check if a term contains function applications (i.e. it is not
-        a constant name, but has at least one function application, such
-        as a.f.g or pair.first).
+        Check if a term contains function applications (i.e. it has
+        at least one function application, like a.f.g or pair.first).
 
         '''
 
@@ -183,13 +190,12 @@ class HornSolver:
         '''
 
         Return a list encoding the dimacs representation of a clause
-        containing only constants terms (i.e. terms that are constant
-        names / are not functional terms).
+        containing only constant terms (i.e. terms without function
+        application).
 
-        The input clause must be a Horn clause.
-        
-        HornSolver.disjunction_dimacs() can be used for arbitrary
-        disjunctions-
+        The input clause must be a Horn clause, but
+        HornSolver.disjunction_dimacs() can be used for unrestricted
+        disjunctions.
 
         '''
 
@@ -231,17 +237,19 @@ class HornSolver:
 
             parts = [t.strip() for t in term.split(".")]
 
-            domain = parts.pop(0)
+            x = parts.pop(0)
 
-            image = domain
+            a = x
 
             while parts:
 
-                image = self.value_map[domain, parts.pop(0)]
+                f = parts.pop(0)
 
-                domain = image
+                a = self.value_map[f, x]
 
-            evaluated_terms.append(image)
+                x = a
+
+            evaluated_terms.append(a)
 
         return " ".join(evaluated_terms)
 
@@ -286,6 +294,15 @@ class HornSolver:
             self.reverse_literal_map[self.name_counter] = s
             
     def get_model(self):
+        '''
+        
+        If the problem instance is satisfiable, return
+        (True, model), where model is a list of integer
+        literals.
+        
+        Else, return (False, [])
+        
+        '''
         solvable = self.solver.solve()
         if solvable:
             model = self.solver.get_model()
@@ -294,6 +311,24 @@ class HornSolver:
             return (False, [])
             
     def model_with(self, statements):
+        '''
+        
+        Check if there is a model satisfying the current
+        problem instance, adding the statements in 'statements'
+        as additional assumptions (which are not added permanently
+        to the solver's problem instance).
+        
+        The statements must be provided as strings, since
+        they are 'translated' to DIMACS using a map from
+        string to integer literals stored in HornSolver.literal_map
+        
+        If the problem instance is satisfiable, return
+        (True, model), where model is a list of integer
+        literals.
+        
+        Else, return (False, [])
+        
+        '''
         literals = [self.literal_map[s] for s in statements]
         solvable = self.solver.solve(literals)
         if solvable:
@@ -342,6 +377,14 @@ class HornSolver:
         return readable_model
         
     def show_clauses(self):
+        '''
+        
+        Return a list containing all clauses stored in the solver's
+        problem instance, encoded as tuples of strings (the first
+        component is the dimacs representation of the clause, the
+        second component is a human-readable representation of the clause)
+        
+        '''
         clauses = []
         for c in self.cnf_clauses:
             head = [self.reverse_literal_map[a] for a in c if a > 0]
@@ -387,8 +430,8 @@ class HornSolver:
         '''
 
         cnf_clauses = [c.tolist() for c in self.cnf_clauses]
-        value_triples = [(a, f, self.value_map[a, f])
-                         for (a, f) in self.value_map]
+        value_triples = [(a, f, self.value_map[f, a])
+                         for (f, a) in self.value_map]
 
         return as_json({
             'clauses': cnf_clauses,
