@@ -189,39 +189,86 @@ phrase (n), not descendent (node1, n) => False
 
 cfg = '''
 
-sort S 600
+sort S 1
 
 sort S.next in S
 
-sort rule 30
+sort S add void
 
-sort T 30
+sort T 10
 
 sort T add start
 
 sort C
 
-sort C add a, b, c, d, e, f, g, h, i, j, k, l, m,
+-- A preterminal either parses a string segment or not --
 
-sort C add n, o, p, q, r, s, t, u, v, x, y, z
+parses segment (A : T, s1 : S, s2 : S) v not parses segment (A : T, s1 : S, s2 : S)
+
+parses segment (A : T, s1 : S, s2 : S), not parses segment (A : T, s1 : S, s2 : S) => False
 
 parses segment (A : T, s1 : S, s2 : S), empty (s2) => parses (A, s)
 
+-- Either three preterminals are part of a rule, or they are not --
+
+productions (A : T, B : T, C : T) v not productions (A, B, C)
+
+productions (A, B, C), not productions (A, B, C) => False
+
+-- Either A -> B or not --
+
+substitute (A : T, B : T) v not substitute (A, B)
+
+substitute (A : T, B : T), not substitute (A, B) => False
+
+-- Two preterminals parse together a string segment if
+   they parse contiguous parts --
+
 parses segment (B : T, s1 : S, s2 : S),
-parses segment (C : T, s2, s3 : S),
-left in (r : rule, A : T, B),
-right in (r, A, C) =>
-parses segment (A, s1, s3)
+parses segment (C : T, s2, s3 : S) =>
+parse together (B, C, s1, s2)
 
-parses symbol (p : T, s : S) =>
-parses segment (p, s, s.next)
+-- If there is a rule A -> B C, and B and C parse together a segment,
+   A parses that segment --
 
-is (s : S, char : C),
-parses terminal (r : rule, A : T, char) =>
-parses symbol (A, s)
+productions (A : T, B : T, C : T), 
+parse together (B, C, s1 : S, s2 : S) =>
+parses segment (A, s1, s2)
+
+-- If A -> B, and B parses a string, then A parses it too (This rule is not monotonic) --
+
+substitute (A : T, B : T),
+parses segment (B, s1 : S, s2 : S) =>
+parses segment (A, s1, s2)
+
+-- If a preterminal parses a character, it parses all symbols with that character --
+
+is (s : S, char : C), parses terminal (r : rule, A : T, char) => parses segment (A, s, s.next)
+
+-- No string symbol "is" two different characters
+   (without this condition, you parse more general sequences) --
 
 is (s : S, c1 : C), is (s, c2 : C), c1 a != c2 => False
 
+-- If a symbol is empty, so is the next (by induction, from there
+   on the string is empty) --
+
 empty (s : S) => empty (s.next)
 
+-- The void string is empty --
+
+empty (void)
+
+'''
+
+cfg_induction = '''
+
+sort pos 10
+
+sort neg 10
+
+-- The start symbol must parse all positive examples, and no negative examples --
+
+not parses segment (start, p : pos, void) => False
+parses segment (start, n : neg, void) => False
 '''
