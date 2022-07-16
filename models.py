@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from copy import copy
 from json import dumps as as_json
 from array import array
+from functools import reduce, lru_cache, cache
 
 from pysat.solvers import Solver
 
@@ -12,7 +13,7 @@ TERM_SEPARATOR = "--"
 IS_DISJUNCTION = "vee"
 ANY = "any"
 
-
+@cache
 def is_any(name):
     return "any" in name
 
@@ -35,6 +36,7 @@ class HornSolver:
         self.solver = Solver()
         self.name_counter = 0
         self.cnf_clauses = list()
+        self.verbose = False
 
     def fill_sort(self, sort, n):
         '''
@@ -76,7 +78,7 @@ class HornSolver:
         self.reverse_literal_map = {}
         self.value_map = {}
 
-    def unfold_rule(self, rule):
+    def unfold_rule(self, rule, sort_restrictions={}):
         '''
 
         Obtain a list of clauses encoding a propositional embedding of the
@@ -86,6 +88,23 @@ class HornSolver:
         As a side effect, new clauses are appended to self.cnf_clauses.
 
         '''
+        
+        if sort_restrictions:
+            old_sorts = {}
+            for sort in sort_restrictions.keys():
+                all_members = self.sorts[sort]
+                restricted_members = sort_restrictions[sort]
+                self.sorts[sort] = restricted_members
+        
+        if self.verbose:
+            mult = lambda x, y: x * y
+            prod = lambda x: reduce(mult, x, 1)
+            no_assignments = prod([len(self.sorts[s]) for s in rule.sorts])
+            print(f"There are {no_assignments} to unfold left!")
+            print(" * ".join(rule.sorts))
+            chunks = no_assignments // 100000
+            count = 0
+            print("*" * chunks)
 
         for assignment in product(*[self.sorts[s] for s in rule.sorts]):
 
@@ -108,6 +127,18 @@ class HornSolver:
             for cnf_clause in cnf_clauses:
                 self.solver.add_clause(cnf_clause)
                 self.cnf_clauses.append(array("l", cnf_clause))
+            
+            if self.verbose:
+                count += 1
+                if count > 100000:
+                    count = 0
+                    chunks -= 1
+                    print("*" * chunks)
+                    
+        if sort_restrictions:
+            for sort in old_sorts.keys():
+                self.sorts[sort] = old_sorts[sort]
+            
                 
 
     def unfold_instance(self):
@@ -176,6 +207,7 @@ class HornSolver:
                     self.add_assertion(equality)
                     checked_assertions.add(equality)
 
+    @lru_cache(maxsize=512)
     def is_functional(self, term_string):
         '''
 
@@ -219,6 +251,7 @@ class HornSolver:
 
         return [self.literal_map[atom] for atom in pure_clause.body]
 
+    @lru_cache(maxsize=512)
     def evaluate(self, term_string):
         '''
 
@@ -430,8 +463,8 @@ class HornSolver:
         '''
 
         cnf_clauses = [c.tolist() for c in self.cnf_clauses]
-        value_triples = [(a, f, self.value_map[f, a])
-                         for (f, a) in self.value_map]
+        value_triples = [(f, x, self.value_map[f, x])
+                         for (f, x) in self.value_map]
 
         return as_json({
             'clauses': cnf_clauses,
