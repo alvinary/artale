@@ -233,17 +233,26 @@ parse together (B, C, s1, s2)
 
 productions (A : T, B : T, C : T), 
 parse together (B, C, s1 : S, s2 : S) =>
-parses segment (A, s1, s2)
+parses segment (A, s1, s2),
+parses on (A, B, C, s1, s2),
+parses by prod (A, s1, s2)
 
 -- If A -> B, and B parses a string, then A parses it too (This rule is not monotonic) --
 
 substitute (A : T, B : T),
 parses segment (B, s1 : S, s2 : S) =>
-parses segment (A, s1, s2)
+parses segment (A, s1, s2),
+parses with (A, B, s1, s2)
 
 -- If a preterminal parses a character, it parses all symbols with that character --
 
-is (s : S, char : C), parses terminal (r : rule, A : T, char) => parses segment (A, s, s.next)
+is (s : S, char : C), parses terminal (A : T, char) => parses segment (A, s, s.next)
+
+parses segment (A : T, s : S, s.next), is (s, char : C), not parses terminal (A, char) => False
+
+parses terminal (A : T, c : C) v not parses terminal (A : T, c : C)
+
+parses terminal (A : T, c : C), not parses terminal (A : T, c : C) => False
 
 -- No string symbol "is" two different characters
    (without this condition, you parse more general sequences) --
@@ -271,4 +280,35 @@ sort neg 10
 
 not parses segment (start, p : pos, void) => False
 parses segment (start, n : neg, void) => False
+'''
+
+# Exclusions:
+
+'''
+
+-- A preterminal A cannot possibly have parsed a string segment
+   if it hasn't parsed it by substitution (By some rule A -> B)
+   or by productions (by some rule A -> B C)
+   
+   These rules are awkward, but equivalence is harder to express
+   than implication without <=>: TODO, embed <=>
+   
+   P v Q <=> R v S is
+   
+   <P,Q> => <R,S>
+   <R,S> => <P,Q>
+   not P and not Q and <P,Q> => False
+   not S and not R and <R,S> => False
+
+not parses by sub (A : T, s1 : S, s2 : S),
+not parses by prod (A, s1, s2),
+parses segment (A, s1, s2) => False
+
+parses by sub (A : T, s1 : S, s2 : S), not parses with (A, any : T, s1, s2) => False
+
+parses by prod (A : T, s1 : S, s2 : S), not parses on (A, any : T, any : T, s1, s2) => False
+
+parses by prod (A : T, s1 : S, s2 : S),
+not parses by prod (A, any : T, any : T, s1, s2) => False --
+
 '''
