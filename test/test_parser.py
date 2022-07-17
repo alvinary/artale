@@ -126,6 +126,17 @@ horse (animal :   character)   => precocious (animal), hoofy (animal)
 
 '''
 
+comments = '''
+sort vieje 10
+
+-- les viejes son viejes --
+
+-- no es chiste --
+
+vieje (a : vieje) => vieje posta (a)
+
+'''
+
 def test_normalize():
 
     assert True
