@@ -174,7 +174,7 @@ def read_functions(tokens):
 
         domain, f = dot_parts
         image = tokens[2]
-        functions.add((domain, f, image))
+        functions.append((domain, f, image))
 
     else:
         pass # Raise ill-formed sort declaration error, show line
@@ -427,18 +427,21 @@ def make_rule(rule_tuple, solver):
                 bindings,
                 flags)
                 
-def read_into(program, solver):
+def read_into(program, solver, verbose=False):
 
-    print("Program: ", program)
+    if verbose:
+        print("Program: ", program)
     
     normalized_program = normalize(program)
     _, rules = read_program(normalized_program)
     
-    for r in rules:
-        print("Rule: ", r)
+    if verbose:
+        for r in rules:
+            print("Rule: ", r)
     
     for rule_data in rules:
         new_rule = make_rule(rule_data, solver)
-        print(new_rule)
+        if verbose:
+            print(new_rule)
         solver.rules.append(new_rule)
 
