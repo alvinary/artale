@@ -158,7 +158,7 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
       print(f"We have {len(rule_declarations)} rules")
       ```
 
-    - Define a custom parser (cProfile showed parsing took about ten seconds, so this
+  X - Define a custom parser (cProfile showed parsing took about ten seconds, so this
       is a useful thing to do anyway)
       X - Define outline
         - (Draft ; test)* until convergence
@@ -195,3 +195,5 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
     pbtain the method or property we're talking about
 
 - Be thorough with tests
+
+- What happens if someone uses 'any' in the head of a rule? The obvious downsides of bodge, part LIV
