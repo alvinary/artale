@@ -16,7 +16,6 @@ solver.unfold_una()
 
 sat, model = solver.get_model()
 readable_model = solver.show_model(model)
-print(readable_model)
 
 nodes = solver.sorts["node"]
 node_indices = [i + 1 for i, n in enumerate(nodes)]
@@ -43,7 +42,6 @@ additional_facts = [root_is_phrase] + not_befores + befores + nexts
 
 for f in additional_facts:
     solver.add_assertion(f)
-
 
 if __name__ == "__main__":    
     for c, d in solver.show_clauses():
