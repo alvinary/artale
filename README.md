@@ -131,7 +131,22 @@ and arguments are separated by commas.
 
 So you can perfectly write `building (b: part), has part (b, t : part), on fire (t) => risk of fire (b)`.
 
-### Useful idioms
+### Useful idioms using non-Horn constraints
+
+Horn clauses are very limited, and while it is possible to make
+universally quantified statements with negation (since `p(a : A), q(a : A) => False`
+is equivalent to `for all a in A : not (p(a) and q(a))`, more often than not one
+finds it is easier to model a given domain using negation, arbitrary disjunction
+and existential quantification.
+
+These can be introduced using `v` and `any`.
+
+If a rule uses `any` as a variable in a predicate, that predicate is substituted by
+atoms using only constants from a given sort, so that if the sort S containts
+the constants s1, s2 and s3, `p(any : S) => q(special constant)`
+becomes
+
+`p (s1), p (s2), p (s3) => q(special constant)`.
 
 #### Negation
 
@@ -154,3 +169,15 @@ building (b : part), has entrance . not (b) => False
 As long as you can turn your condition into a unary predicate, you just have to
 rule out models in which constants for which some specific predicate holds do
 not meet that unary predicate.
+
+#### Existence and negation, `any` macro
+
+Mixing existential quantification, negation and disjunction is often not that
+straightforward, so one migth as well write something along the lines of
+
+```
+not p (any : sort) => False
+```
+
+Which is equivalent to `p(s1) v p(s2) v p(s3) v p(s4) v ... v p(sn)`, but is a Horn
+clause and works better with DPLL-style algorithms.
