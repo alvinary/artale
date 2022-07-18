@@ -95,6 +95,20 @@ right (n : node, m : node) v not right (n : node, m : node)
 
 right (n : node, m : node), not right (n, m) => False
 
+-- Negation --
+
+next (a : node, b : node) v not next (a : node, b : node)
+
+next (a : node, b : node), not next (a : node, b : node) => False
+
+before (a : node, b : node) v not before (a : node, b : node)
+
+before (a : node, b : node), not before (a : node, b : node) => False
+
+left of (a : node, b : node) v not left of (a : node, b : node)
+
+left of (a : node, b : node), not left of (a : node, b : node) => False
+
 -- Nodes are either leaves or phrases --
 
 leaf (n : node) v phrase (n)
@@ -135,25 +149,29 @@ phrase (a : node), not left (a, any : node) => False
 
 phrase (a : node), not right (a, any : node) => False
 
--- A node's left child is always its successor (I)  --
-
-phrase (n : node), next (n : node, m : node) => left (n, m)
-
 -- Before --
 
 left (n : node, m : node), before (m, n) => False
 
 right (n : node, m : node), before (m, n) => False
 
+-- A node's left child is always its successor (I)  --
+
+phrase (n : node), next (n : node, m : node) => left (n, m)
+
 -- A node's left child is always its successor (II)  --
 
-left (n : node, m : node) => next (n, m)
+phrase (n), left (n : node, m : node) => next (n, m)
 
 -- If a left child is a leaf, the right child is its successor --
 
 left (a : node, b : node), leaf (b), right (a, c : node) => next(b, c)
 
+left (a : node, b : node), leaf (b), right (a, c : node), not next(b, c) => False
+
 -- Nodes left of another are always "smaller" --
+
+left of (a : node, b : node) => before (a, b)
 
 left of (a : node, b : node), before (b, a) => False
 
@@ -168,22 +186,6 @@ left of (a : node, b : node), left of (b : node, c : node) => left of (a, c)
 -- "left of" is antisymmetric --
 
 left of (a : node, b : node), left of (b, a) => False
-
--- Descendent is the transitive closure of has child --
-
-has child (n : node, m : node) => descendent (n, m)
-
-phrase (n: node) => descendent (n, n)
-
-descendent (n : node, m : node), descendent (m, o : node) => descendent (n, o)
-
-descendent (n : node, m : node) v not descendent (n, m)
-
-descendent (n : node, m : node), not descendent (n, m) => False
-
--- Every phrase node is a descendent of root --
-
-phrase (n), not descendent (node1, n) => False
 
 '''
 
