@@ -70,7 +70,7 @@ class Node:
     
     def __init__(self, text, children=[], tags=set(),
                  show_order=True, show_type=True,
-                 show_word=True, parent=None,
+                 show_word=True, parent=False,
                  x=0, y=0):
         
         self.text = text
@@ -87,15 +87,15 @@ class Node:
         self.label = make_node_label(label_text, self.x, self.y)
         self.vertex_box = make_node_box(self.text, self.x, self.y)
 
-        self.edge = None
+        self.edge = False
 
-        if not (self.parent is None):
+        if self.parent:
             self.edge = make_node_edge(self.x, self.y, self.parent.x, self.parent.y)
 
 
     def depth(self):
         '''Return the distance from self to the root of the tree'''
-        if self.parent is None:
+        if not self.parent:
             return 0
         else:
             return 1 + self.parent.depth()
@@ -110,7 +110,7 @@ class Node:
 
     def root(self):
         candidate, roof = self, self.parent
-        while not (roof is None):
+        while roof:
             candidate, roof = self.parent, roof.parent
         return candidate
 
@@ -122,13 +122,13 @@ class Node:
 
     def count_left(self):
         # While parent is not None... (collect left of parent)
-        if self.parent is None:
+        if not self.parent:
             return 0
         else:
             upper = self.parent
             block = self
             on_left = []
-            while not (upper is None):
+            while upper:
                 for i in upper.children:
                     if i == block:
                         break
@@ -175,7 +175,7 @@ class Node:
 
     def update_edges(self):
         for n in self.collect():
-            if not (n.parent is None) and n.edge is None:
+            if n.parent and not n.edge:
                 n.edge = make_node_edge(n.x, n.y, n.parent.x, n.parent.y)
 
     def update_graphics(self):
@@ -190,7 +190,7 @@ class Node:
     
     def update_edge_positions(self):
         for n in self.collect():
-            if not (n.edge is None):
+            if n.edge:
                 n.edge.x = n.x * 5 + n.vertex_box.width // 2
                 n.edge.y = TREE_BOX_Y - n.y * 5 + n.vertex_box.height // 2
                 n.edge.x2 = n.parent.x * 5 + n.vertex_box.width // 2
