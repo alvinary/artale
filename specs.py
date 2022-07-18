@@ -281,12 +281,34 @@ sort neg 10
 -- The start symbol must parse all positive examples, and no negative examples --
 
 not parses segment (start, p : pos, void) => False
+
 parses segment (start, n : neg, void) => False
+
 '''
 
 # Exclusions:
 
 '''
+
+left (a, b), terminal (a, A), terminal (b, B) => left terminal (a, B)
+
+right (a, c), terminal (a, A), terminal (c, C) => right terminal (a, C)
+
+terminal (a, A),
+left terminal (a, B),
+right terminal (a, C),
+not productions (A, B, C) => False
+
+parses segment (A, s1, s2),
+not parses by sub (A, s1, s2),
+not parses by prod (A, s1, s2) => False
+
+parses segment (B, s1, s2), not substitutions (A, B, s1, s2) => not parses by (A, B, s1, s2)
+ 
+parses by sub (A, s1, s2), not parses by (A, any : B, s1, s2) => False
+
+
+-- parses left on, parses right on, etc --
 
 -- A preterminal A cannot possibly have parsed a string segment
    if it hasn't parsed it by substitution (By some rule A -> B)
@@ -300,17 +322,6 @@ parses segment (start, n : neg, void) => False
    <P,Q> => <R,S>
    <R,S> => <P,Q>
    not P and not Q and <P,Q> => False
-   not S and not R and <R,S> => False
-
-not parses by sub (A : T, s1 : S, s2 : S),
-not parses by prod (A, s1, s2),
-parses segment (A, s1, s2) => False
-
-parses by sub (A : T, s1 : S, s2 : S), not parses with (A, any : T, s1, s2) => False
-
-parses by prod (A : T, s1 : S, s2 : S), not parses on (A, any : T, any : T, s1, s2) => False
-
-parses by prod (A : T, s1 : S, s2 : S),
-not parses by prod (A, any : T, any : T, s1, s2) => False --
+   not S and not R and <R,S> => False --
 
 '''
