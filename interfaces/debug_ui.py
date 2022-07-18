@@ -205,8 +205,10 @@ class Node:
     def destroy(self):
         if self.edge:
             del self.edge
-        del self.label
-        del self.vertex_box
+        if self.label:
+            del self.label
+        if self.vertex_box:
+            del self.vertex_box
         del self
 
 @window.event()
@@ -273,56 +275,64 @@ class TreeViewer:
         self.nodes_map = {}
         self.tree = []
         
-        positional = right_facts + left_facts
-        self.right_literals = [solver.literal_map[fact] for fact in positional]
-        self.model_length = len(self.right_literals)
+        self.right_facts = right_facts + left_facts
 
         self.tree_nodes, self.tree_relations = [], {}
         
         self.update_tree_view([])
+        
+        self.verify = False
+        self.at_least_one = False
+        self.tried_all = False
 
     def on_key_press(self, symbol, modifiers):
-
-        satisfiability_check = False
+    
+        if not self.verify:
+            self.verify = solver.solver.solve()
+        
+        if not self.verify:
+            print("This problem instance is not consistent!")
+            
+        adjust = lambda x: x % len(self.right_facts)
 
         if symbol == pyglet.window.key.RIGHT:
             index_shift = 1
-            self.index += 1
-            self.index = self.index % self.model_length
+            new_index = self.index + index_shift
+            self.index = adjust(new_index)
                 
         if symbol == pyglet.window.key.LEFT:
             index_shift = -1
-            self.index -= 1
-            self.index = self.index % self.model_length
+            new_index = self.index + index_shift
+            self.index = adjust(new_index)
 
         for k in list(self.nodes_map.keys()):
             self.nodes_map[k].destroy()
 
         print("Current model index: ", self.index)
+        
+        current_fact = self.right_facts[self.index]
+        is_sat, model = solver.model_with([current_fact])
 
-        fact_literal = self.right_literals[self.index]
-        satisfiability_check = solver.solver.solve([fact_literal])
-        found_a_model = False
+        while not is_sat:
 
-        while not satisfiability_check:
-
-            absolute_index = self.index + index_shift
-
-            self.index = (self.index + index_shift) % self.model_length
-            fact_literal = self.right_literals[self.index]
+            new_index = self.index + index_shift
+            
+            if new_index >= len(self.right_facts):
+                self.tried_all = True
+                
+            self.index = adjust(new_index)
 
             print(f"Skipping to index {self.index}...")
 
-            satisfiability_check = solver.solver.solve([fact_literal])
-            found_a_model = found_a_model or satisfiability_check
+            current_fact = self.right_facts[self.index]
+            is_sat, model = solver.model_with([current_fact])
+            self.at_least_one = self.at_least_one or is_sat
 
-            looped_all_the_way = absolute_index >= self.model_length
-
-            if not found_a_model and looped_all_the_way:
-                print("The specification in this program is unsatisfiable!")
+            if not self.at_least_one and self.tried_all:
+                print("This instance is satisfiable, but there are no models including the target facts")
                 break
 
-        if satisfiability_check:
+        if is_sat:
 
             model = solver.solver.get_model()
 
