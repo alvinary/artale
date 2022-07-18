@@ -72,8 +72,6 @@ def read_program(text):
     '''
 
     text = normalize(text)
-
-    print("Program text: ", text)
     
     sorts = read_sorts(text)
     rules = read_rules(text)
