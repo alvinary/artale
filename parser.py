@@ -11,6 +11,8 @@ CONTRADICTION = "False"
 CONJUNCTION = ", "
 SORT_ASSIGNMENT = " : "
 
+VARIABLES = "var"
+
 EQUALS = "="
 NEQUALS = "!="
 
@@ -74,12 +76,65 @@ def read_program(text):
     text = normalize(text)
     
     sorts = read_sorts(text)
+    
+    variables = read_variables(text)
+    
+    text = add_sorts(text, variables)
+    
     rules = read_rules(text)
 
     return sorts, rules
 
 def filter_comments(text):
     return re.sub("--.*--", "", text)
+    
+def read_variables(text):
+    
+    variables = []
+    
+    has_var = lambda tokens : tokens[0] == "var"
+    has_colon = lambda tokens : ":" in tokens
+    is_long = lambda tokens: len(tokens) >= 4
+    
+    has_vars = lambda x : has_var(x) and has_colon(x) and is_long(x)
+    
+    lines = text.split(DOUBLE_LINE_BREAKS)
+    print ("lines: ", lines)
+    lines = [line for line in lines if has_vars(line.split())]
+    
+    print("lines now: ", lines)
+    
+    for line in lines:
+        sort = line.split(":")[1].strip()
+        print("sort: ", sort)
+        _variables = line.split(":")[0][4:].strip().split(", ")
+        print("variables: ", _variables)
+        variables = variables + [(var, sort) for var in _variables]
+        
+    return variables
+        
+def add_sorts(text, variables):
+    
+    for var, sort in variables:
+        with_sort = f"{var} : {sort}"
+        with_index = -1
+        index = 0
+        var_len = len(var)
+        
+        while var in text[index:]:
+        
+            index = text.index(var, index)
+            
+            if with_sort in text[index:]:
+                with_index = text.index(with_sort, index)
+            
+            if index != with_sort:
+                text = text[:index] + with_sort + text[index + var_len:]
+            
+            index += 1
+            
+    return text
+        
 
 def read_sorts(text):
 
