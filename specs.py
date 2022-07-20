@@ -83,7 +83,9 @@ direction a != direction b
 
 '''
 
-trees = '''sort node 13
+trees = '''
+
+sort node 13
 
 sort type 13
 
@@ -201,74 +203,92 @@ sort T 10
 
 sort T add start
 
-sort C
+sort C 26
+
+var s1, s2, s3 : S
+
+var A, B, C : T
+
+var char : C
+
+-- Negation --
+
+before (s1: S, s2: S) v not before (s1, s2)
+
+before (), not before () => False
+
+
 
 -- A preterminal either parses a string segment or not --
 
-parses segment (A : T, s1 : S, s2 : S) v not parses segment (A : T, s1 : S, s2 : S)
+parses segment (A, s1, s2) v not parses segment (A, s1, s2)
 
-parses segment (A : T, s1 : S, s2 : S), not parses segment (A : T, s1 : S, s2 : S) => False
+parses segment (A, s1, s2), not parses segment (A, s1, s2) => False
 
-parses segment (A : T, s1 : S, s2 : S), empty (s2) => parses (A, s)
+parses segment (A, s1, s2), empty (s2) => parses (A, s)
 
 -- Either three preterminals are part of a rule, or they are not --
 
-productions (A : T, B : T, C : T) v not productions (A, B, C)
+productions (A, B, C) v not productions (A, B, C)
 
 productions (A, B, C), not productions (A, B, C) => False
 
 -- Either A -> B or not --
 
-substitute (A : T, B : T) v not substitute (A, B)
+substitute (A, B) v not substitute (A, B)
 
-substitute (A : T, B : T), not substitute (A, B) => False
+substitute (A, B), not substitute (A, B) => False
 
 -- Two preterminals parse together a string segment if
    they parse contiguous parts --
 
-parses segment (B : T, s1 : S, s2 : S),
-parses segment (C : T, s2, s3 : S) =>
+parses segment (B, s1, s2),
+parses segment (C, s2, s3) =>
 parse together (B, C, s1, s2)
 
 -- If there is a rule A -> B C, and B and C parse together a segment,
    A parses that segment --
 
-productions (A : T, B : T, C : T), 
-parse together (B, C, s1 : S, s2 : S) =>
+productions (A, B, C), 
+parse together (B, C, s1, s2) =>
 parses segment (A, s1, s2),
 parses on (A, B, C, s1, s2),
 parses by prod (A, s1, s2)
 
 -- If A -> B, and B parses a string, then A parses it too (This rule is not monotonic) --
 
-substitute (A : T, B : T),
-parses segment (B, s1 : S, s2 : S) =>
+substitute (A, B),
+parses segment (B, s1, s2) =>
 parses segment (A, s1, s2),
 parses with (A, B, s1, s2)
 
 -- If a preterminal parses a character, it parses all symbols with that character --
 
-is (s : S, char : C), parses terminal (A : T, char) => parses segment (A, s, s.next)
+is (s, char), parses terminal (A, char) => parses segment (A, s, s.next)
 
-parses segment (A : T, s : S, s.next), is (s, char : C), not parses terminal (A, char) => False
+parses segment (A, s, s.next), is (s, char), not parses terminal (A, char) => False
 
-parses terminal (A : T, c : C) v not parses terminal (A : T, c : C)
+parses terminal (A, c) v not parses terminal (A, c)
 
-parses terminal (A : T, c : C), not parses terminal (A : T, c : C) => False
+parses terminal (A, c), not parses terminal (A, c) => False
 
 -- No string symbol "is" two different characters
    (without this condition, you parse more general sequences) --
 
-is (s : S, c1 : C), is (s, c2 : C), c1 a != c2 => False
+is (s, c1), is (s, c2), c1 a != c2 => False
 
 -- If a symbol is empty, so is the next (by induction, from there
    on the string is empty) --
 
-empty (s : S) => empty (s.next)
+empty (s) => empty (s.next)
 
 -- The void string is empty --
 
 empty (void)
+
+-- Strings are ordered sequences --
+
+parses segment (a, s1, s2), before (s2, s1) => False
 
 '''
 
