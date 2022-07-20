@@ -74,6 +74,8 @@ def instancify(string, name, solver):
         remainder = len(string) - i
         before_assertions = [f"before {new_string} {name}:{i+k}" for k in range(0, remainder)]
         after_assertions = [f"not before {name}:{i+k} {new_string}" for k in range(1, i)]
+        before_assertions.append(f"before {new_string} void")
+        after_assertions.append(f"not before void {new_string}")
         
         solver.add_assertion(char_assertion)
         for b in before_assertions:
@@ -130,7 +132,8 @@ def make_instance(pos, neg):
         new_constants = instancify(string, positive_example, solver)
         new_constants |= make_tree(tree_size, positive_example, solver)
         local_sorts[positive_example] = new_constants
-        solver.add_element(POSITIVE, positive_example)
+        first_char = f"{positive_example}:1"
+        solver.add_element(POSITIVE, first_char)
         
     for i, string in enumerate(neg):
         negative_example = f"n{i}"
@@ -138,7 +141,8 @@ def make_instance(pos, neg):
         new_constants = instancify(string, negative_example, solver)
         new_constants |= make_tree(tree_size, negative_example, solver)
         local_sorts[negative_example] = new_constants
-        solver.add_element(NEGATIVE, positive_example)
+        first_char = f"{negative_example}:1"
+        solver.add_element(POSITIVE, first_char)
         
     for k in solver.value_map.keys():
         print(f"{str(k)} : {solver.value_map[k]}")
@@ -166,6 +170,8 @@ def make_instance(pos, neg):
     else:
         print("Hmhhh, something went wrong")
         
-paren_pos = ["(a+b)+b", "(a+(b+c))", "((a+a)+b)+c", "(a+((c+b)+(a +((c+a)+b)))", "a+((b+c)+b)"]
+["(a+((c+b)+(a +((c+a)+b)))", "a+((b+c)+b)"]        
+        
+paren_pos = ["(a+b)+b", "(a+(b+c))", "((a+a)+b)+c"]
 paren_neg = ["(a+b+c)", "(a)+)b", "((a+)c(", "(a)+(b+)+(c+c)"]
 make_instance(paren_pos, paren_neg)
