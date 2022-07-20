@@ -253,6 +253,14 @@ parses segment (A, s1, s2),
 parses on (A, B, C, s1, s2),
 parses by prod (A, s1, s2)
 
+-- Parses must make sense --
+
+parses on (A, B, C, s1, s2), not parse together (B, C, s1, s2) => False
+
+parses on (A, B, C, s1, s2), not productions (A, B, C) => False
+
+parses with (A, B, s1, s2), not substitutions (A, B) => False
+
 -- If A -> B, and B parses a string, then A parses it too (This rule is not monotonic) --
 
 substitute (A, B),
