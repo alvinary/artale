@@ -153,10 +153,10 @@ def test_read_variables():
     a_a = "a a"
     b_b = "b b"
     A_A = "A A"
-    assert read_variables("var a, b, c : A") == [(a, A), (b, A), (c, A)]
-    assert read_variables("var a a, c, b b : A A") == [(a_a, A_A), (c, A_A), (b_b, A_A)]
-    assert read_variables("aaaaaaaaaaa") == []
-    assert read_variables("") = []
+    assert read_variables("var a, b, c : A") == ([(a, A), (b, A), (c, A)], "")
+    assert read_variables("var a a, c, b b : A A") == ([(a_a, A_A), (c, A_A), (b_b, A_A)], "")
+    assert read_variables("aaaaaaaaaaa") == ([], "aaaaaaaaaaa")
+    assert read_variables("") == ([], "")
 
 def test_get_terms():
 
@@ -182,11 +182,11 @@ def test_get_terms():
     terms_e = "const.fun, =, other const.fun".split(", ")
     sorts_e = {}
 
-    ta, sa = get_terms(chunk_a)
-    tb, sb = get_terms(chunk_b)
-    tc, sc = get_terms(chunk_c)
-    td, sd = get_terms(chunk_d)
-    te, _se = get_terms(chunk_e)
+    ta, sa = get_terms(chunk_a, {})
+    tb, sb = get_terms(chunk_b, {})
+    tc, sc = get_terms(chunk_c, {})
+    td, sd = get_terms(chunk_d, {})
+    te, _se = get_terms(chunk_e, {})
 
     assert terms_a == ta
     assert sorts_a == sa
@@ -213,7 +213,7 @@ def test_chunk_predicate():
     test_remainder = "q (b, a), r (b) => s (a)"
     test_sorts = {}
     
-    terms, sorts, text = chunk_predicate(test_conjunction)
+    terms, sorts, text = chunk_predicate(test_conjunction, {})
     
     assert terms == test_terms
     assert sorts == test_sorts
@@ -227,7 +227,7 @@ def test_chunk_predicate():
     test_remainder = "q (b, a) v r (b) v s (a)"
     test_sorts = {}
     
-    terms, sorts, text = chunk_predicate(test_disjunction)
+    terms, sorts, text = chunk_predicate(test_disjunction, {})
     
     assert terms == test_terms
     assert sorts == test_sorts
@@ -250,7 +250,7 @@ def get_rule(rule_text):
 
     solver = HornSolver()
     
-    rule_data = read_rule(normalize(rule_text))
+    rule_data = read_rule(normalize(rule_text), {})
     rulo = make_rule(rule_data, solver)
 
     return rulo
