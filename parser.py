@@ -29,6 +29,8 @@ SINGLE_SPACE = " "
 TRIPLE_LINE_BREAKS = "\n\n\n"
 DOUBLE_LINE_BREAKS = "\n\n"
 
+DOT = "."
+
 def normalize(text):
     
     '''
@@ -383,12 +385,21 @@ def get_comparison_parts(text, default_sorts):
         sorts = get_term_sorts(terms, default_sorts)
 
     return terms, sorts
+    
+def source_term(term):
+    
+    if DOT in term:
+        return term.split(DOT)[0].strip()
+    
+    else:
+        return term
 
 def get_term_sorts(terms, default_sorts):
 
     sorts = []
     sorted_terms = [t for t in terms if SORT_ASSIGNMENT in t]
-    default_sorted_terms = [t for t in terms if t in default_sorts.keys()]
+    source_terms = [source_term(t) for t in terms]
+    default_sorted_terms = [st for st in source_terms if st in default_sorts.keys()]
 
     for t in sorted_terms:
         parts = [r.strip() for r in t.split(SORT_ASSIGNMENT)]
