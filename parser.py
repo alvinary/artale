@@ -79,9 +79,11 @@ def read_program(text):
     
     variables, text = read_variables(text)
     
+    variables = dict(variables)
+    
     rules = read_rules(text)
 
-    return sorts, rules
+    return sorts, rules, variables
 
 def filter_comments(text):
     return re.sub("--.*--", "", text)
