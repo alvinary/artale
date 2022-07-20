@@ -142,7 +142,13 @@ def make_instance(pos, neg):
         new_constants |= make_tree(tree_size, negative_example, solver)
         local_sorts[negative_example] = new_constants
         first_char = f"{negative_example}:1"
-        solver.add_element(POSITIVE, first_char)
+        solver.add_element(NEGATIVE, first_char)
+        
+    for i in solver.sorts[POSITIVE]:
+        print("POSITIVEEE", i)
+        
+    for i in solver.sorts[NEGATIVE]:
+        print("NEGATIVEEE", i)
         
     for k in solver.value_map.keys():
         print(f"{str(k)} : {solver.value_map[k]}")
