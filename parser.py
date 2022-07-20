@@ -40,7 +40,7 @@ def normalize(text):
 
     lines = text.split("\n\n")
     lines = [l.strip() for l in lines]
-    lines = [l.replace("\n", " ") for l in lines]
+    lines = [l.replace("\n", " ") for l in lines if len(l) > 0]
 
     while TRIPLE_LINE_BREAKS in text:
         text = text.replace(TRIPLE_LINE_BREAKS, DOUBLE_LINE_BREAKS)
@@ -77,9 +77,13 @@ def read_program(text):
     
     sorts = read_sorts(text)
     
-    variables = read_variables(text)
+    variables, text = read_variables(text)
+    
+    print(text)
     
     text = add_sorts(text, variables)
+    
+    print(text)
     
     rules = read_rules(text)
 
@@ -98,43 +102,18 @@ def read_variables(text):
     
     has_vars = lambda x : has_var(x) and has_colon(x) and is_long(x)
     
-    lines = text.split(DOUBLE_LINE_BREAKS)
-    print ("lines: ", lines)
-    lines = [line for line in lines if has_vars(line.split())]
+    lines = [l for l in text.split(DOUBLE_LINE_BREAKS) if len(l) > 0]
+    sort_lines = {l for l in lines if has_vars(l.split())}
+    program_lines = [l for l in lines if l not in sort_lines]
     
-    print("lines now: ", lines)
-    
-    for line in lines:
+    for line in sort_lines:
         sort = line.split(":")[1].strip()
-        print("sort: ", sort)
         _variables = line.split(":")[0][4:].strip().split(", ")
-        print("variables: ", _variables)
         variables = variables + [(var, sort) for var in _variables]
         
-    return variables
+    text = DOUBLE_LINE_BREAKS.join(program_lines)
         
-def add_sorts(text, variables):
-    
-    for var, sort in variables:
-        with_sort = f"{var} : {sort}"
-        with_index = -1
-        index = 0
-        var_len = len(var)
-        
-        while var in text[index:]:
-        
-            index = text.index(var, index)
-            
-            if with_sort in text[index:]:
-                with_index = text.index(with_sort, index)
-            
-            if index != with_sort:
-                text = text[:index] + with_sort + text[index + var_len:]
-            
-            index += 1
-            
-    return text
-        
+    return variables, text
 
 def read_sorts(text):
 
