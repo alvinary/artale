@@ -79,12 +79,6 @@ def read_program(text):
     
     variables, text = read_variables(text)
     
-    print(text)
-    
-    text = add_sorts(text, variables)
-    
-    print(text)
-    
     rules = read_rules(text)
 
     return sorts, rules
