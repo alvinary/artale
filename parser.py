@@ -81,7 +81,7 @@ def read_program(text):
     
     variables = dict(variables)
     
-    rules = read_rules(text)
+    rules = read_rules(text, variables)
 
     return sorts, rules, variables
 
@@ -209,7 +209,7 @@ def read_functions(tokens):
 
     return functions
 
-def read_rules(text):
+def read_rules(text, default_variables):
 
     lines = [t.strip() for t in text.split("\n\n")]
 
@@ -218,7 +218,7 @@ def read_rules(text):
     for rule_candidate in lines:
 
         if check_line(rule_candidate):
-            rules.append(read_rule(rule_candidate))
+            rules.append(read_rule(rule_candidate, default_variables))
 
         else:
             pass # Raise ill-formed rule error
@@ -251,7 +251,7 @@ def check_line(text):
 
     return checks
 
-def read_rule(line):
+def read_rule(line, defaults):
 
     is_disjunction = " v " in line
     is_contradiction = "=> False" in line
@@ -259,55 +259,55 @@ def read_rule(line):
     is_assertion = "=>" not in line and not is_disjunction
 
     if is_implication:
-        return read_implication(line)
+        return read_implication(line, defaults)
 
     if is_contradiction:
-        return read_contradiction(line)
+        return read_contradiction(line, defaults)
 
     if is_disjunction:
-        return read_disjunction(line)
+        return read_disjunction(line, defaults)
 
     # Assertions with variables are allowed
 
     if is_assertion:
-        return read_assertion(line)
+        return read_assertion(line, defaults)
 
-def read_implication(line):
+def read_implication(line, defaults):
     body_part, head_part = tuple(line.split("=>")) # Shouldn't this be stripped?
-    body, body_sorts = split_predicates(body_part)
-    head, head_sorts = split_predicates(head_part)
+    body, body_sorts = split_predicates(body_part, defaults)
+    head, head_sorts = split_predicates(head_part, defaults)
     sorts = body_sorts | head_sorts
     return (IMPLICATION, sorts, body, head)
 
-def read_contradiction(line):
+def read_contradiction(line, defaults):
     body_part = line[:-8]
-    body, sorts = split_predicates(body_part)
+    body, sorts = split_predicates(body_part, defaults)
     return (CONTRADICTION, sorts, body)
 
-def read_disjunction(line):
-    body, sorts = split_predicates(line)
+def read_disjunction(line, defaults):
+    body, sorts = split_predicates(line, defaults)
     return (DISJUNCTION, sorts, body)
 
-def read_assertion(line):
-    head, sorts = split_predicates(line)
+def read_assertion(line, defaults):
+    head, sorts = split_predicates(line, defaults)
     return (ASSERTION, sorts, head)
 
-def split_predicates(text):
+def split_predicates(text, default_sorts):
 
     predicates = []
     sorts = {}
 
     while text:
-        predicate, chunk_sorts, text = chunk_predicate(text)
+        predicate, chunk_sorts, text = chunk_predicate(text, default_sorts)
         predicates.append(predicate)
         sorts |= chunk_sorts
 
     return predicates, sorts
 
 
-def chunk_predicate(text):
+def chunk_predicate(text, defaults):
     _chunk, text = chunk(text)
-    terms, sorts = get_terms(_chunk)
+    terms, sorts = get_terms(_chunk, defaults)
     return terms, sorts, text
 
 
@@ -334,7 +334,7 @@ def chunk(text):
 
     return chunk, text
 
-def get_terms(text):
+def get_terms(text, defaults):
 
     terms = []
     sorts = {}
@@ -346,10 +346,10 @@ def get_terms(text):
     # between these conditions
 
     if is_comparison:
-        terms, sorts = get_comparison_parts(text)
+        terms, sorts = get_comparison_parts(text, defaults)
 
     elif is_predicate:
-        terms, sorts = get_predicate_parts(text)
+        terms, sorts = get_predicate_parts(text, defaults)
 
     else:
         print(text)
@@ -359,7 +359,7 @@ def get_terms(text):
 
     return terms, sorts
 
-def get_predicate_parts(text):
+def get_predicate_parts(text, defaults):
     lparen_index = text.index("(")
     rparen_index = text.index(")")
     predicate_term = text[:lparen_index]
@@ -367,31 +367,35 @@ def get_predicate_parts(text):
     terms = [predicate_term]
     terms = terms + term_segment.split(CONJUNCTION)
     terms = [t.strip() for t in terms]
-    sorts = get_term_sorts(terms)
+    sorts = get_term_sorts(terms, defaults)
     return terms, sorts
 
-def get_comparison_parts(text):
+def get_comparison_parts(text, default_sorts):
 
     if NEQUALS in text:
         left_term, right_term = [t.strip() for t in text.split(NEQUALS)]
         terms = [left_term, NEQUALS, right_term]
-        sorts = get_term_sorts(terms)
+        sorts = get_term_sorts(terms, default_sorts)
 
     elif EQUALS in text:
         left_term, right_term = [t.strip() for t in text.split(EQUALS)]
         terms = [left_term, EQUALS, right_term]
-        sorts = get_term_sorts(terms)
+        sorts = get_term_sorts(terms, default_sorts)
 
     return terms, sorts
 
-def get_term_sorts(terms):
+def get_term_sorts(terms, default_sorts):
 
     sorts = []
     sorted_terms = [t for t in terms if SORT_ASSIGNMENT in t]
+    default_sorted_terms = [t for t in terms if t in default_sorts.keys()]
 
     for t in sorted_terms:
         parts = [r.strip() for r in t.split(SORT_ASSIGNMENT)]
         sorts.append(tuple(parts))
+        
+    for t in default_sorted_terms:
+        sorts.append((t, default_sorts[t]))
 
     return dict(sorts)
 
@@ -462,8 +466,6 @@ def read_into(program, solver, verbose=False):
     
     normalized_program = normalize(program)
     _, rules, variables = read_program(normalized_program)
-    
-    solver.default_sorts = variables
     
     if verbose:
         for r in rules:

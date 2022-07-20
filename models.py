@@ -92,9 +92,10 @@ class HornSolver:
         if sort_restrictions:
             old_sorts = {}
             for sort in sort_restrictions.keys():
-                all_members = self.sorts[sort]
+                all_members = list(self.sorts[sort])
                 restricted_members = sort_restrictions[sort]
                 self.sorts[sort] = restricted_members
+                old_sorts[sort] = all_members
         
         if self.verbose:
             mult = lambda x, y: x * y
