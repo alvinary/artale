@@ -1,28 +1,34 @@
-sort string 600
+sort S 600
 
-sort string add emptyString
+sort S add empty
 
-sort string.next in string
+sort S.next in S
 
 sort rule 30
 
-sort preterminal 30
+sort T 30
 
-sort character 128
+sort C
 
-parses segment (A, s, emptyString) => parses (A, s)
+sort C add a, b, c, d, e, f, g, h, i, j, k, l, m,
 
-parses segment (B, s1, s2),
-parses segment (C, s2, s3),
-left in (r, A, B),
+sort C add n, o, p, q, r, s, t, u, v, x, y, z
+
+parses segment (A : T, s : S, empty) => parses (A, s)
+
+parses segment (B : T, s1 : S, s2 : S),
+parses segment (C : T, s2, s3 : S),
+left in (r : rule, A : T, B),
 right in (r, A, C) =>
 parses segment (A, s1, s3)
 
-parses symbol (p, s) =>
+parses symbol (p : T, s : S) =>
 parses segment (p, s, s.next)
 
-is (s, char),
-parses terminal (r, A, char) =>
+is (s : S, char : C),
+parses terminal (r : rule, A : T, char) =>
 parses symbol (A, s)
 
-is (s, char a), is (s, char b), char a != char b => False
+is (s : S, c1 : C), is (s, c2 : C), c1 a != c2 => False
+
+empty (s : S) => empty (s.next)

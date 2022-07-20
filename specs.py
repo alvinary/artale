@@ -205,7 +205,7 @@ sort T add start
 
 sort C 26
 
-var s1, s2, s3 : S
+var s, s1, s2, s3 : S
 
 var A, B, C : T
 
@@ -213,31 +213,29 @@ var char : C
 
 -- Negation --
 
-before (s1: S, s2: S) v not before (s1, s2)
+before (s1, s2) v not before (s1, s2)
 
-before (), not before () => False
-
-
-
--- A preterminal either parses a string segment or not --
+before (s1, s2), not before (s1, s2) => False
 
 parses segment (A, s1, s2) v not parses segment (A, s1, s2)
 
 parses segment (A, s1, s2), not parses segment (A, s1, s2) => False
 
-parses segment (A, s1, s2), empty (s2) => parses (A, s)
+parses terminal (A, c) v not parses terminal (A, c)
 
--- Either three preterminals are part of a rule, or they are not --
+parses terminal (A, c), not parses terminal (A, c) => False
 
 productions (A, B, C) v not productions (A, B, C)
 
 productions (A, B, C), not productions (A, B, C) => False
 
--- Either A -> B or not --
-
 substitute (A, B) v not substitute (A, B)
 
 substitute (A, B), not substitute (A, B) => False
+
+parses (A, s) v not parses (A, s)
+
+parses (A, s), not parses (A, s) => False
 
 -- Two preterminals parse together a string segment if
    they parse contiguous parts --
@@ -266,11 +264,9 @@ parses with (A, B, s1, s2)
 
 is (s, char), parses terminal (A, char) => parses segment (A, s, s.next)
 
-parses segment (A, s, s.next), is (s, char), not parses terminal (A, char) => False
+-- A preterminal cannot parse a string segment consisting of a single character if it does not parse that character --
 
-parses terminal (A, c) v not parses terminal (A, c)
-
-parses terminal (A, c), not parses terminal (A, c) => False
+is (s, char), parses segment (A, s, s.next), not parses terminal (A, char) => False
 
 -- No string symbol "is" two different characters
    (without this condition, you parse more general sequences) --
@@ -288,7 +284,17 @@ empty (void)
 
 -- Strings are ordered sequences --
 
-parses segment (a, s1, s2), before (s2, s1) => False
+parses segment (A, s1, s2), before (s2, s1) => False
+
+-- parses --
+
+parses segment (A, s, void) => parses (A, s)
+
+-- ILP --
+
+not parses (start, p : pos) => False
+
+parses (start, n : neg) => False
 
 '''
 
