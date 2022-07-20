@@ -144,6 +144,18 @@ def test_normalize():
 def test_strip_comments():
 
     pass
+    
+def test_read_variables():
+    a = "a"
+    b = "b"
+    c = "c"
+    A = "A"
+    a_a = "a a"
+    b_b = "b b"
+    A_A = "A A"
+    assert read_variables("var a, b, c : A") == [(a, A), (b, A), (c, A)]
+    assert read_variables("var a a, c, b b : A A") == [(a_a, A_A), (c, A_A), (b_b, A_A)]
+    assert read_variables("aaaaaaaaaaa") == []
 
 def test_get_terms():
 
