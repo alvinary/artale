@@ -461,7 +461,9 @@ def read_into(program, solver, verbose=False):
         print("Program: ", program)
     
     normalized_program = normalize(program)
-    _, rules = read_program(normalized_program)
+    _, rules, variables = read_program(normalized_program)
+    
+    solver.default_sorts = variables
     
     if verbose:
         for r in rules:
