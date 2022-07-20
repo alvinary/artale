@@ -9,7 +9,7 @@ specified on a program or perform bounded model checking.
 
 - The class in charge of finding models satisfying a specification is in `models.py` 
 - The class in charge of parsing programs is in `parser.py`
-- The `./specs` folder contains some example programs
+- `specs.py` contains some example programs
 
 ### Dependencies
 The scripts in this repository depend on [Pyglet](http://pyglet.org) and [PySAT](https://pysathq.github.io/). 
