@@ -156,6 +156,7 @@ def test_read_variables():
     assert read_variables("var a, b, c : A") == [(a, A), (b, A), (c, A)]
     assert read_variables("var a a, c, b b : A A") == [(a_a, A_A), (c, A_A), (b_b, A_A)]
     assert read_variables("aaaaaaaaaaa") == []
+    assert read_variables("") = []
 
 def test_get_terms():
 
