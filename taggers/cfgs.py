@@ -176,6 +176,21 @@ def make_instance(pos, neg):
     else:
         print("Hmhhh, something went wrong")
         
+def prettify(rule)
+    return f"{rule[0]} -> {" ".join(rule[1:])}"
+        
+def show_grammar(model_text):
+    facts = model_text.split(", ")
+    productions = []
+    for f in facts:
+        if "productions" in f or "substitution" in f:
+            productions.append(f.split()[1:])
+    productions = [prettify(p) for p in productions]
+    return productions
+    
+def show_parse(model_text):
+    pass
+        
 ["(a+((c+b)+(a +((c+a)+b)))", "a+((b+c)+b)"]        
         
 paren_pos = ["(a+b)+b", "(a+(b+c))", "((a+a)+b)+c"]
