@@ -1,6 +1,11 @@
 - CFG string parsing
 	X - Draft
 	- Test to see what kinds of unexpected models show up
+	  X - Fix many parser errors
+	  X - Track down and fix != bug
+	    X - una equality unfolding logic
+	  X - Fix "overly large cube" issues
+	    X - Implement restricted sorts
 
 - Mesh / relation parsing
 	X - Pencil-and-paper draft
@@ -23,18 +28,17 @@ resources
 	- Text and paratext case (reddit dataset - predicting type of
 	  user engagement from textual and paratextual information)
 	  	- Clustering users based on heterogeneous data (text, 
-	  	friend-of / follows, likes/upvotes, has likes/upvotes 
-	  	from, etc)
-	- Agus neuro dataset
+	  	  friend-of / follows, likes/upvotes, has likes/upvotes 
+	  	  from, etc)
 
 	- Tasks amenable to weakly-supervised versions and "user interaction" 
-	versions
+	  versions
 		- ("Fred opened the door", "Thge door is now open")
 		  ("Sally and Martha are friends", "Sally knows Martha")
 		  ("Sally is Tiffany's cousin", "Sally and Tiffany are 
 		  relatives") ("Consquence" paradigm)
-		- Cloze ("Oclusion paradigm")
-		- Next sentence ("Actual part, fake part paradigm")
+		- Cloze ("Oclusion" paradigm)
+		- Next sentence ("Actual part, fake part" paradigm)
 		
 	- Unsupervised
 		- Minimize Description size, minimize similarity within 
@@ -48,8 +52,8 @@ resources
 
 	- Iterative refinement with user interaction (20 questions with nature)
 			- Compressed sensing (minimum number of queries 
-			necessary to figure out which B^n cube, knowing
-			the cube is "Horn" / column-sparse)
+			  necessary to figure out which B^n cube, knowing
+			  the cube is "Horn" / column-sparse)
 
 
 - Traditional supervised tasks
@@ -76,3 +80,82 @@ Review decent / accepted ways of doing relational learning with
 description logics (LCS - least common subsumer, classication  
 / terminology induction), etc
 
+
+
+=====================================CFGS======================================
+
+[] Polish and check the cuadratic tree embedding. The cubic embedding is
+   simpler in some aspects but ordering causes many modelling issues, which
+   hopely won't be the case with the other embedding.
+   
+   So far it looks like it requires:
+   
+   - nodes and virtual nodes
+   - virtual edges and edges - won't those require embedding transitive closures
+     again? It looks like it does, but maybe not with functions, let me check:
+     
+     ```
+     
+     actual (n), branch right (n), virtual (n.right) => branch to (n, n.right)
+     
+     branch to (n, m), virtual (m.right) => branch to (n, m.next)
+     
+     branch to (n, m), actual (m) => False
+     
+     branch to (n, m) => branch from (m, n)
+     
+     ```
+     
+   - Branches between virtual nodes can only go in one direction (until they
+     reach a 'phrase' node or leaf node)
+   - If nodes are 'phrases' (i.e. are not terminals), they branch in both directions
+   
+     The issue is still this - how can we "propagate" children from a virtual node to
+     a node.
+   
+     Since they only inherit properties in one direction, this looks like it will
+     suffice:
+   
+     ```
+     
+     virtual (n), prop (n.dir) => prop (n)
+     
+     
+     ```
+     
+     Thus, virtual nodes should inherit from their left node - when it is actual, it
+     will have properties of its own.
+     And when it is virtual, it will only transfer properties "upstream"
+     
+     The tree is simply the actual tree with many copies of the same vertex/node,
+     and those will be omitted on display. It is still necessary to deal with
+     issues of compositionm but it seems straightforward: real nodes treat their
+     left and right descendents the same way (so if they are actual, cool, and
+     if they ar virtual, still cool), and virtual nodes treat their <dir> ancestor
+     the same way - they just don't compose (i.e. suppose a node takes arguments.
+     it simply won't change any of its properites based on descendents until it
+     "becomes" an actual node above, and "finds" its sibling node.
+     
+     This, however, only works for monadic predicates / predicates with arity one.
+     It won't work for predicates with arity two
+     
+     except we can humm
+     
+     virtual (n), rel (n, m) => rel (n.previous, m)
+     
+     yes, that seems quite right. Not sure yet, but it looks like it makes sense.
+   
+   
+     So far:
+     
+     ```
+     
+     virtual (n), left branching (n), right branching (n) => False
+     
+     virtual (n), not left branching (n), not right branching (n) => False
+     
+     leaf (n), virtual (n) => False
+     
+     ```
+     
+     
