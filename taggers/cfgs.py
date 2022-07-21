@@ -173,11 +173,13 @@ def make_instance(pos, neg):
         print("Instance found: ")
         model = solver.show_model(model)
         print(model)
+        return model
     else:
         print("Hmhhh, something went wrong")
+        return ""
         
-def prettify(rule)
-    return f"{rule[0]} -> {" ".join(rule[1:])}"
+def prettify(rule):
+    return f"{rule[0]} -> {' '.join(rule[1:])}"
         
 def show_grammar(model_text):
     facts = model_text.split(", ")
@@ -191,8 +193,9 @@ def show_grammar(model_text):
 def show_parse(model_text):
     pass
         
-["(a+((c+b)+(a +((c+a)+b)))", "a+((b+c)+b)"]        
+["(a+((c+b)+(a +((c+a)+b)))", "a+((b+c)+b)"]
         
 paren_pos = ["(a+b)+b", "(a+(b+c))", "((a+a)+b)+c"]
 paren_neg = ["(a+b+c)", "(a)+)b", "((a+)c(", "(a)+(b+)+(c+c)"]
-make_instance(paren_pos, paren_neg)
+result = make_instance(paren_pos, paren_neg)
+print(show_grammar(result))
