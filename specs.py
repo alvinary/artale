@@ -298,6 +298,8 @@ parses segment (A, s1, s2), before (s2, s1) => False
 
 parses segment (A, s, void) => parses (A, s)
 
+parses segment (A, s1, s2), empty (s2) => parses (A, s1)
+
 -- ILP --
 
 not parses (start, p : pos) => False
