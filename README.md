@@ -180,4 +180,5 @@ not p (any : sort) => False
 ```
 
 Which is equivalent to `p(s1) v p(s2) v p(s3) v p(s4) v ... v p(sn)`, but is a Horn
-clause and works better with DPLL-style algorithms.
+clause and is supposed to work better with DPLL-style algorithms, which are based on
+resolution.
