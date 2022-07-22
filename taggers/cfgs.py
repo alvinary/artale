@@ -72,13 +72,18 @@ def instancify(string, name, solver):
     if not name:
         name = string
     for i, c in enumerate(string):
+    
+        before = lambda k : f"before {new_string} {name}:{k + 1}"
+        not_before = lambda k : f"not before {name}:{k + 1} {new_string}"
+        before_empty = f"before {new_string} {EMPTY}"
+        empty_not_before = f"not before {EMPTY} {new_string}"
+    
         new_string = f"{name}:{i+1}"
         char_assertion = f"is {new_string} {c}"
-        remainder = len(string) - i
-        before_assertions = [f"before {new_string} {name}:{i+k}" for k in range(0, remainder)]
-        after_assertions = [f"not before {name}:{i+k} {new_string}" for k in range(1, i)]
-        before_assertions.append(f"before {new_string} {EMPTY}")
-        after_assertions.append(f"not before {EMPTY} {new_string}")
+        before_assertions = [before(k) for k in range(i, len(string))]
+        after_assertions = [not_before(k) for k in range(i)]
+        before_assertions.append(before_empty)
+        after_assertions.append(empty_not_before)
         
         solver.add_assertion(char_assertion)
         for b in before_assertions:
