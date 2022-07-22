@@ -12,6 +12,8 @@ TERM_SEPARATOR = "--"
 IS_DISJUNCTION = "vee"
 ANY = "any"
 
+CACHE_SIZE = 2**14
+
 @cache
 def is_any(name):
     return "any" in name
@@ -129,6 +131,9 @@ class HornSolver:
                 self.cnf_clauses.append(array("l", cnf_clause))
             
             if self.verbose:
+                #print("eval fun: ", self.evaluate_functions.cache_info())
+                #print("eval: ", self.evaluate.cache_info())
+                #print("eval: ", self.is_functional.cache_info())
                 count += 1
                 if count > 100000:
                     count = 0
@@ -207,7 +212,7 @@ class HornSolver:
                     self.add_assertion(equality)
                     checked_assertions.add(equality)
 
-    @lru_cache(maxsize=1024)
+    @lru_cache(maxsize=CACHE_SIZE)
     def is_functional(self, term_string):
         '''
 
@@ -218,7 +223,6 @@ class HornSolver:
 
         return "." in term_string
 
-    @lru_cache(maxsize=1024)
     def dimacs(self, pure_clause):
         '''
 
@@ -242,7 +246,6 @@ class HornSolver:
 
         return dimacs_clause
 
-    @lru_cache(maxsize=1024)
     def disjunction_dimacs(self, pure_clause):
         '''
 
@@ -253,7 +256,7 @@ class HornSolver:
 
         return [self.literal_map[atom] for atom in pure_clause.body]
 
-    @lru_cache(maxsize=1024)
+    @lru_cache(maxsize=CACHE_SIZE)
     def evaluate(self, term_string):
         '''
 
@@ -288,7 +291,7 @@ class HornSolver:
 
         return " ".join(evaluated_terms)
 
-    @lru_cache(maxsize=1024)
+    @lru_cache(maxsize=CACHE_SIZE)
     def evaluate_functions(self, clause):
         '''
 
@@ -522,7 +525,7 @@ def map_on(assignment, index_permutation):
 
 @dataclass
 class Relation:
-    parts: list[str]
+    parts: frozenset[str]
 
     def as_string(self):
         return TERM_SEPARATOR.join([p.strip() for p in self.parts])
