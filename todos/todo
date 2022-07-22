@@ -197,3 +197,13 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
 - Be thorough with tests
 
 - What happens if someone uses 'any' in the head of a rule? The obvious downsides of bodge, part LIV
+
+- parses (A, s1, s3), parses (B, s2, s3), before (s1, s2), s1 != s2, A != B => False
+  produces an error, because s1 != s2, A != B is treated as a single conjunct,
+  and left_term, right_term = [... for ... in text.split(NEQUALS)] fails, since it gets
+  more than two elements
+  
+  Find out why
+
+- Verify if using lru cache with frozen clauses in dimacs, evaluate, and disjunction dimacs
+  has an effect, if it is positive, and if it is significant
