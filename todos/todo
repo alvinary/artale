@@ -207,3 +207,10 @@ X - Add a set of facts to HornSolver, so you can check if p(x) by checking runni
 
 - Verify if using lru cache with frozen clauses in dimacs, evaluate, and disjunction dimacs
   has an effect, if it is positive, and if it is significant
+
+  - Using cache_info you can see how many calls are hits and how many calls are misses.
+    dimacs and disjunction_dimacs had lots of misses, so they are not cached anymore.
+    When comparing a small and a large cache, 
+    the cached functions take half of the time they take when there is a super small cache (2 calls).
+    So it seems that cacheing helps, but I haven't checked-checked, since I still have not
+    removed lru cache entirely.
