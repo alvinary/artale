@@ -191,6 +191,123 @@ left of (a : node, b : node), left of (b, a) => False
 
 '''
 
+cfg = '''
+
+sort S 1
+
+sort S.next in S
+
+sort S add void
+
+sort T 10
+
+sort T add start
+
+sort C 26
+
+var s, s1, s2, s3 : S
+
+var A, B, C : T
+
+var char : C
+
+-- Negation --
+
+before (s1, s2) v not before (s1, s2)
+
+before (s1, s2), not before (s1, s2) => False
+
+parses segment (A, s1, s2) v not parses segment (A, s1, s2)
+
+parses segment (A, s1, s2), not parses segment (A, s1, s2) => False
+
+parses terminal (A, c) v not parses terminal (A, c)
+
+parses terminal (A, c), not parses terminal (A, c) => False
+
+productions (A, B, C) v not productions (A, B, C)
+
+productions (A, B, C), not productions (A, B, C) => False
+
+substitute (A, B) v not substitute (A, B)
+
+substitute (A, B), not substitute (A, B) => False
+
+parses (A, s) v not parses (A, s)
+
+parses (A, s), not parses (A, s) => False
+
+-- Two preterminals parse together a string segment if
+   they parse contiguous parts --
+
+parses segment (B, s1, s2),
+parses segment (C, s2, s3) =>
+parse together (B, C, s1, s2)
+
+-- If there is a rule A -> B C, and B and C parse together a segment,
+   A parses that segment --
+
+productions (A, B, C), 
+parse together (B, C, s1, s2) =>
+parses segment (A, s1, s2),
+parses on (A, B, C, s1, s2),
+parses by prod (A, s1, s2)
+
+-- Parses must make sense --
+
+parses on (A, B, C, s1, s2), not parse together (B, C, s1, s2) => False
+
+parses on (A, B, C, s1, s2), not productions (A, B, C) => False
+
+parses with (A, B, s1, s2), not substitutions (A, B) => False
+
+-- If A -> B, and B parses a string, then A parses it too (This rule is not monotonic) --
+
+substitute (A, B),
+parses segment (B, s1, s2) =>
+parses segment (A, s1, s2),
+parses with (A, B, s1, s2)
+
+-- If a preterminal parses a character, it parses all symbols with that character --
+
+is (s, char), parses terminal (A, char) => parses segment (A, s, s.next)
+
+-- A preterminal cannot parse a string segment consisting of a single character if it does not parse that character --
+
+is (s, char), parses segment (A, s, s.next), not parses terminal (A, char) => False
+
+-- No string symbol "is" two different characters
+   (without this condition, you parse more general sequences) --
+
+is (s, c1), is (s, c2), c1 a != c2 => False
+
+-- If a symbol is empty, so is the next (by induction, from there
+   on the string is empty) --
+
+empty (s) => empty (s.next)
+
+-- The void string is empty --
+
+empty (void)
+
+-- Strings are ordered sequences --
+
+parses segment (A, s1, s2), before (s2, s1) => False
+
+-- parses --
+
+parses segment (A, s, void) => parses (A, s)
+
+parses segment (A, s1, s2), empty (s2) => parses (A, s1)
+
+-- ILP --
+
+not parses (start, p : pos) => False
+
+parses (start, n : neg) => False
+
+'''
+
 cfg_induction = '''
 
 sort pos 10
