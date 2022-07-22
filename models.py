@@ -1,5 +1,4 @@
 from collections import defaultdict
-from typing import List, Dict, Set
 from itertools import product
 from dataclasses import dataclass
 from copy import copy
@@ -176,7 +175,7 @@ class HornSolver:
         
         '''
 
-        assertion_clause = Clause(predicate_string, [])
+        assertion_clause = Clause(predicate_string, frozenset())
         self.update_maps([assertion_clause])
         dimacs_clause = self.dimacs(assertion_clause)
         self.solver.add_clause(dimacs_clause)
@@ -208,7 +207,7 @@ class HornSolver:
                     self.add_assertion(equality)
                     checked_assertions.add(equality)
 
-    @lru_cache(maxsize=512)
+    @lru_cache(maxsize=1024)
     def is_functional(self, term_string):
         '''
 
@@ -219,6 +218,7 @@ class HornSolver:
 
         return "." in term_string
 
+    @lru_cache(maxsize=1024)
     def dimacs(self, pure_clause):
         '''
 
@@ -242,6 +242,7 @@ class HornSolver:
 
         return dimacs_clause
 
+    @lru_cache(maxsize=1024)
     def disjunction_dimacs(self, pure_clause):
         '''
 
@@ -252,7 +253,7 @@ class HornSolver:
 
         return [self.literal_map[atom] for atom in pure_clause.body]
 
-    @lru_cache(maxsize=512)
+    @lru_cache(maxsize=1024)
     def evaluate(self, term_string):
         '''
 
@@ -287,6 +288,7 @@ class HornSolver:
 
         return " ".join(evaluated_terms)
 
+    @lru_cache(maxsize=1024)
     def evaluate_functions(self, clause):
         '''
 
@@ -296,13 +298,12 @@ class HornSolver:
 
         '''
 
-        function_free_clause = copy(clause)
-        function_free_clause.head = self.evaluate(function_free_clause.head)
-        function_free_clause.body = [
-            self.evaluate(atom) for atom in function_free_clause.body
-        ]
+        function_free_head = self.evaluate(clause.head)
+        function_free_body = frozenset([
+            self.evaluate(atom) for atom in clause.body
+        ])
 
-        return function_free_clause
+        return Clause(function_free_head, function_free_body)
 
     def update_maps(self, clauses):
         '''
@@ -521,29 +522,29 @@ def map_on(assignment, index_permutation):
 
 @dataclass
 class Relation:
-    parts: List[str]
+    parts: list[str]
 
     def as_string(self):
         return TERM_SEPARATOR.join([p.strip() for p in self.parts])
 
 
-@dataclass
+@dataclass(frozen=True)
 class Clause:
     head: str
-    body: List[str]
+    body: frozenset[str]
 
 
 @dataclass
 class Rule:
-    heads: List[Relation]
-    body: List[Relation]
-    sorts: List[str]
-    variables: List[str]
+    heads: list[Relation]
+    body: list[Relation]
+    sorts: list[str]
+    variables: list[str]
     solver: HornSolver
 
-    bindings: Dict[str, str]
+    bindings: dict[str, str]
 
-    flags: Set[str]
+    flags: set[str]
 
     def get_clauses(self, assignment):
 
@@ -570,10 +571,10 @@ class Rule:
         string_body = [r.as_string() for r in body]
 
         if string_heads:
-            return [Clause(h, string_body) for h in string_heads]
+            return [Clause(h, frozenset(string_body)) for h in string_heads]
 
         else:
-            return [Clause("", string_body)]
+            return [Clause("", frozenset(string_body))]
 
     def rebind(self, assignment):
         for variable, value in zip(self.variables, assignment):
