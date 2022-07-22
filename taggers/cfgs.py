@@ -1,8 +1,11 @@
 from itertools import product
+from collections import defaultdict
+
+# I should place these imports in 'common'
 
 from artale.models import HornSolver
 from artale.parser import read_into
-from artale.specs import cfg, trees
+from artale.specs import cubic_cfgs as cfg
 
 STRINGS = "S"
 RULES = "rule"
@@ -11,7 +14,7 @@ CHARS = "C"
 NEXT = "next"
 POSITIVE = "pos"
 NEGATIVE = "neg"
-VOID = "void"
+EMPTY = "empty"
 NODES = "node"
 
 NUMBER_OF_PRETERMINALS = 6
@@ -74,8 +77,8 @@ def instancify(string, name, solver):
         remainder = len(string) - i
         before_assertions = [f"before {new_string} {name}:{i+k}" for k in range(0, remainder)]
         after_assertions = [f"not before {name}:{i+k} {new_string}" for k in range(1, i)]
-        before_assertions.append(f"before {new_string} void")
-        after_assertions.append(f"not before void {new_string}")
+        before_assertions.append(f"before {new_string} {EMPTY}")
+        after_assertions.append(f"not before {EMPTY} {new_string}")
         
         solver.add_assertion(char_assertion)
         for b in before_assertions:
@@ -88,7 +91,7 @@ def instancify(string, name, solver):
             next_string = f"{name}:{i+2}"
             solver.value_map[NEXT, new_string] = next_string
         elif i == next_to_last:
-            solver.value_map[NEXT, new_string] = VOID
+            solver.value_map[NEXT, new_string] = EMPTY
     
     for c in chars:
         if c not in solver.sorts[CHARS]:
@@ -101,7 +104,6 @@ def make_instance(pos, neg):
     solver = HornSolver()
     solver.verbose = True
     read_into(cfg, solver)
-    read_into(trees, solver)
     solver.fill_sort("T", NUMBER_OF_PRETERMINALS)
     solver.add_element(PRETERMINALS, "start")
     
@@ -128,9 +130,7 @@ def make_instance(pos, neg):
 
     for i, string in enumerate(pos):
         positive_example = f"p{i}"
-        tree_size = len(string) - 1
         new_constants = instancify(string, positive_example, solver)
-        new_constants |= make_tree(tree_size, positive_example, solver)
         local_sorts[positive_example] = new_constants
         first_char = f"{positive_example}:1"
         solver.add_element(POSITIVE, first_char)
@@ -139,7 +139,6 @@ def make_instance(pos, neg):
         negative_example = f"n{i}"
         tree_size = len(string) - 1
         new_constants = instancify(string, negative_example, solver)
-        new_constants |= make_tree(tree_size, negative_example, solver)
         local_sorts[negative_example] = new_constants
         first_char = f"{negative_example}:1"
         solver.add_element(NEGATIVE, first_char)
@@ -185,17 +184,39 @@ def show_grammar(model_text):
     facts = model_text.split(", ")
     productions = []
     for f in facts:
-        if "productions" in f or "substitution" in f:
+        if "production" in f or "substitution" in f:
             productions.append(f.split()[1:])
     productions = [prettify(p) for p in productions]
     return productions
     
-def show_parse(model_text):
-    pass
+def show_parse(model_text, string):
+    
+    facts = model_text.split(", ")
+    
+    parses_on = [f for f in facts if "segment"]
+    
+    parses = [f.split()[1:] for f in parses_on]
+    
+    strings = set([f[3] for f in parses])
+    strings |= set([f[4] for f in parses])
+    strings = sorted(list(strings))
+    
+    segments = defaultdict(lambda: list())
+    for i in range(len(strings)):
+        for j in range(i+1, len(strings)):
+            segments[j - i].append((strings[i], string[j]))
+            
+    for segment in segments:
+        pass
+
+    parse_lines = []
+    
+    return parse
         
-["(a+((c+b)+(a +((c+a)+b)))", "a+((b+c)+b)"]
+
+["(a+((c+b)+(a +((c+a)+b)))", "a+((b+c)+b)", "((a+)c(", "(a)+(b+)+(c+c)", "((a+a)+b)+c"]
         
-paren_pos = ["(a+b)+b", "(a+(b+c))", "((a+a)+b)+c"]
-paren_neg = ["(a+b+c)", "(a)+)b", "((a+)c(", "(a)+(b+)+(c+c)"]
+paren_pos = ["(a+b)+b", "(a+(b+c))"]
+paren_neg = ["(a+b+c)", "(a)+)b"]
 result = make_instance(paren_pos, paren_neg)
-print(show_grammar(result))
+print("\n".join(show_grammar(result)))
