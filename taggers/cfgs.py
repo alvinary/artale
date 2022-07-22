@@ -208,10 +208,13 @@ def show_parses(model_text, name, string):
     
     facts = model_text.split(", ")
     
-    parses_on = [f for f in facts if "parse segment" in f and name in f]
-    parses_by = [f for f in facts if "parses by"]
+    parse_prefix = "parses segment"
+    prefix_length = len(parse_prefix).split()
     
-    parses = [f.split()[2:] for f in parses_on]
+    parses_on = [f for f in facts if parse_prefix in f and name in f]
+    
+    parses = [f.split()[prefix_length:] for f in parses_on]
+    print(parses)
     
     strings = set([f[1] for f in parses])
     strings |= set([f[2] for f in parses])
