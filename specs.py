@@ -325,6 +325,32 @@ parses segment (start, n : neg, void) => False
 # Exclusions:
 
 '''
+Las producciones de un terminal pueden ser un subconjunto estricto de las producciones
+de otro e igual no ser el mismo - por eso las sustituciones sii son importantes
+
+ej
+
+S -> T S
+S -> S T
+S -> S
+S -> T
+S -> t
+T -> T
+T -> t
+
+(un arbolito con fibras largas de T y un solo filamento largo de S que a veces se ramifica en T para los costados)
+(En strings eso no tiene sentido obvio, a menos que hagas tT y tT, pero en otras cosas si, como en una description
+logic. Es <=)
+'''
+
+'''
+
+parses segment (A, s1, s2),
+not parses by productions (A, s1, s2), 
+not parses by terminal (A, s1, s2),
+not parses by substitution (A, s1, s2) =>
+
+------------------------------------------------------------------------
 
 left (a, b), terminal (a, A), terminal (b, B) => left terminal (a, B)
 
@@ -359,5 +385,341 @@ parses by sub (A, s1, s2), not parses by (A, any : B, s1, s2) => False
    <R,S> => <P,Q>
    not P and not Q and <P,Q> => False
    not S and not R and <R,S> => False --
+
+'''
+
+cubic_cfgs = '''
+
+--
+
+  This program specifies rules for parsing strings
+  with context free grammars.
+  
+  For the sake of simplicity (and without loss of
+  generality), we assume sets of productions can 
+  contain only one rule with two symbols on the
+  right hand side for each symbol.
+  
+  We say this is with no loss of generality because
+  any grammar can be made into an equivalent grammar
+  that meets this constraint.
+  
+  For instance,
+  
+  A -> B C
+  A -> B D
+  A -> E A
+  
+  becomes simply
+  
+  A -> A1
+  A -> A2
+  A -> A3
+  
+  A1 -> B C
+  A2 -> B D
+  A3 -> E A.
+  
+  Strings are represented as totally ordered sets
+  of symbols, equipped with a 'next' function, whose
+  last element is the distinguished constant 'empty'.
+  
+  Each symbol has a character
+  
+  The string 'wave' thus becomes
+  
+  w  a  v  e \
+  s1 s2 s3 s4 empty
+  
+  and is characterized by the (long and tedious) 
+  formula shown below:
+  
+  s1.next = s2,
+  s2.next = s3,
+  s3.next = s4,
+  s4.next = empty,
+  
+  character s1 w,
+  character s2 a,
+  character s3 v,
+  character s4 e,
+  
+  before s1 s1,
+  before s1 s2,
+  before s1 s3,
+  before s2 s2,
+  before s2 s3,
+  before s2 s4,
+  before s3 s3,
+  before s3 s4, 
+  before s4 s4.
+  
+  Rules with binary RHSs (A -> B C) will are 
+  represented by the predicate 
+  
+  expansions A B C,
+  
+  and rules with unary RHSs (A -> B) are
+  
+  substitutions A B.
+  
+  To establish that a given preterminal parses the
+  substring from s1 to s2, we write
+  
+  segment A s1 s2.
+  
+  If a preterminal parses a string segment reaching
+  the end of the string, we write
+  
+  parses A s.
+  
+  If a preterminal can parse any symbol whose
+  character is c (the rule A -> c is in the
+  grammar), we will write
+  
+  terminal A c
+  
+  In order to make sure each model contains only
+  one parse, and that the parse structure makes
+  sense, we will ensure certain constraints are
+  met:
+  
+  (0) Blank symbols do not have a character,
+      and their next character is blank too.
+      
+      Additionally, the special constant 'empty'
+      is blank.
+      
+      Symbols cannot 'be' two distinct characters.
+      
+      
+   ** 
+      
+      What about 'every non-blank symbol
+      must have a character'? 
+      
+   **
+  
+--
+
+  blank (empty)
+  
+  blank (s) =>
+  blank (s.next)
+  
+  character (s, c),
+  blank (s) =>
+  False
+  
+  character (s, c1),
+  character (s, c2),
+  c1 != s2 =>
+  False 
+  
+-- 
+  
+  (2) No preterminal parses a string from right
+      to left (strings segments are parsed 'left
+      to right')
+  
+--
+
+segment (A, s1, s2),
+before (s2, s1) =>
+False
+
+--
+
+  (3) If a terminal parses a character, it parses
+      all symbols having that character.
+      
+      No character can be parsed by two different
+      terminal symbols.
+      
+  We can safely assume this because
+      
+  T -> a T
+  W -> a W
+      
+  can be made into
+      
+  T -> A T
+  W -> A W
+  A -> a,
+      
+  regardless of how different the languages
+  described by T and W are.
+
+--
+
+  terminal (A, c),
+  character (s, c) =>
+  segment (A, s, s.next)
+  
+  terminal (A, c),
+  terminal (B, c),
+  A != B =>
+  False
+  
+  not terminal (A, c),
+  character (s, c) =>
+  not segment (A, s, s.next)
+
+--
+
+  (4) If B parses the segment from s1 to s2, and
+      C parses the segment from s2 to s3, we will
+      say they parse together s1 to s3.
+       
+      Two preterminals can only parse a segment
+      if there is some production Of which they
+      are the left and right parts.
+      
+  Even though we could just 'leave all partial parses
+  there', superimposing one to another, having a single
+  complete parse in each model will make them more
+  readable and help with visualization.
+  
+--
+
+  segment (A, s1, s2),
+  segment (B, s2, s3) =>
+  together (A, B, s1, s3)
+
+
+  together (B, C, s1, s2),
+  not productions (A, B, C) =>
+  False
+  
+--
+  
+  Note these rules make sense only because there is
+  a single 'binary' rule per preterminal.
+  
+  Otherwise, we would have to ensure there are
+  no valid parses for A from s1 to s2 for some
+  other reason, which would require us to mix
+  negation, existential quantification and
+  disjunctions in less simple ways.
+  
+  (5) If A -> B C, and B and C parse together s1 to s2,
+      A parses s1 to s2
+  
+--
+  
+  productions (A, B, C),
+  together (B, C, s1, s2) =>
+  segment (A, s1, s2)
+  parse on (A, B, C, s1, s2)
+  
+--
+  
+  (6) A terminal cannot parse a string segment
+      by replacing it with another if there
+      is no rule allowing it, and in a given
+      parse you cannot substitute a symbol
+      with two other symbols simultaneously.
+  
+--
+
+  not substitutions (A, B),
+  parse with (A, B, s1, s2) =>
+  False
+  
+  parse with (A, B, s1, s2),
+  parse with (A, C, s1, s2),
+  B != C =>
+  False
+
+--
+  
+  (7) A terminal can only parse a segment by
+      productions, by substitutions, or by
+      parsing it as a terminal.
+      
+  The rule 
+      
+        by terminal (A, s, s.next),
+        not segment (A, s, s.next) =>
+        False
+        
+  makes sense because of another rule above,
+      
+      not terminal (A, c),
+      character (s, c) =>
+      not segment (A, s, s.next)
+
+--
+
+  terminal (A, c),
+  character (s, c) =>
+  by terminal (A, s, s.next)
+  
+  by terminal (A, s, s.next),
+  not segment (A, s, s.next) =>
+  False
+  
+  by terminal (A, s1, s2),
+  s2 != s1.next =>
+  False
+
+  parse with (A, B, s1, s2) =>
+  parse by substitution (A, s1, s2)
+  
+  by substitution (A, s1, s2),
+  not parse with (A, any : B, s1, s2) =>
+  False
+  
+  parse on (A, B, C, s1, s2) =>
+  by production (A, s1, s2)
+  
+  not parse on (A, B, C, s1, s2)
+  by production (A, s1, s2) => False
+
+  segment (A, s1, s2),
+  not by terminal (A, s1, s2),
+  not by productions (A, s1, s2),
+  not by substitution (A, s1, s2) =>
+  False
+
+--
+
+  (8) A preterminal that parses a segment with a
+      blank end parses the whole suffix.
+
+--
+
+  segment (A, s1, s2),
+  blank (s2) =>
+  parses (A, s1)
+
+  segment (A, s1, s2),
+  parse (B, s2) =>
+  together (A, B, s1)
+
+--
+
+   (9) Before is a total order, and each character
+       is before the next (s is before s.next, and
+       there are no characters between s and s.next)
+   
+--
+
+before (s, s)
+
+before (s1, s2),
+before (s2, s1) =>
+False
+
+before (s1, s2),
+before (s2, s3) =>
+before (s1, s3)
+
+before (s, s.next)
+
+before (s1, s2),
+before (s2, s1.next),
+s2 != s1 =>
+False
 
 '''
