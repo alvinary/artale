@@ -17,7 +17,7 @@ NEGATIVE = "neg"
 EMPTY = "empty"
 NODES = "node"
 
-NUMBER_OF_PRETERMINALS = 6
+NUMBER_OF_PRETERMINALS = 8
 
 # Define artale.n_models(n, rels=[], program)
 
@@ -175,6 +175,15 @@ def make_instance(pos, neg):
         return model
     else:
         print("Hmhhh, something went wrong")
+        print("Assertions in unsatisfiable core: ")
+        solver.solver.solve()
+        core = solver.solver.get_core()
+        print(core)
+        for a in core:
+            if a < 0:
+                print("not" "solver.reverse_literal_map[abs(a)]")
+            if a > 0:
+                print("not" "solver.reverse_literal_map[a]")
         return ""
         
 def prettify(rule):
@@ -214,8 +223,12 @@ def show_parse(model_text, string):
     return parse
         
 
-["(a+((c+b)+(a +((c+a)+b)))", "a+((b+c)+b)", "((a+)c(", "(a)+(b+)+(c+c)", "((a+a)+b)+c"]
-        
+["((a+a)+b)+c"]
+
+["(a+((c+b)+(a +((c+a)+b)))", "(a+(b+c))", "a+((b+c)+b)"]
+
+["((a+)c(", "(a)+(b+)+(c+c)"]
+
 paren_pos = ["(a+b)+b", "(a+(b+c))"]
 paren_neg = ["(a+b+c)", "(a)+)b"]
 result = make_instance(paren_pos, paren_neg)
