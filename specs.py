@@ -260,7 +260,7 @@ is (s, char), parses terminal (A, char) => parses segment (A, s, s.next)
 
 is (s, char), parses segment (A, s, s.next), not parses terminal (A, char) => False
 
-is (s, c1), is (s, c2), c1 a != c2 => False
+is (s, c1), is (s, c2), c1 != c2 => False
 
 empty (s) => empty (s.next)
 
@@ -275,6 +275,8 @@ parses segment (A, s1, s2), empty (s2) => parses (A, s1)
 not parses (start, p : pos) => False
 
 parses (start, n : neg) => False
+
+parses (A, s1, s3), parses (B, s2, s3), A != B, before (s1, s2), s1 != s2 => False
 
 '''
 
@@ -416,7 +418,6 @@ not segment (A, s, s.next)
 segment (A, s1, s2),
 segment (B, s2, s3) =>
 together (A, B, s1, s3)
-
 
 together (B, C, s1, s2),
 not productions (A, B, C) =>
