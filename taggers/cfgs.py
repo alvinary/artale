@@ -5,7 +5,7 @@ from collections import defaultdict
 
 from artale.models import HornSolver
 from artale.parser import read_into
-from artale.specs import cubic_cfgs as cfg
+from artale.specs import cfg
 
 STRINGS = "S"
 RULES = "rule"
