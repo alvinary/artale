@@ -17,7 +17,7 @@ NEGATIVE = "neg"
 EMPTY = "empty"
 NODES = "node"
 
-NUMBER_OF_PRETERMINALS = 4
+NUMBER_OF_PRETERMINALS = 3
 
 # Define artale.n_models(n, rels=[], program)
 
@@ -209,12 +209,11 @@ def show_parses(model_text, name, string):
     facts = model_text.split(", ")
     
     parse_prefix = "parses segment"
-    prefix_length = len(parse_prefix).split()
+    prefix_length = len(parse_prefix.split())
     
     parses_on = [f for f in facts if parse_prefix in f and name in f]
     
     parses = [f.split()[prefix_length:] for f in parses_on]
-    print(parses)
     
     strings = set([f[1] for f in parses])
     strings |= set([f[2] for f in parses])
@@ -227,37 +226,36 @@ def show_parses(model_text, name, string):
     for A, s1, s2 in parses:
         i = get_int(s1) - 1
         j = get_int(s2) - 1
-        print("key: ", i, j)
         who_parses[i, j] = A
-        
-    for k, v in who_parses:
-        print("who:", k, v, who_parses[k, v])
     
     segments = defaultdict(lambda: list())
     for i in range(len(strings)):
         for j in range(i+1, len(strings)):
-            print(i, j)
             segments[j - i].append((i, j))
             
     parse_table = []
+    
+    segment_sizes = sorted(segments.keys())
+    segment_sizes = [s for s in segment_sizes if s > 0]
             
-    for size in sorted(segments.keys()):
-        print("SIZE: ", size)
+    for size in segment_sizes:
+        
         row = [' ' for s in string]
-        print(row)
         used_segments = [(i, j) for (i, j) in segments[size] if (i, j) in who_parses]
-        print("segments: ", used_segments)
+        
         for i, j in used_segments:
+            
             line_length = j - i
             terminal = who_parses[i, j]
+            
             if len(terminal) > 2:
                 terminal = "S"
+            
             line = terminal
+            
             for k, c in enumerate(line):
-                print("line, i, k: ", line, i, k)
-                print("row length: ", len(row))
-                print(i + k)
                 row[i+k] = c
+                
         parse_table = parse_table + [''.join(row)]
         
     parse = "\n".join(parse_table) + "\n" + string
