@@ -17,7 +17,7 @@ NEGATIVE = "neg"
 EMPTY = "empty"
 NODES = "node"
 
-NUMBER_OF_PRETERMINALS = 8
+NUMBER_OF_PRETERMINALS = 4
 
 # Define artale.n_models(n, rels=[], program)
 
@@ -73,12 +73,13 @@ def instancify(string, name, solver):
         name = string
     for i, c in enumerate(string):
     
+        new_string = f"{name}:{i+1}"
+    
         before = lambda k : f"before {new_string} {name}:{k + 1}"
         not_before = lambda k : f"not before {name}:{k + 1} {new_string}"
         before_empty = f"before {new_string} {EMPTY}"
         empty_not_before = f"not before {EMPTY} {new_string}"
     
-        new_string = f"{name}:{i+1}"
         char_assertion = f"is {new_string} {c}"
         before_assertions = [before(k) for k in range(i, len(string))]
         after_assertions = [not_before(k) for k in range(i)]
@@ -169,7 +170,7 @@ def make_instance(pos, neg):
             
     solver.unfold_una()
     
-    print("Unfolded instance, showing clauses...")
+    print("Unfolded instance, solving...")
     
     sat, model = solver.get_model()
     
@@ -179,7 +180,7 @@ def make_instance(pos, neg):
         print(model)
         return model
     else:
-        print("Hmhhh, something went wrong")
+        print("Hmhhh, something went wrong. This instance is not satisfiable")
         print("Assertions in unsatisfiable core: ")
         solver.solver.solve()
         core = solver.solver.get_core()
@@ -203,38 +204,72 @@ def show_grammar(model_text):
     productions = [prettify(p) for p in productions]
     return productions
     
-def show_parse(model_text, string):
+def show_parses(model_text, name, string):
     
     facts = model_text.split(", ")
     
-    parses_on = [f for f in facts if "segment"]
+    parses_on = [f for f in facts if "parse segment" in f and name in f]
+    parses_by = [f for f in facts if "parses by"]
     
-    parses = [f.split()[1:] for f in parses_on]
+    parses = [f.split()[2:] for f in parses_on]
     
-    strings = set([f[3] for f in parses])
-    strings |= set([f[4] for f in parses])
+    strings = set([f[1] for f in parses])
+    strings |= set([f[2] for f in parses])
     strings = sorted(list(strings))
+    
+    who_parses = {}
+    
+    get_int = lambda s: int(''.join([t for t in s if t in '1234567890'][1:]))
+    
+    for A, s1, s2 in parses:
+        i = get_int(s1) - 1
+        j = get_int(s2) - 1
+        print("key: ", i, j)
+        who_parses[i, j] = A
+        
+    for k, v in who_parses:
+        print("who:", k, v, who_parses[k, v])
     
     segments = defaultdict(lambda: list())
     for i in range(len(strings)):
         for j in range(i+1, len(strings)):
-            segments[j - i].append((strings[i], string[j]))
+            print(i, j)
+            segments[j - i].append((i, j))
             
-    for segment in segments:
-        pass
+    parse_table = []
+            
+    for size in sorted(segments.keys()):
+        print("SIZE: ", size)
+        row = [' ' for s in string]
+        print(row)
+        used_segments = [(i, j) for (i, j) in segments[size] if (i, j) in who_parses]
+        print("segments: ", used_segments)
+        for i, j in used_segments:
+            line_length = j - i
+            terminal = who_parses[i, j]
+            if len(terminal) > 2:
+                terminal = "S"
+            line = terminal
+            for k, c in enumerate(line):
+                print("line, i, k: ", line, i, k)
+                print("row length: ", len(row))
+                print(i + k)
+                row[i+k] = c
+        parse_table = parse_table + [''.join(row)]
+        
+    parse = "\n".join(parse_table) + "\n" + string
 
-    parse_lines = []
-    
     return parse
         
 
 ["((a+a)+b)+c"]
 
-["(a+((c+b)+(a +((c+a)+b)))", "(a+(b+c))", "a+((b+c)+b)"]
+["(a+((c+b)+(a +((c+a)+b)))", "(a+(b+c))", "a+((b+c)+b)", "(a+(b+c))",]
 
-["((a+)c(", "(a)+(b+)+(c+c)"]
+["((a+)c(", "(a)+(b+)+(c+c)", "(a)+)b"]
 
-paren_pos = ["(a+b)+b", "(a+(b+c))"]
-paren_neg = ["(a+b+c)", "(a)+)b"]
+paren_pos = ["(a+a)+a", "(a+(a+a))", "a+((a+a)+a)"]
+paren_neg = ["(a+a+a)", "(a)+)a", "(a)+(a+)+(a+a)"]
 result = make_instance(paren_pos, paren_neg)
 print("\n".join(show_grammar(result)))
+print(show_parses(result, "p1", "(a+(b+c))"))
