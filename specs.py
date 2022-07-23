@@ -197,175 +197,6 @@ sort S 1
 
 sort S.next in S
 
-sort S add void
-
-sort T 10
-
-sort T add start
-
-sort C 26
-
-var s, s1, s2, s3 : S
-
-var A, B, C : T
-
-var char : C
-
-before (s1, s2) v not before (s1, s2)
-
-before (s1, s2), not before (s1, s2) => False
-
-parses segment (A, s1, s2) v not parses segment (A, s1, s2)
-
-parses segment (A, s1, s2), not parses segment (A, s1, s2) => False
-
-parses terminal (A, c) v not parses terminal (A, c)
-
-parses terminal (A, c), not parses terminal (A, c) => False
-
-productions (A, B, C) v not productions (A, B, C)
-
-productions (A, B, C), not productions (A, B, C) => False
-
-substitute (A, B) v not substitute (A, B)
-
-substitute (A, B), not substitute (A, B) => False
-
-parses (A, s) v not parses (A, s)
-
-parses (A, s), not parses (A, s) => False
-
-parses segment (B, s1, s2),
-parses segment (C, s2, s3) =>
-parse together (B, C, s1, s2)
-
-productions (A, B, C), 
-parse together (B, C, s1, s2) =>
-parses segment (A, s1, s2),
-parses on (A, B, C, s1, s2),
-parses by prod (A, s1, s2)
-
-parses on (A, B, C, s1, s2), not parse together (B, C, s1, s2) => False
-
-parses on (A, B, C, s1, s2), not productions (A, B, C) => False
-
-parses with (A, B, s1, s2), not substitutions (A, B) => False
-
-substitute (A, B),
-parses segment (B, s1, s2) =>
-parses segment (A, s1, s2),
-parses with (A, B, s1, s2)
-
-is (s, char), parses terminal (A, char) => parses segment (A, s, s.next)
-
-is (s, char), parses segment (A, s, s.next), not parses terminal (A, char) => False
-
-is (s, c1), is (s, c2), c1 != c2 => False
-
-empty (s) => empty (s.next)
-
-empty (void)
-
-parses segment (A, s1, s2), before (s2, s1) => False
-
-parses segment (A, s, void) => parses (A, s)
-
-parses segment (A, s1, s2), empty (s2) => parses (A, s1)
-
-not parses (start, p : pos) => False
-
-parses (start, n : neg) => False
-
-parses (A, s1, s3), parses (B, s2, s3), A != B, before (s1, s2), s1 != s2 => False
-
-'''
-
-cfg_induction = '''
-
-sort pos 10
-
-sort neg 10
-
--- The start symbol must parse all positive examples, and no negative examples --
-
-not parses segment (start, p : pos, void) => False
-
-parses segment (start, n : neg, void) => False
-
-'''
-
-# Exclusions:
-
-'''
-Las producciones de un terminal pueden ser un subconjunto estricto de las producciones
-de otro e igual no ser el mismo - por eso las sustituciones sii son importantes
-
-ej
-
-S -> T S
-S -> S T
-S -> S
-S -> T
-S -> t
-T -> T
-T -> t
-
-(un arbolito con fibras largas de T y un solo filamento largo de S que a veces se ramifica en T para los costados)
-(En strings eso no tiene sentido obvio, a menos que hagas tT y tT, pero en otras cosas si, como en una description
-logic. Es <=)
-'''
-
-'''
-
-parses segment (A, s1, s2),
-not parses by productions (A, s1, s2), 
-not parses by terminal (A, s1, s2),
-not parses by substitution (A, s1, s2) =>
-
-------------------------------------------------------------------------
-
-left (a, b), terminal (a, A), terminal (b, B) => left terminal (a, B)
-
-right (a, c), terminal (a, A), terminal (c, C) => right terminal (a, C)
-
-terminal (a, A),
-left terminal (a, B),
-right terminal (a, C),
-not productions (A, B, C) => False
-
-parses segment (A, s1, s2),
-not parses by sub (A, s1, s2),
-not parses by prod (A, s1, s2) => False
-
-parses segment (B, s1, s2), not substitutions (A, B, s1, s2) => not parses by (A, B, s1, s2)
- 
-parses by sub (A, s1, s2), not parses by (A, any : B, s1, s2) => False
-
-
--- parses left on, parses right on, etc --
-
--- A preterminal A cannot possibly have parsed a string segment
- if it hasn't parsed it by substitution (By some rule A -> B)
- or by productions (by some rule A -> B C)
- 
- These rules are awkward, but equivalence is harder to express
- than implication without <=>: TODO, embed <=>
- 
- P v Q <=> R v S is
- 
- <P,Q> => <R,S>
- <R,S> => <P,Q>
- not P and not Q and <P,Q> => False
- not S and not R and <R,S> => False --
-
-'''
-
-cubic_cfgs = '''
-
-sort S 1
-
-sort S.next in S
-
 sort S add empty
 
 sort T 10
@@ -384,7 +215,43 @@ var A, B, C : T
 
 var c, c1, c2 : C
 
-blank (empty)
+blank (s) v not blank (s)
+
+blank (s), not blank (s) => False
+
+terminal (A, c) v not terminal (A, c)
+
+terminal (A, c), not terminal (A, c) => False
+
+substitutions (A, B) v not substitutions (A, B)
+
+substitutions (A, B), not substitutions (A, B) => False
+
+segment (A, s1, s2) v not segment (A, s1, s2)
+
+segment (A, s1, s2), not segment (A, s1, s2) => False
+
+productions (A, B, C) v not productions (A, B, C)
+
+productions (A, B, C), not productions (A, B, C) => False
+
+parses (A, s) v parses (A, s)
+
+parses (A, s), not parses (A, s) => False
+
+by terminal (A, s1, s2) v not by terminal (A, s1, s2)
+
+by terminal (A, s1, s2), not by terminal (A, s1, s2) => False
+
+by production (A, s1, s2) v not by production (A, s1, s2)
+
+by production (A, s1, s2), not by production (A, s1, s2) => False
+
+by substitution (A, s1, s2) v not by substitution (A, s1, s2)
+
+by substitution (A, s1, s2), not by substitution (A, s1, s2) => False
+
+not blank (empty) => False
 
 blank (s) =>
 blank (s.next)
@@ -412,15 +279,16 @@ A != B =>
 False
 
 not terminal (A, c),
-character (s, c) =>
-not segment (A, s, s.next)
+character (s, c),
+segment (A, s, s.next) => False
 
 segment (A, s1, s2),
 segment (B, s2, s3) =>
 together (A, B, s1, s3)
 
 together (B, C, s1, s2),
-not productions (A, B, C) =>
+not productions (A, B, C),
+not segment (A, s1, s2) =>
 False
 
 productions (A, B, C),
@@ -429,8 +297,8 @@ segment (A, s1, s2)
 parse on (A, B, C, s1, s2)
 
 not substitutions (A, B),
-parse with (A, B, s1, s2) =>
-False
+segment (B, s1, s2) =>
+not parse with (A, B, s1, s2)
 
 parse with (A, B, s1, s2),
 parse with (A, C, s1, s2),
@@ -450,7 +318,7 @@ s2 != s1.next =>
 False
 
 parse with (A, B, s1, s2) =>
-parse by substitution (A, s1, s2)
+by substitution (A, s1, s2)
 
 by substitution (A, s1, s2),
 not parse with (A, any : T, s1, s2) =>
@@ -458,9 +326,6 @@ False
 
 parse on (A, B, C, s1, s2) =>
 by production (A, s1, s2)
-
-not parse on (A, B, C, s1, s2)
-by production (A, s1, s2) => False
 
 segment (A, s1, s2),
 not by terminal (A, s1, s2),
@@ -473,24 +338,9 @@ blank (s2) =>
 parses (A, s1)
 
 segment (A, s1, s2),
-parse (B, s2) =>
-together (A, B, s1)
+parses (B, s2) =>
+parses (A, s1)
 
-before (s, s)
+not segment (start, p : pos, void) => False
 
-before (s1, s2),
-before (s2, s1) =>
-False
-
-before (s1, s2),
-before (s2, s3) =>
-before (s1, s3)
-
-before (s, s.next)
-
-before (s1, s2),
-before (s2, s1.next),
-s2 != s1 =>
-False
-
-'''
+segment (start, n : neg, void) => False'''
