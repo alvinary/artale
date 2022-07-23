@@ -17,7 +17,7 @@ NEGATIVE = "neg"
 EMPTY = "empty"
 NODES = "node"
 
-NUMBER_OF_PRETERMINALS = 3
+NUMBER_OF_PRETERMINALS = 6
 
 # Define artale.n_models(n, rels=[], program)
 
@@ -199,16 +199,25 @@ def show_grammar(model_text):
     facts = model_text.split(", ")
     productions = []
     for f in facts:
-        if "production" in f or "substitution" in f:
+        if "productions" in f or "substitutions" in f:
             productions.append(f.split()[1:])
     productions = [prettify(p) for p in productions]
     return productions
+    
+def fill(s, t):
+    return s + ' ' * (len(t) - len(s))
+    
+def max_len(s, t):
+    if len(s) < len(t):
+        return t
+    else:
+        return s
     
 def show_parses(model_text, name, string):
     
     facts = model_text.split(", ")
     
-    parse_prefix = "parses segment"
+    parse_prefix = "segment"
     prefix_length = len(parse_prefix.split())
     
     parses_on = [f for f in facts if parse_prefix in f and name in f]
@@ -226,6 +235,7 @@ def show_parses(model_text, name, string):
     for A, s1, s2 in parses:
         i = get_int(s1) - 1
         j = get_int(s2) - 1
+        # assert ((i, j) not in who_parses.keys())
         who_parses[i, j] = A
     
     segments = defaultdict(lambda: list())
@@ -237,6 +247,8 @@ def show_parses(model_text, name, string):
     
     segment_sizes = sorted(segments.keys())
     segment_sizes = [s for s in segment_sizes if s > 0]
+    
+    max_terminal = ''
             
     for size in segment_sizes:
         
@@ -245,20 +257,21 @@ def show_parses(model_text, name, string):
         
         for i, j in used_segments:
             
-            line_length = j - i
             terminal = who_parses[i, j]
             
-            if len(terminal) > 2:
-                terminal = "S"
+            if terminal == 'start':
+                terminal = 'S'
             
-            line = terminal
+            max_terminal = max_len(max_terminal, terminal)
             
-            for k, c in enumerate(line):
-                row[i+k] = c
+            row[i] = terminal
                 
-        parse_table = parse_table + [''.join(row)]
+        parse_table = [row] + parse_table
         
-    parse = "\n".join(parse_table) + "\n" + string
+    parse_table = [[fill(s, max_terminal) for s in row] for row in parse_table]
+    parse_table = [''.join(row) for row in parse_table]
+    parse = "\n".join(parse_table)
+    parse = parse + "\n" + ''.join([fill(s, max_terminal) for s in string])
 
     return parse
         
